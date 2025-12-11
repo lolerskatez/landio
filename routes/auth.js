@@ -210,7 +210,7 @@ function is2FARequired(user, callback) {
           if (required && !twoFAEnabled) {
             // Check when 2FA enforcement was enabled
             global.db.get(
-              "SELECT created_at FROM settings WHERE user_id IS NULL AND key IN ('enforce-2fa-all-users', 'enforce-2fa-admins-only') AND value = 'true' ORDER BY created_at DESC LIMIT 1",
+              "SELECT updated_at FROM settings WHERE user_id IS NULL AND key IN ('enforce-2fa-all-users', 'enforce-2fa-admins-only') AND value = 'true' ORDER BY updated_at DESC LIMIT 1",
               (err, enforcementRow) => {
                 if (err) {
                   console.error('Error checking enforcement date:', err);

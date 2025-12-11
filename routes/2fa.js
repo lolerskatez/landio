@@ -373,27 +373,33 @@ router.get('/enforcement-status', authenticateToken, async (req, res) => {
         const queries = [
             `SELECT value FROM settings 
              WHERE key = 'enforce-2fa-all-users' AND user_id IS NULL 
-             ORDER BY created_at DESC LIMIT 1`,
+             ORDER BY updated_at DESC LIMIT 1`,
             `SELECT value FROM settings 
              WHERE key = 'enforce-2fa-admins-only' AND user_id IS NULL 
-             ORDER BY created_at DESC LIMIT 1`,
+             ORDER BY updated_at DESC LIMIT 1`,
             `SELECT value FROM settings 
              WHERE key = 'twofa-grace-period' AND user_id IS NULL 
-             ORDER BY created_at DESC LIMIT 1`
+             ORDER BY updated_at DESC LIMIT 1`
         ];
 
         // Execute all queries
         let enforce2faAllUsers = false;
-        let enforce2faAdminsOnly = true;
+        let enforce2faAdminsOnly = false;
         let twoFAGracePeriod = 7;
 
         let completedQueries = 0;
         const totalQueries = queries.length;
+        let hasError = false;
 
         queries.forEach((query, index) => {
             global.db.get(query, (err, row) => {
+                // Only process if we haven't already sent an error response
+                if (hasError) return;
+
                 if (err) {
-                    return res.status(500).json({ error: 'Database error' });
+                    console.error(`2FA enforcement query ${index} error:`, err);
+                    hasError = true;
+                    return res.status(500).json({ error: 'Database error', details: err.message });
                 }
 
                 // Set the value based on which query this is
@@ -427,8 +433,13 @@ router.get('/enforcement-status', authenticateToken, async (req, res) => {
                 `SELECT COUNT(*) as count FROM settings 
                  WHERE key = 'twoFactorEnabled' AND value = 'true' AND user_id IS NOT NULL`,
                 (err, row) => {
+                    // Check if error occurred and prevent multiple responses
+                    if (hasError) return;
+
                     if (err) {
-                        return res.status(500).json({ error: 'Database error' });
+                        console.error('2FA count query error:', err);
+                        hasError = true;
+                        return res.status(500).json({ error: 'Database error', details: err.message });
                     }
 
                     const usersWithTFA = row ? row.count : 0;

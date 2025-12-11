@@ -60,7 +60,13 @@ class ThemeManager {
                 
                 // Update localStorage with server values
                 this.syncToLocalStorage();
-                this.applyTheme();
+                
+                // Apply theme if body is ready, otherwise wait for DOMContentLoaded
+                if (document.body) {
+                    this.applyTheme();
+                } else {
+                    document.addEventListener('DOMContentLoaded', () => this.applyTheme());
+                }
             }
         } catch (error) {
             // Server not available or user not logged in, use localStorage
@@ -224,24 +230,29 @@ class ThemeManager {
                 return;
             }
 
+            // Build payload with the current values
+            // Always send isDarkMode since it's a boolean and has a definite value
+            const payload = {
+                isDarkMode: this.isDarkMode,
+                theme: this.theme,
+                fontSize: this.fontSize,
+                highContrast: this.highContrast,
+                reduceMotion: this.reduceMotion,
+                animations: this.animations
+            };
+
             const response = await fetch('/api/settings/theme/preferences', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${authToken}`
                 },
-                body: JSON.stringify({
-                    isDarkMode: this.isDarkMode,
-                    theme: this.theme,
-                    fontSize: this.fontSize,
-                    highContrast: this.highContrast,
-                    reduceMotion: this.reduceMotion,
-                    animations: this.animations
-                })
+                body: JSON.stringify(payload)
             });
 
             if (!response.ok) {
-                throw new Error(`Server returned ${response.status}`);
+                const errorData = await response.json();
+                throw new Error(errorData.error || `Server returned ${response.status}`);
             }
         } catch (error) {
             console.debug('Theme save to server failed:', error);
