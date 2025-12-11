@@ -28,8 +28,23 @@
         }
         
         /* ============================================ */
-        /* THEME SYSTEM - 2 Themes */
+        /* THEME SYSTEM - 3 Themes */
         /* ============================================ */
+
+        /* THEME 0: Original Pastel (Default) */
+        body.theme-pastel {
+            --primary: #ff6b93;
+            --secondary: #a6d8ff;
+            --accent: #ffccd5;
+            --text: #5a5a5a;
+            --light-bg: #fff9fb;
+            --dark: #4a4a4a;
+            background: linear-gradient(135deg, #ffd1dc, #c9e9ff);
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
         
         /* THEME 1: Cyber Sakura */
         body.theme-cyber {
@@ -76,6 +91,7 @@
         /* ============================================ */
 
         /* Applied to active themes */
+        body.theme-pastel,
         body.theme-cyber,
         body.theme-sunset {
             color: var(--text-primary);
@@ -2079,6 +2095,7 @@
                             </p>
                             <div class="form-group">
                                 <select id="theme">
+                                    <option value="pastel">🎨 Original Pastel (Default)</option>
                                     <option value="cyber">🌸 Sakura (Neon Pink)</option>
                                     <option value="sunset">🌅 Sunset Gradient</option>
                                 </select>

@@ -21,52 +21,75 @@ const authenticateToken = (req, res, next) => {
       return res.status(403).json({ error: 'Invalid or expired token' });
     }
 
-    // Check IP whitelist if enabled
+    // CRITICAL: Verify user still exists in database
+    // This prevents orphaned tokens from being used after user deletion/redeployment
     global.db.get(
-      'SELECT value FROM settings WHERE key = ? AND user_id IS NULL',
-      ['ip-whitelist'],
-      (err, row) => {
-        const ipWhitelistEnabled = row && row.value === 'true';
+      'SELECT id, email, role, is_active FROM users WHERE id = ?',
+      [user.id],
+      (err, dbUser) => {
+        if (err) {
+          console.error('Database error during token validation:', err);
+          return res.status(500).json({ error: 'Internal server error' });
+        }
 
-        if (ipWhitelistEnabled) {
-          global.db.get(
-            'SELECT value FROM settings WHERE key = ? AND user_id IS NULL',
-            ['allowed-ips'],
-            (err, ipsRow) => {
-              if (!ipsRow) {
-                // No IPs configured, allow all
-                req.user = user;
-                return next();
-              }
+        if (!dbUser) {
+          console.warn(`Token validation failed: user ${user.id} not found in database`);
+          return res.status(403).json({ error: 'User not found or has been deleted' });
+        }
 
-              const allowedIPs = ipsRow.value.split(',').map(ip => ip.trim());
-              const clientIP = req.ip || req.connection.remoteAddress;
+        if (!dbUser.is_active) {
+          console.warn(`Token validation failed: user ${user.id} is disabled`);
+          return res.status(403).json({ error: 'User account is disabled' });
+        }
 
-              // Check if IP matches or is in CIDR range
-              const ipMatches = allowedIPs.some(allowedIP => {
-                // Simple check: exact match or CIDR parsing
-                if (allowedIP.includes('/')) {
-                  // CIDR notation - simplified check
-                  const [network, bits] = allowedIP.split('/');
-                  // For production, use ipaddr.js or similar library
-                  return clientIP.includes(network.split('.').slice(0, 3).join('.'));
+        // Check IP whitelist if enabled
+        global.db.get(
+          'SELECT value FROM settings WHERE key = ? AND user_id IS NULL',
+          ['ip-whitelist'],
+          (err, row) => {
+            const ipWhitelistEnabled = row && row.value === 'true';
+
+            if (ipWhitelistEnabled) {
+              global.db.get(
+                'SELECT value FROM settings WHERE key = ? AND user_id IS NULL',
+                ['allowed-ips'],
+                (err, ipsRow) => {
+                  if (!ipsRow) {
+                    // No IPs configured, allow all
+                    req.user = user;
+                    return next();
+                  }
+
+                  const allowedIPs = ipsRow.value.split(',').map(ip => ip.trim());
+                  const clientIP = req.ip || req.connection.remoteAddress;
+
+                  // Check if IP matches or is in CIDR range
+                  const ipMatches = allowedIPs.some(allowedIP => {
+                    // Simple check: exact match or CIDR parsing
+                    if (allowedIP.includes('/')) {
+                      // CIDR notation - simplified check
+                      const [network, bits] = allowedIP.split('/');
+                      // For production, use ipaddr.js or similar library
+                      return clientIP.includes(network.split('.').slice(0, 3).join('.'));
+                    }
+                    return clientIP === allowedIP;
+                  });
+
+                  if (!ipMatches) {
+                    console.warn(`IP whitelist blocked access from ${clientIP}`);
+                    return res.status(403).json({ error: 'Access denied: IP not whitelisted' });
+                  }
+
+                  req.user = user;
+                  next();
                 }
-                return clientIP === allowedIP;
-              });
-
-              if (!ipMatches) {
-                console.warn(`IP whitelist blocked access from ${clientIP}`);
-                return res.status(403).json({ error: 'Access denied: IP not whitelisted' });
-              }
-
+              );
+            } else {
               req.user = user;
               next();
             }
-          );
-        } else {
-          req.user = user;
-          next();
-        }
+          }
+        );
       }
     );
   });
@@ -88,11 +111,35 @@ const authenticateFor2FAEnrollment = (req, res, next) => {
 
     // Allow both regular authenticated users and temporary 2FA enrollment tokens
     if (user.purpose === '2fa-enrollment' || (user.id && user.email && !user.purpose)) {
-      req.user = user;
-      return next();
-    }
+      // CRITICAL: Verify user still exists in database for regular tokens
+      // Temporary 2FA enrollment tokens may be used during setup before user is fully saved
+      if (user.purpose !== '2fa-enrollment') {
+        global.db.get(
+          'SELECT id, email, role, is_active FROM users WHERE id = ?',
+          [user.id],
+          (err, dbUser) => {
+            if (err || !dbUser) {
+              console.warn(`2FA enrollment token validation failed: user ${user.id} not found in database`);
+              return res.status(403).json({ error: 'User not found' });
+            }
 
-    return res.status(403).json({ error: 'Invalid token for 2FA enrollment' });
+            if (!dbUser.is_active) {
+              console.warn(`2FA enrollment rejected: user ${user.id} is disabled`);
+              return res.status(403).json({ error: 'User account is disabled' });
+            }
+
+            req.user = user;
+            return next();
+          }
+        );
+      } else {
+        // Temporary 2FA enrollment token - allow without DB check
+        req.user = user;
+        return next();
+      }
+    } else {
+      return res.status(403).json({ error: 'Invalid token for 2FA enrollment' });
+    }
   });
 };
 
