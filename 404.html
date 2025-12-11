@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found | 404 Error</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+        }
+        
+        :root {
+            --primary: #ff6b93;
+            --secondary: #a6d8ff;
+            --accent: #ffccd5;
+            --text: #5a5a5a;
+            --light-bg: #fff9fb;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #ffd1dc, #c9e9ff);
+            min-height: 100vh;
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        /* Error content styles */
+        .error-content {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .error-code {
+            font-size: 8rem;
+            color: var(--primary);
+            line-height: 1;
+            margin-bottom: 10px;
+            text-shadow: 4px 4px 0px rgba(255, 182, 193, 0.3);
+        }
+        
+        .error-title {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        .error-message {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* Character container */
+        .character-container {
+            position: relative;
+            height: 200px;
+            margin: 30px 0;
+        }
+        
+        .character {
+            position: absolute;
+            bottom: 0;
+            width: 150px;
+            height: 180px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 180"><circle cx="75" cy="45" r="35" fill="%23ffccd5"/><path d="M75,80 Q75,120 45,140 Q75,160 105,140 Q75,120 75,80" fill="%23ffccd5"/><circle cx="60" cy="40" r="5" fill="%23333"/><circle cx="90" cy="40" r="5" fill="%23333"/><path d="M65,55 Q75,65 85,55" stroke="%23333" stroke-width="2" fill="none"/><path d="M50,100 Q75,130 100,100" stroke="%23ff6b93" stroke-width="3" fill="none"/></svg>');
+            background-repeat: no-repeat;
+            background-position: center bottom;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .bubble {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            background: white;
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            max-width: 250px;
+            text-align: left;
+            font-size: 0.9rem;
+            color: var(--text);
+            border: 2px solid var(--accent);
+        }
+        
+        .bubble:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 20px;
+            border-width: 10px 10px 0;
+            border-style: solid;
+            border-color: white transparent;
+        }
+        
+        /* Button styles */
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: bold;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 5px 15px rgba(255, 107, 147, 0.3);
+        }
+        
+        .btn-primary:hover {
+            background: #ff4d7d;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 107, 147, 0.4);
+        }
+        
+        .btn-secondary {
+            background: var(--secondary);
+            color: #3a7bb8;
+            box-shadow: 0 5px 15px rgba(166, 216, 255, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            background: #8bcaff;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(166, 216, 255, 0.4);
+        }
+        
+        /* Footer styles */
+        .footer {
+            margin-top: 40px;
+            color: #999;
+            font-size: 0.9rem;
+        }
+        
+        /* Decorative elements */
+        .decoration {
+            position: absolute;
+            z-index: -1;
+        }
+        
+        .decoration-1 {
+            top: -50px;
+            left: -50px;
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 182, 193, 0.2);
+            border-radius: 50%;
+        }
+        
+        .decoration-2 {
+            bottom: -30px;
+            right: -30px;
+            width: 120px;
+            height: 120px;
+            background: rgba(166, 216, 255, 0.2);
+            border-radius: 50%;
+        }
+        
+        /* Search box */
+        .search-box {
+            max-width: 500px;
+            margin: 30px auto;
+            position: relative;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid var(--accent);
+            border-radius: 50px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+            padding-right: 50px;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .search-btn {
+            position: absolute;
+            right: 5px;
+            top: 5px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .error-content {
+                padding: 25px;
+            }
+            
+            .error-code {
+                font-size: 6rem;
+            }
+            
+            .error-title {
+                font-size: 2rem;
+            }
+            
+            .character-container {
+                height: 180px;
+            }
+            
+            .character {
+                width: 120px;
+                height: 150px;
+            }
+            
+            .bubble {
+                top: 10px;
+                right: 10px;
+                max-width: 180px;
+                font-size: 0.8rem;
+            }
+            
+            .buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-content">
+            <div class="decoration decoration-1"></div>
+            <div class="decoration decoration-2"></div>
+            
+            <div class="error-code">404</div>
+            <h1 class="error-title">Page Not Found</h1>
+            
+            <div class="character-container">
+                <div class="character"></div>
+                <div class="bubble">
+                    Oops! I couldn't find the page you're looking for. It might have been moved or deleted.
+                </div>
+            </div>
+            
+            <p class="error-message">
+                The page you requested doesn't exist or may have been moved. 
+                Please check the URL for errors or try searching for what you're looking for.
+            </p>
+            
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Search for services or pages...">
+                <button class="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            
+            <div class="buttons">
+                <a href="index.html" class="btn btn-primary">
+                    <i class="fas fa-home"></i> Go to Homepage
+                </a>
+                <a href="javascript:history.back()" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Go Back
+                </a>
+            </div>
+            
+            <div class="footer">
+                <p>My Server Dashboard • Cute Anime Edition</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Character animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const character = document.querySelector('.character');
+            
+            // Add subtle floating animation
+            setInterval(() => {
+                character.style.transform = `translateX(-50%) translateY(${Math.sin(Date.now() / 800) * 5}px)`;
+            }, 50);
+            
+            // Add blinking animation
+            setInterval(() => {
+                if (Math.random() > 0.7) {
+                    character.style.animation = 'blink 0.3s';
+                    setTimeout(() => {
+                        character.style.animation = '';
+                    }, 300);
+                }
+            }, 3000);
+            
+            // Search functionality
+            const searchInput = document.querySelector('.search-input');
+            const searchBtn = document.querySelector('.search-btn');
+            
+            searchBtn.addEventListener('click', function() {
+                performSearch();
+            });
+            
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+            
+            function performSearch() {
+                const query = searchInput.value.trim();
+                if (query) {
+                    // In a real implementation, this would search your services
+                    alert(`Searching for: "${query}"\n\nIn a real implementation, this would search through your services and pages.`);
+                    // You could redirect to search results or filter services
+                }
+            }
+        });
+        
+        // Add CSS for blink animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes blink {
+                0% { opacity: 1; }
+                50% { opacity: 0.3; }
+                100% { opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

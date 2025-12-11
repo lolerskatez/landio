@@ -1,0 +1,125 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [14.x, 16.x, 18.x]
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run linter (if available)
+      run: npm run lint --if-present
+    
+    - name: Run tests
+      run: npm test --if-present
+    
+    - name: Initialize database
+      run: npm run init-db
+
+  code-quality:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.x'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Check for security vulnerabilities
+      run: npm audit --audit-level=moderate
+    
+    - name: Check package dependencies
+      run: npm ls --depth=0
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [test, code-quality]
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.x'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build application
+      run: |
+        npm run init-db --if-present
+        echo "Build successful"
+    
+    - name: Create build artifact
+      run: |
+        mkdir -p build
+        cp -r . build/
+        rm -rf build/node_modules build/.git
+    
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: landio-build
+        path: build/
+        retention-days: 7
+
+  deploy-staging:
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Deploy to staging
+      env:
+        DEPLOY_KEY: ${{ secrets.DEPLOY_KEY_STAGING }}
+        DEPLOY_HOST: ${{ secrets.DEPLOY_HOST_STAGING }}
+        DEPLOY_USER: ${{ secrets.DEPLOY_USER_STAGING }}
+      run: |
+        echo "Deployment to staging environment would be triggered here"
+        echo "This requires setting up GitHub Secrets: DEPLOY_KEY_STAGING, DEPLOY_HOST_STAGING, DEPLOY_USER_STAGING"
+
+  deploy-production:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Deploy to production
+      env:
+        DEPLOY_KEY: ${{ secrets.DEPLOY_KEY_PROD }}
+        DEPLOY_HOST: ${{ secrets.DEPLOY_HOST_PROD }}
+        DEPLOY_USER: ${{ secrets.DEPLOY_USER_PROD }}
+      run: |
+        echo "Deployment to production environment would be triggered here"
+        echo "This requires setting up GitHub Secrets: DEPLOY_KEY_PROD, DEPLOY_HOST_PROD, DEPLOY_USER_PROD"

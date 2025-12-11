@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Error | 500 Error</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Base styles - Matching original theme */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+        }
+        
+        :root {
+            --primary: #ff6b93;
+            --secondary: #a6d8ff;
+            --accent: #ffccd5;
+            --text: #5a5a5a;
+            --light-bg: #fff9fb;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #ffd1dc, #c9e9ff);
+            min-height: 100vh;
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        /* Error content styles - Matching 404 page */
+        .error-content {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .error-code {
+            font-size: 8rem;
+            color: var(--primary);
+            line-height: 1;
+            margin-bottom: 10px;
+            text-shadow: 4px 4px 0px rgba(255, 182, 193, 0.3);
+        }
+        
+        .error-title {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        .error-message {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* Character container - Exact same as 404 */
+        .character-container {
+            position: relative;
+            height: 200px;
+            margin: 30px 0;
+        }
+        
+        .character {
+            position: absolute;
+            bottom: 0;
+            width: 150px;
+            height: 180px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 180"><circle cx="75" cy="45" r="35" fill="%23ffccd5"/><path d="M75,80 Q75,120 45,140 Q75,160 105,140 Q75,120 75,80" fill="%23ffccd5"/><circle cx="60" cy="40" r="5" fill="%23333"/><circle cx="90" cy="40" r="5" fill="%23333"/><path d="M65,55 Q75,65 85,55" stroke="%23333" stroke-width="2" fill="none"/><path d="M50,100 Q75,130 100,100" stroke="%23ff6b93" stroke-width="3" fill="none"/></svg>');
+            background-repeat: no-repeat;
+            background-position: center bottom;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .bubble {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            background: white;
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            max-width: 250px;
+            text-align: left;
+            font-size: 0.9rem;
+            color: var(--text);
+            border: 2px solid var(--accent);
+        }
+        
+        .bubble:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 20px;
+            border-width: 10px 10px 0;
+            border-style: solid;
+            border-color: white transparent;
+        }
+        
+        /* Button styles - Same as 404 */
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: bold;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 5px 15px rgba(255, 107, 147, 0.3);
+        }
+        
+        .btn-primary:hover {
+            background: #ff4d7d;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 107, 147, 0.4);
+        }
+        
+        .btn-secondary {
+            background: var(--secondary);
+            color: #3a7bb8;
+            box-shadow: 0 5px 15px rgba(166, 216, 255, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            background: #8bcaff;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(166, 216, 255, 0.4);
+        }
+        
+        /* Footer styles */
+        .footer {
+            margin-top: 40px;
+            color: #999;
+            font-size: 0.9rem;
+        }
+        
+        /* Decorative elements */
+        .decoration {
+            position: absolute;
+            z-index: -1;
+        }
+        
+        .decoration-1 {
+            top: -50px;
+            left: -50px;
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 182, 193, 0.2);
+            border-radius: 50%;
+        }
+        
+        .decoration-2 {
+            bottom: -30px;
+            right: -30px;
+            width: 120px;
+            height: 120px;
+            background: rgba(166, 216, 255, 0.2);
+            border-radius: 50%;
+        }
+        
+        /* Status message - Using existing color scheme */
+        .status-message {
+            background: var(--light-bg);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 25px 0;
+            border-left: 5px solid var(--primary);
+        }
+        
+        .status-message p {
+            margin: 0;
+            line-height: 1.5;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .error-content {
+                padding: 25px;
+            }
+            
+            .error-code {
+                font-size: 6rem;
+            }
+            
+            .error-title {
+                font-size: 2rem;
+            }
+            
+            .character-container {
+                height: 180px;
+            }
+            
+            .character {
+                width: 120px;
+                height: 150px;
+            }
+            
+            .bubble {
+                top: 10px;
+                right: 10px;
+                max-width: 180px;
+                font-size: 0.8rem;
+            }
+            
+            .buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-content">
+            <div class="decoration decoration-1"></div>
+            <div class="decoration decoration-2"></div>
+            
+            <div class="error-code">500</div>
+            <h1 class="error-title">Internal Server Error</h1>
+            
+            <div class="character-container">
+                <div class="character"></div>
+                <div class="bubble">
+                    Oh no! Something went wrong on our server. Don't worry, our technical team is already working on it!
+                </div>
+            </div>
+            
+            <p class="error-message">
+                The server encountered an internal error and was unable to complete your request. 
+                This is usually temporary, so please try again in a few moments.
+            </p>
+            
+            <div class="status-message">
+                <p><i class="fas fa-tools" style="color: var(--primary);"></i> <strong>We're working on it!</strong> Our team has been notified and is investigating the issue.</p>
+            </div>
+            
+            <div class="buttons">
+                <a href="index.html" class="btn btn-primary">
+                    <i class="fas fa-home"></i> Go to Homepage
+                </a>
+                <button class="btn btn-secondary" id="retry-btn">
+                    <i class="fas fa-redo"></i> Try Again
+                </button>
+            </div>
+            
+            <div class="footer">
+                <p>My Server Dashboard • Cute Anime Edition</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Character animation - Same as 404 page
+        document.addEventListener('DOMContentLoaded', function() {
+            const character = document.querySelector('.character');
+            
+            // Add subtle floating animation
+            setInterval(() => {
+                character.style.transform = `translateX(-50%) translateY(${Math.sin(Date.now() / 800) * 5}px)`;
+            }, 50);
+            
+            // Add blinking animation
+            setInterval(() => {
+                if (Math.random() > 0.7) {
+                    character.style.animation = 'blink 0.3s';
+                    setTimeout(() => {
+                        character.style.animation = '';
+                    }, 300);
+                }
+            }, 3000);
+            
+            // Retry button functionality
+            document.getElementById('retry-btn').addEventListener('click', function() {
+                const btn = this;
+                const originalText = btn.innerHTML;
+                
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Retrying...';
+                btn.disabled = true;
+                
+                // Simulate retry attempt
+                setTimeout(() => {
+                    // In a real implementation, this would actually retry the request
+                    window.location.reload();
+                }, 1500);
+            });
+        });
+        
+        // Add CSS for blink animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes blink {
+                0% { opacity: 1; }
+                50% { opacity: 0.3; }
+                100% { opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

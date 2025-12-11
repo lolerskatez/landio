@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Server Dashboard</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <script src="theme.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Base styles - Matching original theme */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+        }
+
+        :root {
+            --primary: #ff6b93;
+            --secondary: #a6d8ff;
+            --accent: #ffccd5;
+            --text: #5a5a5a;
+            --light-bg: #fff9fb;
+            --dark: #4a4a4a;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ffd1dc, #c9e9ff);
+            min-height: 100vh;
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            width: 100%;
+        }
+
+        /* Login form styles */
+        .login-card {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: -50px;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 182, 193, 0.2);
+            border-radius: 50%;
+        }
+
+        .login-card::after {
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            right: -30px;
+            width: 80px;
+            height: 80px;
+            background: rgba(166, 216, 255, 0.2);
+            border-radius: 50%;
+        }
+
+        .logo {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 0px rgba(255, 182, 193, 0.3);
+        }
+
+        .login-title {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .login-subtitle {
+            color: #7a7a7a;
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+
+        .login-message {
+            background: var(--light-bg);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .login-message i {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .login-message p {
+            margin: 8px 0;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        /* SSO Info - REMOVED */
+
+        /* Login form styles */
+        .login-form {
+            width: 100%;
+            text-align: left;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.95rem;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="password"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(255, 107, 147, 0.1);
+        }
+
+        .form-group input[type="text"]:invalid:not(:placeholder-shown),
+        .form-group input[type="password"]:invalid:not(:placeholder-shown) {
+            border-color: #c62828;
+        }
+
+        /* Remember me */
+        .remember-me {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .remember-me input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .remember-me label {
+            margin: 0;
+            color: var(--text);
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        /* Login button */
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary), #ff8aaf);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 107, 147, 0.4);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* SSO Button */
+        .sso-btn {
+            width: 100%;
+            padding: 14px;
+            background: white;
+            color: var(--dark);
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .sso-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary);
+        }
+
+        .sso-btn i {
+            font-size: 1.1rem;
+        }
+
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 20px 0;
+            color: #999;
+            font-size: 0.9rem;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .divider:not(:empty)::before {
+            margin-right: 15px;
+        }
+
+        .divider:not(:empty)::after {
+            margin-left: 15px;
+        }
+
+        /* Error message */
+        .error-message {
+            background: #ffebee;
+            border: 2px solid #c62828;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #c62828;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+        }
+
+        .error-message.show {
+            display: flex;
+        }
+
+        .error-message i {
+            font-size: 1.2rem;
+        }
+
+        /* Loading state */
+        .loading {
+            color: var(--primary);
+            font-size: 0.9rem;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .loading.show {
+            display: flex;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 0;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ============================================ */
+        /* THEME SYSTEM - 2 Themes */
+        /* ============================================ */
+        
+        /* THEME 1: Cyber Sakura */
+        body.theme-cyber {
+            --primary: #FF5FA2;
+            --neon-blue: #00E0FF;
+            background: linear-gradient(135deg, #0E0A1F, #1A0F2E);
+            font-family: 'Poppins', sans-serif;
+            color: #FFFFFF;
+        }
+
+        body.theme-cyber .login-card {
+            background-color: rgba(28, 20, 51, 0.9);
+            box-shadow: 0 0 20px rgba(255, 95, 162, 0.3);
+            color: #FFFFFF;
+        }
+
+        /* THEME 2: Sunset Gradient */
+        body.theme-sunset {
+            --primary: #FF6A3D;
+            --gradient-end: #A14BFF;
+            background: linear-gradient(135deg, #FF6A3D, #A14BFF);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body.theme-sunset .login-card {
+            background-color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 10px 28px rgba(255, 106, 61, 0.15);
+        }
+
+        /* Navigation Button Styling - Sunset Theme */
+        body.theme-sunset .nav-btn {
+            background: rgba(255, 255, 255, 0.9) !important;
+            color: #2F2F2F !important;
+            border: 1px solid rgba(255, 106, 61, 0.2) !important;
+        }
+
+        body.theme-sunset .nav-btn:hover {
+            background: rgba(255, 106, 61, 0.1) !important;
+            color: #2F2F2F !important;
+        }
+
+        body.theme-sunset .nav-btn.active {
+            background: var(--primary) !important;
+            color: #FFFFFF !important;
+        }
+
+        /* ============================================ */
+        /* THEME-AWARE COMPONENT STYLING - LOGIN */
+        /* ============================================ */
+
+        /* Login Card - Theme Specific */
+        body.theme-cyber .login-card {
+            background: rgba(28, 20, 51, 0.95) !important;
+            border: 1px solid rgba(255, 95, 162, 0.3) !important;
+            color: #FFFFFF !important;
+        }
+
+        body.theme-cyber h1,
+        body.theme-cyber h2 {
+            color: var(--primary-glow) !important;
+            text-shadow: 0 0 10px rgba(255, 95, 162, 0.4) !important;
+        }
+
+        /* Logo - Theme Specific */
+        body.theme-cyber .logo {
+            color: var(--primary-glow) !important;
+        }
+
+        /* Form Elements - Theme Specific */
+        body.theme-cyber input,
+        body.theme-cyber select {
+            background: rgba(20, 20, 30, 0.8) !important;
+            color: #FFFFFF !important;
+            border: 1px solid rgba(255, 95, 162, 0.3) !important;
+        }
+
+        body.theme-cyber input::placeholder {
+            color: rgba(255, 255, 255, 0.5) !important;
+        }
+
+        body.theme-cyber input:focus,
+        body.theme-cyber select:focus {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 10px rgba(255, 95, 162, 0.2) !important;
+        }
+
+        /* Labels - Theme Specific */
+        body.theme-cyber label {
+            color: var(--text-primary) !important;
+        }
+
+        /* Buttons - Theme Specific */
+        body.theme-cyber .btn {
+            background: rgba(255, 95, 162, 0.2) !important;
+            color: var(--primary-glow) !important;
+            border: 2px solid var(--primary) !important;
+        }
+
+        body.theme-cyber .btn:hover {
+            background: var(--primary) !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 0 15px rgba(255, 95, 162, 0.5) !important;
+        }
+
+        body.theme-cyber .btn-primary {
+            background: var(--primary) !important;
+            color: #FFFFFF !important;
+            border: 1px solid var(--primary) !important;
+        }
+
+        body.theme-cyber .btn-primary:hover {
+            background: rgba(255, 95, 162, 0.8) !important;
+        }
+
+        /* Text Links - Theme Specific */
+        body.theme-cyber a {
+            color: var(--primary-glow) !important;
+        }
+
+        body.theme-cyber a:hover {
+            color: var(--primary) !important;
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            --bg-primary: #0d0d0d;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #f0f0f0;
+            --text-secondary: #b0b0b0;
+            background: linear-gradient(135deg, #0a0a0a, #141428) !important;
+        }
+
+        body.dark-mode .login-card {
+            background: rgba(15, 15, 25, 0.97);
+            color: #f0f0f0;
+            border: 1px solid rgba(255, 107, 147, 0.2);
+        }
+
+        body.dark-mode h1,
+        body.dark-mode h2 {
+            color: #f0f0f0;
+            font-weight: 600;
+        }
+
+        body.dark-mode h1 {
+            color: #ff9cb5;
+            text-shadow: 0 0 10px rgba(255, 107, 147, 0.3);
+        }
+
+        body.dark-mode .logo {
+            color: #ff9cb5;
+        }
+
+        body.dark-mode .subtitle {
+            color: #b0b0b0;
+        }
+
+        body.dark-mode input {
+            background: rgba(30, 30, 45, 0.8);
+            color: #f0f0f0;
+            border: 1px solid rgba(166, 216, 255, 0.2);
+        }
+
+        body.dark-mode input:focus {
+            border-color: rgba(255, 107, 147, 0.5);
+            box-shadow: 0 0 5px rgba(255, 107, 147, 0.2);
+        }
+
+        body.dark-mode input::placeholder {
+            color: #7a7a7a;
+        }
+
+        body.dark-mode .btn-primary {
+            background: rgba(255, 107, 147, 0.15);
+            color: #ff9cb5;
+            border: 1px solid rgba(255, 107, 147, 0.3);
+        }
+
+        body.dark-mode .btn-primary:hover {
+            background: rgba(255, 107, 147, 0.25);
+            border-color: rgba(255, 107, 147, 0.5);
+            box-shadow: 0 0 15px rgba(255, 107, 147, 0.3);
+        }
+
+        body.dark-mode .error-message {
+            background: rgba(198, 40, 40, 0.2);
+            color: #e57373;
+            border: 1px solid rgba(229, 115, 115, 0.5);
+        }
+
+        body.dark-mode .info-text,
+        body.dark-mode .footer {
+            color: #b0b0b0;
+        }
+
+        body.dark-mode .footer a {
+            color: #a6d8ff;
+        }
+
+        body.dark-mode .footer a:hover {
+            color: #ff9cb5;
+        }
+
+        /* Font Size Classes */
+        body.font-small {
+            font-size: 14px;
+        }
+
+        body.font-small * {
+            font-size: inherit;
+        }
+
+        body.font-medium {
+            font-size: 16px;
+        }
+
+        body.font-medium * {
+            font-size: inherit;
+        }
+
+        body.font-large {
+            font-size: 18px;
+        }
+
+        body.font-large * {
+            font-size: inherit;
+        }
+
+        body.font-extra-large {
+            font-size: 20px;
+        }
+
+        body.font-extra-large * {
+            font-size: inherit;
+        }
+
+        /* High Contrast Mode */
+        body.high-contrast {
+            --text-primary: #ffffff;
+            --text-secondary: #ffffff;
+            --bg-primary: #000000;
+            --bg-secondary: #000000;
+            --border-color: #ffffff;
+            --primary: #ffff00;
+            --secondary: #00ffff;
+        }
+
+        body.high-contrast .login-card {
+            background: #000000;
+            border: 3px solid #ffffff;
+        }
+
+        body.high-contrast h1,
+        body.high-contrast h2,
+        body.high-contrast label,
+        body.high-contrast input,
+        body.high-contrast .btn {
+            color: #ffffff;
+        }
+
+        body.high-contrast .btn-primary {
+            background: #000000;
+            border: 3px solid #ffff00;
+            color: #ffff00;
+        }
+
+        /* Reduce Motion */
+        body.reduce-motion * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+
+        /* Animations */
+        body.animations-enabled * {
+            animation: normal !important;
+        }
+
+        /* Responsive */
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 20px;
+            }
+            
+            .container {
+                padding: 0;
+            }
+            
+            .login-card {
+                padding: 30px 25px;
+                max-width: 400px;
+                margin: 20px auto;
+            }
+            
+            .logo {
+                font-size: 2.8rem;
+                margin-bottom: 20px;
+            }
+            
+            .login-title {
+                font-size: 1.8rem;
+                margin-bottom: 10px;
+            }
+            
+            .login-subtitle {
+                font-size: 1rem;
+                margin-bottom: 25px;
+            }
+            
+            .sso-button {
+                min-height: 50px;
+                padding: 15px 20px;
+                font-size: 1.1rem;
+                margin-bottom: 25px;
+            }
+            
+            .demo-section h3 {
+                font-size: 1.2rem;
+                margin-bottom: 15px;
+            }
+            
+            .demo-users {
+                gap: 12px;
+            }
+            
+            .demo-user {
+                min-height: 60px;
+                padding: 15px;
+                font-size: 1rem;
+            }
+            
+            .demo-user-name {
+                font-size: 1.1rem;
+                margin-bottom: 4px;
+            }
+            
+            .demo-user-role {
+                font-size: 0.9rem;
+            }
+            
+            .loading {
+                padding: 20px;
+                font-size: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 15px;
+            }
+            
+            .login-card {
+                padding: 25px 20px;
+                margin: 10px auto;
+            }
+            
+            .logo {
+                font-size: 2.5rem;
+                margin-bottom: 15px;
+            }
+            
+            .login-title {
+                font-size: 1.5rem;
+                margin-bottom: 8px;
+            }
+            
+            .login-subtitle {
+                font-size: 0.95rem;
+                margin-bottom: 20px;
+            }
+            
+            .login-message {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+            
+            .login-message i {
+                font-size: 1.5rem;
+            }
+            
+            .login-message p {
+                font-size: 0.85rem;
+            }
+            
+            .loading {
+                padding: 15px;
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="login-card">
+            <div class="logo">
+                <i class="fas fa-server"></i>
+            </div>
+            <h1 class="login-title">Server Dashboard</h1>
+            <p class="login-subtitle">Sign in to access your services</p>
+
+            <!-- Error Messages -->
+            <div class="error-message" id="errorMessage">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="errorText"></span>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="username">Email</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        placeholder="Enter email (e.g., alice@example.com)"
+                        required
+                        autocomplete="username"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        placeholder="Enter password"
+                        required
+                        autocomplete="current-password"
+                    >
+                </div>
+
+                <div class="remember-me">
+                    <input type="checkbox" id="rememberMe">
+                    <label for="rememberMe">Remember me</label>
+                </div>
+
+                <button type="submit" class="login-btn" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+            </form>
+
+            <!-- SSO Login Section (hidden by default) -->
+            <div id="sso-section" style="display: none;">
+                <div class="divider">OR</div>
+                <button type="button" class="sso-btn" id="ssoLoginBtn">
+                    <i class="fas fa-shield-alt"></i> Sign in with SSO
+                </button>
+            </div>
+
+            <!-- 2FA Verification Form (hidden by default) -->
+            <div id="twofa-form" style="display: none;">
+                <h2 style="font-size: 1.2rem; color: var(--primary); margin-bottom: 20px;">Two-Factor Authentication</h2>
+                <p style="color: #7a7a7a; margin-bottom: 20px; font-size: 0.9rem;">Enter the 6-digit code from your authenticator app or use a backup code.</p>
+                
+                <div class="form-group">
+                    <label for="twofa-code">Authentication Code</label>
+                    <input 
+                        type="text" 
+                        id="twofa-code" 
+                        placeholder="000000 or BACKUP-CODE"
+                        maxlength="10"
+                        required
+                        autocomplete="off"
+                    >
+                </div>
+
+                <button type="button" class="login-btn" id="verify2faBtn" style="margin-bottom: 10px;">
+                    <i class="fas fa-check"></i> Verify
+                </button>
+                <button type="button" class="login-btn" id="cancel2faBtn" style="background: #999;">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+            </div>
+
+            <!-- 2FA Enrollment Required Form -->
+            <div id="enrollment-required-form" style="display: none;">
+                <h2 style="font-size: 1.2rem; color: var(--primary); margin-bottom: 20px;">
+                    <i class="fas fa-shield-alt"></i> 2FA Enrollment Required
+                </h2>
+                <p id="enrollment-message" style="color: #7a7a7a; margin-bottom: 30px; font-size: 0.9rem;">
+                    Your administrator has required you to set up two-factor authentication.
+                </p>
+
+                <div style="background: rgba(255, 95, 162, 0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid var(--primary);">
+                    <p style="color: #666; font-size: 0.85rem;">
+                        <strong>Why 2FA?</strong><br>
+                        Two-factor authentication adds an extra layer of security to your account by requiring a code from your authenticator app in addition to your password.
+                    </p>
+                </div>
+
+                <button type="button" class="login-btn" id="proceedEnrollmentBtn" style="margin-bottom: 10px;">
+                    <i class="fas fa-arrow-right"></i> Set Up 2FA Now
+                </button>
+                <button type="button" class="login-btn" id="cancelEnrollmentBtn" style="background: #999;">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+            </div>
+
+            <!-- Loading State -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                Signing you in...
+            </div>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script>
+        // Load authentication utilities
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        // Initialize login page
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Load auth utilities
+            await loadScript('auth.js');
+
+            // Initialize login page
+            initializeLoginPage();
+        });
+
+        async function initializeLoginPage() {
+            // Check if system needs setup first
+            try {
+                const response = await fetch('/api/auth/setup/status');
+                const data = await response.json();
+                
+                if (!data.initialized) {
+                    // System not initialized, redirect to setup
+                    console.log('System not initialized, redirecting to setup...');
+                    window.location.href = 'setup.html';
+                    return;
+                }
+            } catch (error) {
+                console.error('Error checking setup status:', error);
+                // Continue with login if we can't check status
+            }
+
+            // Check SSO configuration
+            await checkSSOConfig();
+
+            // Check if user is already logged in
+            const currentUser = window.Auth?.getCurrentUser?.();
+            if (currentUser) {
+                // User is already logged in, redirect to dashboard
+                redirectToDashboard(currentUser);
+                return;
+            }
+
+            // Check for "Remember me" user
+            const rememberMeUser = localStorage.getItem('rememberMeUser');
+            if (rememberMeUser) {
+                document.getElementById('username').value = rememberMeUser;
+            }
+
+            // Set up form submission
+            const loginForm = document.getElementById('loginForm');
+            const loginBtn = document.getElementById('loginBtn');
+
+            loginForm.addEventListener('submit', handleLogin);
+            loginBtn.addEventListener('click', handleLogin);
+
+            // Set up enrollment button handlers
+            const proceedEnrollmentBtn = document.getElementById('proceedEnrollmentBtn');
+            const cancelEnrollmentBtn = document.getElementById('cancelEnrollmentBtn');
+            
+            if (proceedEnrollmentBtn) {
+                proceedEnrollmentBtn.addEventListener('click', handleProceedEnrollment);
+            }
+            
+            if (cancelEnrollmentBtn) {
+                cancelEnrollmentBtn.addEventListener('click', handleCancelEnrollment);
+            }
+
+            // Set up demo user click handlers
+            const demoUsers = document.querySelectorAll('.demo-user');
+            demoUsers.forEach(userEl => {
+                userEl.addEventListener('click', function() {
+                    const username = this.getAttribute('data-username');
+                    const demoCredentials = {
+                        'alice': { email: 'alice@example.com', password: 'admin123' },
+                        'bob': { email: 'bob@example.com', password: 'power123' },
+                        'charlie': { email: 'charlie@example.com', password: 'user123' }
+                    };
+
+                    const creds = demoCredentials[username];
+                    if (creds) {
+                        document.getElementById('username').value = creds.email;
+                        document.getElementById('password').value = creds.password;
+                        // Optional: auto-submit
+                        // setTimeout(() => handleLogin(new Event('submit')), 300);
+                    }
+                });
+            });
+        }
+
+        function handleProceedEnrollment() {
+            // Redirect to 2FA enrollment page with temp credentials
+            if (window.enrollmentSession) {
+                // Store enrollment session in sessionStorage for the enrollment page
+                sessionStorage.setItem('enrollmentSession', JSON.stringify(window.enrollmentSession));
+                window.location.href = 'onboarding.html?step=twofa&enrollment=true';
+            }
+        }
+
+        function handleCancelEnrollment() {
+            // Clear enrollment session and go back to login
+            document.getElementById('enrollment-required-form').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('username').focus();
+            window.enrollmentSession = null;
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+            const errorMessage = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            const loading = document.getElementById('loading');
+            const loginBtn = document.getElementById('loginBtn');
+            const loginForm = document.getElementById('loginForm');
+
+            // Clear previous errors
+            errorMessage.classList.remove('show');
+            errorText.textContent = '';
+
+            // Validation
+            if (!username) {
+                showError('Please enter an email address');
+                return;
+            }
+
+            if (!password) {
+                showError('Please enter a password');
+                return;
+            }
+
+            // Show loading state
+            loading.classList.add('show');
+            loginBtn.disabled = true;
+            loginForm.style.opacity = '0.5';
+
+            // Simulate authentication delay for better UX
+            setTimeout(() => {
+                performLogin(username, password, rememberMe);
+            }, 800);
+        }
+
+        async function performLogin(username, password, rememberMe) {
+            const loading = document.getElementById('loading');
+            const loginBtn = document.getElementById('loginBtn');
+            const loginForm = document.getElementById('loginForm');
+
+            try {
+                // Use API for authentication
+                const response = await window.Api.login(username, password);
+
+                // Check if 2FA enrollment is required
+                if (response.code === 'ENROLLMENT_REQUIRED') {
+                    // Check if this is immediate enrollment required or just a grace period reminder
+                    if (response.enrollmentRequired) {
+                        // Immediate enrollment required - user cannot login without 2FA
+                        window.enrollmentSession = {
+                            userId: response.userId,
+                            username: username,
+                            rememberMe: rememberMe,
+                            enrollmentRequired: response.enrollmentRequired,
+                            tempToken: response.tempToken
+                        };
+
+                        // Show enrollment prompt
+                        document.getElementById('loginForm').style.display = 'none';
+                        document.getElementById('twofa-form').style.display = 'none';
+                        document.getElementById('enrollment-required-form').style.display = 'block';
+
+                        // Update message
+                        const enrollMsg = document.getElementById('enrollment-message');
+                        if (enrollMsg) {
+                            enrollMsg.textContent = response.message;
+                        }
+
+                        loading.classList.remove('show');
+                        loginBtn.disabled = false;
+                        loginForm.style.opacity = '1';
+                        return;
+                    } else {
+                        // Grace period - allow login but show reminder
+                        showError(response.message);
+
+                        // Continue with normal login flow (will proceed to next checks)
+                    }
+                }
+
+                // Check if 2FA is required
+                if (response.requiresTwoFactor) {
+                    // Store temporary session data for 2FA verification
+                    window.twoFASession = {
+                        userId: response.userId,
+                        token: response.temporaryToken,
+                        username: username,
+                        rememberMe: rememberMe
+                    };
+
+                    // Show 2FA form
+                    document.getElementById('loginForm').style.display = 'none';
+                    document.getElementById('twofa-form').style.display = 'block';
+                    document.getElementById('twofa-code').focus();
+                    loading.classList.remove('show');
+                    loginBtn.disabled = false;
+                    loginForm.style.opacity = '1';
+
+                    // Set up 2FA button handlers
+                    document.getElementById('verify2faBtn').onclick = verify2FA;
+                    document.getElementById('cancel2faBtn').onclick = cancel2FA;
+                    document.getElementById('twofa-code').addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') verify2FA();
+                    });
+                    return;
+                }
+
+                // Save user profile to localStorage (for auth.js)
+                localStorage.setItem('currentUser', JSON.stringify(response.user));
+
+                // Save "Remember Me" preference
+                if (rememberMe) {
+                    localStorage.setItem('rememberMeUser', username.toLowerCase());
+                } else {
+                    localStorage.removeItem('rememberMeUser');
+                }
+
+                // Log successful login
+                console.log(`✓ Login successful: ${response.user.name} (${response.user.role})`);
+
+                // Redirect after brief delay for visual feedback
+                setTimeout(() => {
+                    redirectToDashboard(response.user);
+                }, 500);
+
+            } catch (error) {
+                console.error('Login error:', error);
+                showError(error.message || 'Login failed. Please check your credentials.');
+                loading.classList.remove('show');
+                loginBtn.disabled = false;
+                loginForm.style.opacity = '1';
+            }
+        }
+
+        async function verify2FA() {
+            const code = document.getElementById('twofa-code').value.trim();
+            
+            if (!code) {
+                showError('Please enter an authentication code');
+                return;
+            }
+
+            try {
+                const response = await window.Api.request('POST', '/2fa/verify-login', {
+                    userId: window.twoFASession.userId,
+                    code: code
+                });
+
+                if (response.verified) {
+                    // Store the temporary token for the next request
+                    const tempToken = window.twoFASession.token;
+                    
+                    // Get full user data with JWT token using the temporary token
+                    const fullResponse = await fetch('/api/auth/2fa-complete', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${tempToken}`
+                        },
+                        body: JSON.stringify({
+                            userId: window.twoFASession.userId
+                        })
+                    });
+
+                    if (!fullResponse.ok) {
+                        throw new Error('Failed to complete 2FA login');
+                    }
+
+                    const fullData = await fullResponse.json();
+
+                    // Save the real token
+                    localStorage.setItem('authToken', fullData.token);
+                    
+                    // Save user profile
+                    localStorage.setItem('currentUser', JSON.stringify(fullData.user));
+
+                    // Save "Remember Me" preference
+                    if (window.twoFASession.rememberMe) {
+                        localStorage.setItem('rememberMeUser', window.twoFASession.username.toLowerCase());
+                    }
+
+                    console.log(`✓ 2FA verification successful`);
+
+                    // Redirect
+                    setTimeout(() => {
+                        redirectToDashboard(fullData.user);
+                    }, 500);
+                }
+            } catch (error) {
+                showError(error.message || 'Invalid authentication code');
+                document.getElementById('twofa-code').value = '';
+                document.getElementById('twofa-code').focus();
+            }
+        }
+
+        function cancel2FA() {
+            // Clear 2FA form and go back to login
+            document.getElementById('twofa-form').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('twofa-code').value = '';
+            window.twoFASession = null;
+        }
+
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            errorText.textContent = message;
+            errorMessage.classList.add('show');
+
+            // Auto-hide error after 5 seconds
+            setTimeout(() => {
+                errorMessage.classList.remove('show');
+            }, 5000);
+        }
+
+        function redirectToDashboard(user) {
+            // Direct to dashboard - onboarding removed
+
+            // Redirect based on role
+            if (user.role === 'admin') {
+                window.location.href = 'index.html';
+            } else {
+                window.location.href = 'dashboard.html';
+            }
+        }
+
+        // Check SSO configuration
+        async function checkSSOConfig() {
+            try {
+                const response = await fetch('/api/sso/config');
+                const config = await response.json();
+                
+                if (config.enabled) {
+                    // Show SSO section
+                    document.getElementById('sso-section').style.display = 'block';
+                    
+                    // Set up SSO login button
+                    document.getElementById('ssoLoginBtn').addEventListener('click', handleSSOLogin);
+                }
+            } catch (error) {
+                console.error('Error checking SSO config:', error);
+            }
+        }
+
+        // Handle SSO login
+        async function handleSSOLogin() {
+            try {
+                const response = await fetch('/api/sso/login');
+                const data = await response.json();
+                
+                if (data.success && data.authUrl) {
+                    // Redirect to SSO provider
+                    window.location.href = data.authUrl;
+                } else {
+                    showError('SSO login failed. Please try regular login.');
+                }
+            } catch (error) {
+                console.error('SSO login error:', error);
+                showError('SSO login failed. Please try regular login.');
+            }
+        }
+
+        // Handle SSO callback (when redirected back from IdP)
+        function handleSSOCallback() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const ssoToken = urlParams.get('sso_token');
+            const error = urlParams.get('error');
+            
+            if (error) {
+                const message = urlParams.get('message') || 'SSO authentication failed';
+                showError(decodeURIComponent(message));
+                // Clean URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+                return;
+            }
+            
+            if (ssoToken) {
+                // Store the token
+                localStorage.setItem('token', ssoToken);
+                
+                // Get user info and redirect
+                fetch('/api/auth/me', {
+                    headers: {
+                        'Authorization': `Bearer ${ssoToken}`
+                    }
+                })
+                .then(res => res.json())
+                .then(user => {
+                    if (user) {
+                        redirectToDashboard(user);
+                    } else {
+                        showError('Failed to load user information');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching user:', error);
+                    showError('Failed to complete SSO login');
+                });
+            }
+        }
+
+        // Check for SSO callback on page load
+        if (window.location.search.includes('sso_token') || window.location.search.includes('error=sso')) {
+            handleSSOCallback();
+        }
+    </script>
+</body>
+</html>

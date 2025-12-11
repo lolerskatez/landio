@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Logs | Server Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="theme.js"></script>
+    <style>
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+        }
+
+        :root {
+            --primary: #ff6b93;
+            --secondary: #a6d8ff;
+            --accent: #ffccd5;
+            --text: #5a5a5a;
+            --light-bg: #fff9fb;
+            --dark: #4a4a4a;
+            --info: #0084ff;
+            --warning: #ffa502;
+            --error: #ff4757;
+            --success: #2ed573;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ffd1dc, #c9e9ff);
+            min-height: 100vh;
+            color: var(--text);
+            padding: 20px;
+        }
+
+        .container {
+            margin: 0;
+            padding: 0 20px;
+        }
+
+        /* Header styles */
+        header {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 0px rgba(255, 182, 193, 0.3);
+        }
+
+        .subtitle {
+            color: #7a7a7a;
+            font-size: 1.2rem;
+        }
+
+        /* Main layout */
+        .logs-container {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .logs-list {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .logs-sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        /* Filter section */
+        .logs-filters h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .filter-group {
+            margin-bottom: 20px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text);
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 5px rgba(255, 107, 147, 0.2);
+        }
+
+        /* Log statistics */
+        .log-stats {
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: var(--dark);
+        }
+
+        /* Clear logs button */
+        .clear-logs-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--primary), #ff8fa3);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: bold;
+        }
+
+        .clear-logs-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 147, 0.4);
+        }
+
+        .clear-logs-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Download section */
+        .download-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .download-section label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--primary);
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, var(--secondary), #b8e0f7);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(166, 216, 255, 0.4);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Log item styles */
+        .log-item {
+            border: 1px solid #e0e0e0;
+            border-left: 4px solid var(--primary);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        /* Table row styling */
+        .logs-table tbody tr.log-item {
+            border: none;
+            border-left: none;
+            border-radius: 0;
+            padding: 0;
+            margin-bottom: 0;
+            display: table-row;
+            gap: 0;
+            background: transparent;
+        }
+
+        .log-item.info {
+            border-left-color: var(--info);
+            background: rgba(0, 132, 255, 0.02);
+        }
+
+        .log-item.warning {
+            border-left-color: var(--warning);
+            background: rgba(255, 165, 2, 0.02);
+        }
+
+        .log-item.error {
+            border-left-color: var(--error);
+            background: rgba(255, 71, 87, 0.02);
+        }
+
+        .log-item.success {
+            border-left-color: var(--success);
+            background: rgba(46, 213, 115, 0.02);
+        }
+
+        .log-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transform: translateX(4px);
+        }
+
+        .log-icon {
+            font-size: 1.2rem;
+            min-width: 25px;
+            text-align: center;
+            margin-top: 3px;
+        }
+
+        .log-item.info .log-icon {
+            color: var(--info);
+        }
+
+        .log-item.warning .log-icon {
+            color: var(--warning);
+        }
+
+        .log-item.error .log-icon {
+            color: var(--error);
+        }
+
+        .log-item.success .log-icon {
+            color: var(--success);
+        }
+
+        .log-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 5px;
+        }
+
+        .log-title {
+            font-weight: bold;
+            color: var(--dark);
+            font-size: 1rem;
+        }
+
+        .log-level {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .log-level.info {
+            background: rgba(0, 132, 255, 0.15);
+            color: var(--info);
+        }
+
+        .log-level.warning {
+            background: rgba(255, 165, 2, 0.15);
+            color: var(--warning);
+        }
+
+        .log-level.error {
+            background: rgba(255, 71, 87, 0.15);
+            color: var(--error);
+        }
+
+        .log-level.success {
+            background: rgba(46, 213, 115, 0.15);
+            color: var(--success);
+        }
+
+        .log-message {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .log-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 0.85rem;
+            color: #999;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .meta-label {
+            color: #aaa;
+        }
+
+        .meta-value {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .log-category {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            text-transform: capitalize;
+            margin-top: 5px;
+        }
+
+        .log-category-wrapper {
+            margin-top: 8px;
+        }
+
+        /* Pagination and controls */
+        .logs-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .pagination button:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .pagination button.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .logs-count {
+            color: #999;
+            font-size: 0.9rem;
+        }
+
+        /* No logs state */
+        .no-logs {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .no-logs i {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .no-logs p {
+            color: #999;
+            font-size: 1.1rem;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+
+        .log-stats h3 {
+            margin-bottom: 12px;
+            color: var(--primary);
+            font-size: 1rem;
+        }
+
+        .stat-icon {
+            color: var(--info);
+            margin-right: 5px;
+        }
+
+        .stat-icon.warning {
+            color: var(--warning);
+        }
+
+        .stat-icon.error {
+            color: var(--error);
+        }
+
+        .stat-icon.success {
+            color: var(--success);
+        }
+
+        .log-details {
+            margin-top: 8px;
+            font-size: 0.85rem;
+        }
+
+        .log-details summary {
+            cursor: pointer;
+            color: #999;
+        }
+
+        .log-details pre {
+            background: #f5f5f5;
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow-x: auto;
+            font-size: 0.8rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .logs-container {
+                grid-template-columns: 1fr;
+            }
+
+            .logs-sidebar {
+                position: static;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .log-item {
+                padding: 12px;
+            }
+
+            .log-meta {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+
+        /* Cyber Sakura Theme Styles */
+        body.theme-cyber {
+            background: linear-gradient(135deg, #0E0A1F 0%, #1A0F2E 100%);
+        }
+
+        body.theme-cyber .container {
+            background: rgba(28, 20, 51, 0.8);
+            border: none;
+            box-shadow: none;
+        }
+
+        body.theme-cyber h1,
+        body.theme-cyber h2 {
+            color: #00E0FF;
+            text-shadow: 0 0 20px rgba(0, 224, 255, 0.5);
+        }
+
+        body.theme-cyber .logs-header {
+            border-bottom: 2px solid rgba(0, 224, 255, 0.3);
+        }
+
+        body.theme-cyber .logs-header h1 {
+            color: #00E0FF;
+        }
+
+        body.theme-cyber .header-actions button {
+            background: rgba(0, 224, 255, 0.1);
+            color: #00E0FF;
+            border: 1px solid rgba(0, 224, 255, 0.3);
+        }
+
+        body.theme-cyber .header-actions button:hover {
+            background: rgba(0, 224, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 224, 255, 0.4);
+        }
+
+        body.theme-cyber .logs-sidebar {
+            background: rgba(14, 10, 31, 0.6);
+            border-right: 1px solid rgba(0, 224, 255, 0.2);
+        }
+
+        body.theme-cyber .filter-section {
+            background: rgba(28, 20, 51, 0.5);
+            border: 1px solid rgba(0, 224, 255, 0.2);
+        }
+
+        body.theme-cyber header {
+            background: rgba(28, 20, 51, 0.8);
+            border: 1px solid rgba(0, 224, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 224, 255, 0.2);
+        }
+
+        body.theme-cyber .logs-list {
+            background: rgba(28, 20, 51, 0.7);
+            border: 1px solid rgba(0, 224, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 224, 255, 0.1);
+        }
+
+        body.theme-cyber .logs-toolbar {
+            background: rgba(28, 20, 51, 0.7);
+            border: 1px solid rgba(0, 224, 255, 0.2);
+        }
+
+        body.theme-cyber .filter-section h3 {
+            color: #00E0FF;
+            border-bottom: 1px solid rgba(0, 224, 255, 0.3);
+            padding-bottom: 10px;
+        }
+
+        body.theme-cyber .filter-option label {
+            color: #C9BEEA;
+        }
+
+        body.theme-cyber .log-stats {
+            background: rgba(28, 20, 51, 0.9);
+            border: 1px solid rgba(0, 224, 255, 0.2);
+            color: #C9BEEA;
+        }
+
+        body.theme-cyber .log-stats h3 {
+            color: #FF5FA2;
+            border-bottom: 1px solid rgba(0, 224, 255, 0.3);
+            padding-bottom: 10px;
+        }
+
+        body.theme-cyber .log-stats .stat-item {
+            color: #C9BEEA;
+        }
+
+        body.theme-cyber .log-stats .stat-value {
+            color: #00E0FF;
+        }
+
+        body.theme-cyber .btn,
+        body.theme-cyber button {
+            background: rgba(0, 224, 255, 0.1);
+            color: #00E0FF;
+            border: 1px solid rgba(0, 224, 255, 0.3);
+        }
+
+        body.theme-cyber .btn:hover,
+        body.theme-cyber button:hover {
+            background: rgba(0, 224, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 224, 255, 0.3);
+        }
+
+        body.theme-cyber .btn-primary,
+        body.theme-cyber .btn-danger {
+            background: linear-gradient(135deg, rgba(255, 95, 162, 0.8), rgba(199, 125, 255, 0.8));
+            border: 1px solid rgba(255, 95, 162, 0.5);
+            color: #FFFFFF;
+        }
+
+        body.theme-cyber .btn-primary:hover,
+        body.theme-cyber .btn-danger:hover {
+            box-shadow: 0 0 20px rgba(255, 95, 162, 0.5);
+        }
+
+        body.theme-cyber .btn-secondary {
+            background: rgba(0, 224, 255, 0.1);
+            color: #00E0FF;
+            border: 1px solid rgba(0, 224, 255, 0.3);
+        }
+
+        body.theme-cyber .btn-secondary:hover {
+            background: rgba(0, 224, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 224, 255, 0.3);
+        }
+
+        body.theme-cyber input[type="checkbox"] {
+            border: 1px solid rgba(0, 224, 255, 0.5);
+        }
+
+        body.theme-cyber input[type="checkbox"]:checked {
+            background: #00E0FF;
+        }
+
+        body.theme-cyber input[type="text"],
+        body.theme-cyber input[type="date"],
+        body.theme-cyber input[type="time"],
+        body.theme-cyber select {
+            background: rgba(14, 10, 31, 0.8);
+            border: 1px solid rgba(0, 224, 255, 0.3);
+            color: #FFFFFF;
+        }
+
+        body.theme-cyber input[type="text"]:focus,
+        body.theme-cyber input[type="date"]:focus,
+        body.theme-cyber input[type="time"]:focus,
+        body.theme-cyber select:focus {
+            border-color: #00E0FF;
+            box-shadow: 0 0 10px rgba(0, 224, 255, 0.3);
+        }
+
+        body.theme-cyber .logs-content {
+            background: rgba(14, 10, 31, 0.3);
+        }
+
+        body.theme-cyber .logs-toolbar {
+            background: rgba(28, 20, 51, 0.6);
+            border-bottom: 1px solid rgba(0, 224, 255, 0.2);
+        }
+
+        body.theme-cyber .search-box input {
+            background: rgba(14, 10, 31, 0.8);
+            border: 1px solid rgba(0, 224, 255, 0.3);
+            color: #FFFFFF;
+        }
+
+        body.theme-cyber .search-box input:focus {
+            border-color: #00E0FF;
+            box-shadow: 0 0 10px rgba(0, 224, 255, 0.3);
+        }
+
+        body.theme-cyber .search-box i {
+            color: #00E0FF;
+        }
+
+        body.theme-cyber .log-item {
+            background: rgba(28, 20, 51, 0.6);
+            border: 1px solid rgba(0, 224, 255, 0.2);
+            color: #FFFFFF;
+        }
+
+        body.theme-cyber .log-item:hover {
+            background: rgba(28, 20, 51, 0.8);
+            border-color: rgba(0, 224, 255, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 224, 255, 0.2);
+        }
+
+        body.theme-cyber .log-message {
+            color: #FFFFFF;
+        }
+
+        body.theme-cyber .log-timestamp,
+        body.theme-cyber .log-source {
+            color: #C9BEEA;
+        }
+
+        body.theme-cyber .log-item.info {
+            border-left: 4px solid #00E0FF;
+        }
+
+        body.theme-cyber .log-item.warning {
+            border-left: 4px solid #FFB800;
+        }
+
+        body.theme-cyber .log-item.error {
+            border-left: 4px solid #FF5FA2;
+        }
+
+        body.theme-cyber .log-item.debug {
+            border-left: 4px solid #C9BEEA;
+        }
+
+        body.theme-cyber .log-level {
+            color: #00E0FF;
+            background: rgba(0, 224, 255, 0.1);
+            border: 1px solid rgba(0, 224, 255, 0.3);
+        }
+
+        body.theme-cyber .log-level.warning {
+            color: #FFB800;
+            background: rgba(255, 184, 0, 0.1);
+            border-color: rgba(255, 184, 0, 0.3);
+        }
+
+        body.theme-cyber .log-level.error {
+            color: #FF5FA2;
+            background: rgba(255, 95, 162, 0.1);
+            border-color: rgba(255, 95, 162, 0.3);
+        }
+
+        body.theme-cyber .log-level.debug {
+            color: #C9BEEA;
+            background: rgba(201, 190, 234, 0.1);
+            border-color: rgba(201, 190, 234, 0.3);
+        }
+
+        body.theme-cyber .log-timestamp {
+            color: #C9BEEA;
+        }
+
+        body.theme-cyber .log-source {
+            color: #00E0FF;
+        }
+
+        body.theme-cyber .log-message {
+            color: #FFFFFF;
+        }
+
+        body.theme-cyber .log-details {
+            color: #C9BEEA;
+        }
+
+        body.theme-cyber .log-details summary {
+            color: #00E0FF;
+            cursor: pointer;
+        }
+
+        body.theme-cyber .log-details pre {
+            background: rgba(14, 10, 31, 0.8);
+            color: #FFFFFF;
+            border: 1px solid rgba(0, 224, 255, 0.2);
+        }
+
+        body.theme-cyber .pagination {
+            background: rgba(28, 20, 51, 0.6);
+            border-top: 1px solid rgba(0, 224, 255, 0.2);
+        }
+
+        body.theme-cyber .pagination button {
+            background: rgba(0, 224, 255, 0.1);
+            color: #00E0FF;
+            border: 1px solid rgba(0, 224, 255, 0.3);
+        }
+
+        body.theme-cyber .pagination button:hover:not(:disabled) {
+            background: rgba(0, 224, 255, 0.2);
+            box-shadow: 0 0 10px rgba(0, 224, 255, 0.3);
+        }
+
+        body.theme-cyber .pagination button:disabled {
+            opacity: 0.3;
+            color: #666;
+        }
+
+        body.theme-cyber .pagination span {
+            color: #C9BEEA;
+        }
+
+        /* THEME 2: Sunset Gradient */
+        body.theme-sunset {
+            --primary: #FF6A3D;
+            --primary-dark: #D44A20;
+            --gradient-start: #FF6A3D;
+            --gradient-end: #A14BFF;
+            --bg-main: #FFF7F3;
+            --bg-card: #FFFFFF;
+            --bg-surface: #F7EEE9;
+            --text-primary: #2F2F2F;
+            --text-secondary: #5A5A5A;
+            --success: #46C371;
+            --warning: #F7C14E;
+            --error: #E44A57;
+            background: linear-gradient(135deg, #FF6A3D, #A14BFF);
+        }
+
+        body.theme-sunset .stats-grid,
+        body.theme-sunset .sidebar,
+        body.theme-sunset .filters,
+        body.theme-sunset .log-list,
+        body.theme-sunset .pagination {
+            background: rgba(255, 255, 255, 0.95);
+            color: #2F2F2F;
+        }
+
+        body.theme-sunset .sidebar h3,
+        body.theme-sunset .stat-label,
+        body.theme-sunset h2 {
+            color: #FF6A3D;
+        }
+
+        body.theme-sunset .stat-value {
+            color: #2F2F2F;
+        }
+
+        body.theme-sunset button:not(.nav-btn):not(.dropdown-btn),
+        body.theme-sunset .filter-button {
+            background: #FF6A3D;
+            color: white;
+            border: 1px solid #FF6A3D;
+        }
+
+        body.theme-sunset button:not(.nav-btn):not(.dropdown-btn):hover,
+        body.theme-sunset .filter-button:hover {
+            background: #D44A20;
+            box-shadow: 0 4px 12px rgba(255, 106, 61, 0.2);
+        }
+
+        /* Navigation Button Styling - Sunset Theme */
+        body.theme-sunset .nav-btn {
+            background: rgba(255, 255, 255, 0.9) !important;
+            color: #2F2F2F !important;
+            border: 1px solid rgba(255, 106, 61, 0.2) !important;
+        }
+
+        body.theme-sunset .nav-btn:hover {
+            background: rgba(255, 106, 61, 0.1) !important;
+            color: #2F2F2F !important;
+        }
+
+        body.theme-sunset .nav-btn.active {
+            background: var(--primary) !important;
+            color: #FFFFFF !important;
+        }
+
+        body.theme-sunset input,
+        body.theme-sunset select {
+            background: #F7EEE9;
+            color: #2F2F2F;
+            border: 1px solid #EDDED2;
+        }
+
+        body.theme-sunset .log-item {
+            background: rgba(255, 106, 61, 0.1);
+            border: 1px solid #EDDED2;
+            color: #2F2F2F;
+        }
+
+        body.theme-sunset .log-timestamp {
+            color: #FF6A3D;
+        }
+
+        body.theme-sunset .log-source {
+            color: #A14BFF;
+        }
+
+        body.theme-sunset .log-level-info {
+            background: rgba(70, 195, 113, 0.15);
+            color: #006600;
+        }
+
+        body.theme-sunset .log-level-warning {
+            background: rgba(247, 193, 78, 0.15);
+            color: #996633;
+        }
+
+        body.theme-sunset .log-level-error {
+            background: rgba(228, 74, 87, 0.15);
+            color: #990000;
+        }
+
+        body.theme-sunset .log-level-debug {
+            background: rgba(255, 106, 61, 0.15);
+            color: #994422;
+        }
+
+        /* Logs Table Styles */
+        .logs-table-wrapper {
+            overflow-x: auto;
+        }
+
+        .logs-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        .logs-table thead {
+            background: rgba(0, 0, 0, 0.05);
+            border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .logs-table th {
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .logs-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            vertical-align: middle;
+        }
+
+        .logs-table tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        .logs-table tbody tr:nth-child(odd) {
+            background-color: rgba(0, 0, 0, 0.01);
+        }
+
+        .logs-table tbody tr:hover {
+            background-color: rgba(0, 0, 0, 0.04);
+        }
+
+        .log-level-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-align: center;
+            min-width: 70px;
+        }
+
+        .log-level-badge.info {
+            background: rgba(0, 132, 255, 0.15);
+            color: #0084ff;
+        }
+
+        .log-level-badge.warning {
+            background: rgba(255, 165, 2, 0.15);
+            color: #ffa502;
+        }
+
+        .log-level-badge.error {
+            background: rgba(255, 71, 87, 0.15);
+            color: #ff4757;
+        }
+
+        .log-level-badge.success {
+            background: rgba(46, 213, 115, 0.15);
+            color: #2ed573;
+        }
+
+        .log-message {
+            color: var(--text);
+            word-break: break-word;
+            max-width: 400px;
+        }
+
+        .log-user {
+            color: var(--text-secondary, #7a7a7a);
+            font-size: 0.9rem;
+        }
+
+        .log-category {
+            display: inline-block;
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--text);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        body.theme-cyber .logs-table th {
+            background: rgba(255, 95, 162, 0.1);
+            color: #FFFFFF;
+            border-bottom-color: rgba(0, 224, 255, 0.2);
+        }
+
+        body.theme-cyber .logs-table td {
+            border-bottom-color: rgba(0, 224, 255, 0.1);
+        }
+
+        body.theme-cyber .logs-table tbody tr:nth-child(odd) {
+            background-color: rgba(255, 95, 162, 0.02);
+        }
+
+        body.theme-cyber .logs-table tbody tr:hover {
+            background-color: rgba(255, 95, 162, 0.08);
+        }
+
+        body.theme-sunset .logs-table th {
+            background: rgba(255, 106, 61, 0.1);
+            color: #2F2F2F;
+            border-bottom-color: rgba(255, 106, 61, 0.2);
+        }
+
+        body.theme-sunset .logs-table td {
+            border-bottom-color: rgba(255, 106, 61, 0.1);
+        }
+
+        body.theme-sunset .logs-table tbody tr:nth-child(odd) {
+            background-color: rgba(255, 106, 61, 0.02);
+        }
+
+        body.theme-sunset .logs-table tbody tr:hover {
+            background-color: rgba(255, 106, 61, 0.08);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>System Logs</h1>
+            <p class="subtitle">View and manage system event logs</p>
+        </header>
+        <div class="logs-container">
+            <div class="logs-list">
+                <div id="logs-display"></div>
+                    <div class="logs-controls">
+                        <div class="logs-count">
+                            Showing <span id="showing-count">0</span> of <span id="total-count">0</span> logs
+                        </div>
+                        <div class="pagination">
+                            <button id="prev-btn" title="Previous Page"><i class="fas fa-chevron-left"></i></button>
+                            <span id="page-info"></span>
+                            <button id="next-btn" title="Next Page"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+            </div>
+
+            <div class="logs-sidebar">
+                <div class="logs-filters">
+                    <h3><i class="fas fa-filter"></i> Filters</h3>
+
+                    <div class="filter-group">
+                        <label for="level-filter">Log Level</label>
+                        <select id="level-filter">
+                            <option value="">All Levels</option>
+                            <option value="info">Info</option>
+                            <option value="warning">Warning</option>
+                            <option value="error">Error</option>
+                            <option value="success">Success</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="category-filter">Category</label>
+                        <select id="category-filter">
+                            <option value="">All Categories</option>
+                            <option value="system">System</option>
+                            <option value="user">User</option>
+                            <option value="security">Security</option>
+                            <option value="alerts">Alerts</option>
+                            <option value="services">Services</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="search-filter">Search</label>
+                        <input type="text" id="search-filter" placeholder="Search logs...">
+                    </div>
+                </div>
+
+                <div class="log-stats">
+                    <h3>Statistics</h3>
+                    <div class="stat-item">
+                        <span>Total Logs</span>
+                        <span class="stat-value" id="stat-total">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span><i class="fas fa-circle stat-icon"></i>Info</span>
+                        <span class="stat-value" id="stat-info">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span><i class="fas fa-circle stat-icon warning"></i>Warning</span>
+                        <span class="stat-value" id="stat-warning">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span><i class="fas fa-circle stat-icon error"></i>Error</span>
+                        <span class="stat-value" id="stat-error">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span><i class="fas fa-circle stat-icon success"></i>Success</span>
+                        <span class="stat-value" id="stat-success">0</span>
+                    </div>
+                </div>
+
+                <button class="clear-logs-btn" id="clear-logs-btn">
+                    <i class="fas fa-trash-alt"></i> Clear All Logs
+                </button>
+
+                <div class="download-section">
+                    <label>Download Logs</label>
+                    <button class="download-btn" id="download-csv-btn">
+                        <i class="fas fa-download"></i> CSV
+                    </button>
+                    <button class="download-btn" id="download-json-btn">
+                        <i class="fas fa-download"></i> JSON
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="nav.js"></script>
+    <script src="base.js"></script>
+    <script>
+        // Logs page configuration
+        let logs = JSON.parse(localStorage.getItem('logs')) || [];
+        let filteredLogs = [...logs];
+        let currentPage = 1;
+        const logsPerPage = 10;
+
+        /**
+         * Initialize the logs page
+         */
+        function initializeLogsPage() {
+            renderLogs();
+            updateStatistics();
+            
+            // Attach event listeners
+            document.getElementById('prev-btn').addEventListener('click', previousPage);
+            document.getElementById('next-btn').addEventListener('click', nextPage);
+            document.getElementById('level-filter').addEventListener('change', applyFilters);
+            document.getElementById('category-filter').addEventListener('change', applyFilters);
+            document.getElementById('search-filter').addEventListener('keyup', applyFilters);
+            document.getElementById('clear-logs-btn').addEventListener('click', clearAllLogs);
+            document.getElementById('download-csv-btn').addEventListener('click', downloadCSV);
+            document.getElementById('download-json-btn').addEventListener('click', downloadJSON);
+        }
+
+        /**
+         * Render logs with pagination
+         */
+        function renderLogs() {
+            const logsDisplay = document.getElementById('logs-display');
+            
+            if (filteredLogs.length === 0) {
+                logsDisplay.innerHTML = `
+                    <div class="empty-state">
+                        <div class="no-logs">
+                            <i class="fas fa-inbox"></i>
+                            <p>No logs to display</p>
+                        </div>
+                    </div>
+                `;
+                updatePaginationControls();
+                return;
+            }
+
+            // Calculate pagination
+            const startIndex = (currentPage - 1) * logsPerPage;
+            const endIndex = startIndex + logsPerPage;
+            const paginatedLogs = filteredLogs.slice(startIndex, endIndex);
+
+            logsDisplay.innerHTML = `
+                <div class="logs-table-wrapper">
+                    <table class="logs-table">
+                        <thead>
+                            <tr>
+                                <th>Level</th>
+                                <th>Time</th>
+                                <th>Message</th>
+                                <th>Category</th>
+                                <th>User</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${paginatedLogs.map(log => createLogElement(log)).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            updatePaginationControls();
+
+            // Update count
+            document.getElementById('showing-count').textContent = Math.min(endIndex, filteredLogs.length);
+            document.getElementById('total-count').textContent = filteredLogs.length;
+        }
+
+        /**
+         * Create a log element (table row)
+         */
+        function createLogElement(log) {
+            const date = new Date(log.timestamp);
+            const timeStr = date.toLocaleString();
+
+            return `
+                <tr class="log-item ${log.level}">
+                    <td>
+                        <span class="log-level-badge ${log.level}">${log.level.toUpperCase()}</span>
+                    </td>
+                    <td>${timeStr}</td>
+                    <td class="log-message">${escapeHtml(log.message)}</td>
+                    <td><span class="log-category">${escapeHtml(log.category)}</span></td>
+                    <td class="log-user">${escapeHtml(log.user || 'System')}</td>
+                </tr>
+            `;
+        }
+
+        /**
+         * Get icon for log level
+         */
+        function getLevelIcon(level) {
+            const icons = {
+                info: 'fas fa-info-circle',
+                warning: 'fas fa-exclamation-triangle',
+                error: 'fas fa-times-circle',
+                success: 'fas fa-check-circle'
+            };
+            return icons[level] || 'fas fa-circle';
+        }
+
+        /**
+         * Apply filters to logs
+         */
+        function applyFilters() {
+            const levelFilter = document.getElementById('level-filter').value;
+            const categoryFilter = document.getElementById('category-filter').value;
+            const searchFilter = document.getElementById('search-filter').value.toLowerCase();
+
+            filteredLogs = logs.filter(log => {
+                const matchLevel = !levelFilter || log.level === levelFilter;
+                const matchCategory = !categoryFilter || log.category === categoryFilter;
+                const matchSearch = !searchFilter || 
+                    log.message.toLowerCase().includes(searchFilter) ||
+                    log.user.toLowerCase().includes(searchFilter) ||
+                    log.category.toLowerCase().includes(searchFilter);
+
+                return matchLevel && matchCategory && matchSearch;
+            });
+
+            currentPage = 1;
+            renderLogs();
+        }
+
+        /**
+         * Update pagination controls
+         */
+        function updatePaginationControls() {
+            const totalPages = Math.ceil(filteredLogs.length / logsPerPage);
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const pageInfo = document.getElementById('page-info');
+
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+            pageInfo.textContent = totalPages === 0 ? '0 of 0' : `${currentPage} of ${totalPages}`;
+        }
+
+        /**
+         * Go to next page
+         */
+        function nextPage() {
+            const totalPages = Math.ceil(filteredLogs.length / logsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderLogs();
+            }
+        }
+
+        /**
+         * Go to previous page
+         */
+        function previousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderLogs();
+            }
+        }
+
+        /**
+         * Update statistics
+         */
+        function updateStatistics() {
+            const stats = {
+                total: logs.length,
+                info: logs.filter(l => l.level === 'info').length,
+                warning: logs.filter(l => l.level === 'warning').length,
+                error: logs.filter(l => l.level === 'error').length,
+                success: logs.filter(l => l.level === 'success').length
+            };
+
+            document.getElementById('stat-total').textContent = stats.total;
+            document.getElementById('stat-info').textContent = stats.info;
+            document.getElementById('stat-warning').textContent = stats.warning;
+            document.getElementById('stat-error').textContent = stats.error;
+            document.getElementById('stat-success').textContent = stats.success;
+        }
+
+        /**
+         * Clear all logs with confirmation
+         */
+        function clearAllLogs() {
+            if (confirm('Are you sure you want to delete all logs? This action cannot be undone.')) {
+                logs = [];
+                filteredLogs = [];
+                localStorage.setItem('logs', JSON.stringify(logs));
+                currentPage = 1;
+                document.getElementById('level-filter').value = '';
+                document.getElementById('category-filter').value = '';
+                document.getElementById('search-filter').value = '';
+                renderLogs();
+                updateStatistics();
+                alert('All logs have been cleared.');
+            }
+        }
+
+        /**
+         * Download logs as CSV
+         */
+        function downloadCSV() {
+            if (logs.length === 0) {
+                alert('No logs to download');
+                return;
+            }
+
+            // Create CSV headers
+            const headers = ['ID', 'Timestamp', 'Level', 'Category', 'Message', 'User', 'Details'];
+            
+            // Create CSV rows
+            const rows = logs.map(log => [
+                log.id,
+                log.timestamp,
+                log.level,
+                log.category,
+                escapeCSV(log.message),
+                log.user || 'System',
+                escapeCSV(JSON.stringify(log.details))
+            ]);
+
+            // Combine headers and rows
+            const csv = [
+                headers.join(','),
+                ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+            ].join('\n');
+
+            // Download file
+            downloadFile(csv, 'application/csv', 'logs.csv');
+        }
+
+        /**
+         * Download logs as JSON
+         */
+        function downloadJSON() {
+            if (logs.length === 0) {
+                alert('No logs to download');
+                return;
+            }
+
+            // Create JSON with metadata
+            const data = {
+                exportDate: new Date().toISOString(),
+                totalLogs: logs.length,
+                statistics: {
+                    info: logs.filter(l => l.level === 'info').length,
+                    warning: logs.filter(l => l.level === 'warning').length,
+                    error: logs.filter(l => l.level === 'error').length,
+                    success: logs.filter(l => l.level === 'success').length
+                },
+                logs: logs
+            };
+
+            const json = JSON.stringify(data, null, 2);
+            downloadFile(json, 'application/json', 'logs.json');
+        }
+
+        /**
+         * Helper function to download a file
+         */
+        function downloadFile(content, mimeType, filename) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        }
+
+        /**
+         * Escape CSV special characters
+         */
+        function escapeCSV(text) {
+            if (typeof text !== 'string') {
+                text = String(text);
+            }
+            // Escape double quotes and remove newlines
+            return text.replace(/"/g, '""').replace(/\n/g, ' ').replace(/\r/g, ' ');
+        }
+
+        /**
+         * Escape HTML to prevent XSS
+         */
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initializeLogsPage);
+    </script>
+</body>
+</html>

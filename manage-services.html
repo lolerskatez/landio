@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Services | Server Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Load theme manager early to apply preferences before page renders -->
+    <script src="theme.js"></script>
+    <style>
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+        }
+        
+        :root {
+            --primary: #ff6b93;
+            --secondary: #a6d8ff;
+            --accent: #ffccd5;
+            --text: #5a5a5a;
+            --light-bg: #fff9fb;
+            --dark: #4a4a4a;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #ffd1dc, #c9e9ff);
+            min-height: 100vh;
+            color: var(--text);
+            padding: 20px;
+        }
+        
+        .container {
+            margin: 0;
+            padding: 0 20px;
+        }
+        
+        /* Header styles */
+        header {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 0px rgba(255, 182, 193, 0.3);
+        }
+        
+        .subtitle {
+            color: #7a7a7a;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+
+        /* Services section */
+        .services-section {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+
+        .services-section h2 {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #ff5252;
+            font-size: 1.3rem;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .service-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            border-left: 5px solid var(--primary);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .service-name {
+            font-size: 1.3rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .service-url {
+            color: #7a7a7a;
+            margin-bottom: 15px;
+            word-break: break-all;
+            font-size: 0.9rem;
+        }
+
+        .service-url a {
+            color: #3a7bb8;
+            text-decoration: none;
+        }
+
+        .service-url a:hover {
+            text-decoration: underline;
+        }
+
+        .service-description {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            color: #666666;
+        }
+
+        .service-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .status-online {
+            background: #e8f7e8;
+            color: #2e7d32;
+        }
+
+        .status-offline {
+            background: #ffe8e8;
+            color: #c62828;
+        }
+
+        .status-maintenance {
+            background: #fff8e8;
+            color: #ef6c00;
+        }
+
+        .service-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .service-actions button {
+            flex: 1;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+
+        /* Button styles */
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background-color: #ff6b93;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #e64f82;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(230, 79, 130, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: #a6d8ff;
+            color: #3a7bb8;
+        }
+
+        .btn-secondary:hover {
+            background-color: #7cc9ff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(166, 216, 255, 0.3);
+        }
+
+        /* Modal styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        /* Form styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Arial', sans-serif;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(255, 130, 169, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: var(--accent);
+            margin-bottom: 15px;
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .services-section {
+                padding: 20px;
+            }
+
+            header {
+                padding: 20px;
+            }
+        }
+
+        /* ============================================ */
+        /* THEME SYSTEM - MANAGE SERVICES */
+        /* ============================================ */
+        
+        /* THEME 1: Cyber Sakura */
+        body.theme-cyber {
+            --primary: #FF5FA2;
+            --primary-glow: #FF9BD4;
+            --neon-blue: #00E0FF;
+            --neon-purple: #C77DFF;
+            --bg-main: #0E0A1F;
+            --bg-card: #1C1433;
+            --bg-surface: #241A40;
+            --text-primary: #FFFFFF;
+            --text-secondary: #C9BEEA;
+            --success: #00FFA3;
+            --warning: #FFC93C;
+            --error: #FF4F70;
+            background: linear-gradient(135deg, #0E0A1F, #1A0F2E);
+            font-family: 'Poppins', sans-serif;
+            color: #FFFFFF;
+        }
+
+        body.theme-cyber header {
+            background: rgba(28, 20, 51, 0.95) !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 0 20px rgba(255, 95, 162, 0.3) !important;
+        }
+
+        /* THEME 2: Sunset Gradient */
+        body.theme-sunset {
+            --primary: #FF6A3D;
+            --primary-dark: #D44A20;
+            --gradient-start: #FF6A3D;
+            --gradient-end: #A14BFF;
+            --bg-main: #FFF7F3;
+            --bg-card: #FFFFFF;
+            --bg-surface: #F7EEE9;
+            --text-primary: #2F2F2F;
+            --text-secondary: #5A5A5A;
+            --success: #46C371;
+            --warning: #F7C14E;
+            --error: #E44A57;
+            background: linear-gradient(135deg, #FF6A3D, #A14BFF);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body.theme-sunset header {
+            background-color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 10px 28px rgba(255, 106, 61, 0.15);
+        }
+
+        /* ============================================ */
+        /* THEME-AWARE COMPONENT STYLING */
+        /* ============================================ */
+
+        /* Cyber Theme - Comprehensive Support */
+        body.theme-cyber header {
+            background: rgba(28, 20, 51, 0.95) !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 0 20px rgba(255, 95, 162, 0.3) !important;
+        }
+
+        body.theme-cyber h1,
+        body.theme-cyber h2,
+        body.theme-cyber h3 {
+            color: #FF9BD4 !important;
+            text-shadow: 0 0 10px rgba(255, 95, 162, 0.4) !important;
+        }
+
+        body.theme-cyber .subtitle {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+
+        body.theme-cyber .services-section {
+            background: rgba(20, 16, 40, 0.8) !important;
+            border: 1px solid rgba(255, 95, 162, 0.2) !important;
+            color: #FFFFFF !important;
+        }
+
+        body.theme-cyber .service-card {
+            background: rgba(28, 20, 51, 0.9) !important;
+            border: 1px solid rgba(255, 95, 162, 0.4) !important;
+            color: #FFFFFF !important;
+        }
+
+        body.theme-cyber .service-card:hover {
+            box-shadow: 0 0 15px rgba(255, 95, 162, 0.3) !important;
+            border-color: rgba(255, 95, 162, 0.6) !important;
+        }
+
+        body.theme-cyber .service-name {
+            color: #FF9BD4 !important;
+        }
+
+        body.theme-cyber .service-url {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+
+        body.theme-cyber .service-url a {
+            color: #FF9BD4 !important;
+        }
+
+        body.theme-cyber .service-description {
+            color: rgba(255, 255, 255, 0.85) !important;
+        }
+
+        body.theme-cyber .btn {
+            background: rgba(255, 95, 162, 0.15) !important;
+            color: #FF9BD4 !important;
+            border: 1px solid rgba(255, 95, 162, 0.3) !important;
+        }
+
+        body.theme-cyber .btn-primary {
+            background: #FF5FA2 !important;
+            color: #FFFFFF !important;
+            border: 1px solid #FF5FA2 !important;
+        }
+
+        body.theme-cyber .btn-primary:hover {
+            background: #FF8ABE !important;
+            box-shadow: 0 0 15px rgba(255, 95, 162, 0.5) !important;
+        }
+
+        body.theme-cyber .btn-secondary {
+            background: rgba(124, 201, 255, 0.15) !important;
+            color: #7CC9FF !important;
+            border: 1px solid rgba(124, 201, 255, 0.3) !important;
+        }
+
+        body.theme-cyber .btn-secondary:hover {
+            background: rgba(124, 201, 255, 0.25) !important;
+            box-shadow: 0 0 15px rgba(124, 201, 255, 0.4) !important;
+        }
+
+        body.theme-cyber input,
+        body.theme-cyber select,
+        body.theme-cyber textarea {
+            background: rgba(20, 20, 30, 0.8) !important;
+            color: #FFFFFF !important;
+            border: 1px solid rgba(255, 95, 162, 0.3) !important;
+        }
+
+        body.theme-cyber label {
+            color: #FF9BD4 !important;
+        }
+
+        body.theme-cyber .modal-content {
+            background: rgba(28, 20, 51, 0.95) !important;
+            color: #FFFFFF !important;
+            border: 1px solid rgba(255, 95, 162, 0.3) !important;
+        }
+
+        body.theme-cyber .modal-header h2 {
+            color: #FFFFFF !important;
+        }
+
+        body.theme-cyber .modal-close {
+            color: #FFFFFF !important;
+        }
+
+        body.theme-cyber .empty-state {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+
+        body.theme-cyber .empty-state i {
+            color: #FF9BD4 !important;
+        }
+
+        body.theme-cyber .status-online {
+            background: rgba(0, 255, 163, 0.15) !important;
+            color: #00FFA3 !important;
+        }
+
+        body.theme-cyber .status-offline {
+            background: rgba(255, 75, 75, 0.15) !important;
+            color: #FF6B6B !important;
+        }
+
+        body.theme-cyber .status-maintenance {
+            background: rgba(255, 217, 61, 0.15) !important;
+            color: #FFD93D !important;
+        }
+
+        /* Sunset Theme - Components */
+        body.theme-sunset h1,
+        body.theme-sunset h2,
+        body.theme-sunset h3 {
+            color: #FF6A3D;
+        }
+
+        body.theme-sunset .subtitle {
+            color: #5A5A5A;
+        }
+
+        body.theme-sunset .services-section {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #EDDED2;
+            color: #2F2F2F;
+        }
+
+        body.theme-sunset .service-card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #EDDED2;
+            color: #2F2F2F;
+        }
+
+        body.theme-sunset .service-card:hover {
+            box-shadow: 0 4px 12px rgba(255, 106, 61, 0.15);
+            border-color: #FF6A3D;
+        }
+
+        body.theme-sunset .service-name {
+            color: #FF6A3D;
+        }
+
+        body.theme-sunset .service-url {
+            color: #2F2F2F;
+        }
+
+        body.theme-sunset .service-url a {
+            color: #FF6A3D;
+        }
+
+        body.theme-sunset .service-description {
+            color: #5A5A5A;
+        }
+
+        body.theme-sunset .btn {
+            background: #FFF7F3;
+            color: #FF6A3D;
+            border: 1px solid #EDDED2;
+        }
+
+        body.theme-sunset .btn-primary {
+            background: #FF6A3D;
+            color: #FFFFFF;
+            border: 1px solid #FF6A3D;
+        }
+
+        body.theme-sunset .btn-primary:hover {
+            background: #D44A20;
+            box-shadow: 0 4px 12px rgba(255, 106, 61, 0.2);
+        }
+
+        body.theme-sunset .btn-secondary {
+            background: #FFF7F3;
+            color: #A14BFF;
+            border: 1px solid #EDDED2;
+        }
+
+        body.theme-sunset .btn-secondary:hover {
+            background: #F7EEE9;
+            box-shadow: 0 4px 12px rgba(161, 75, 255, 0.15);
+        }
+
+        /* Navigation Button Styling - Sunset Theme */
+        body.theme-sunset .nav-btn {
+            background: rgba(255, 255, 255, 0.9) !important;
+            color: #2F2F2F !important;
+            border: 1px solid rgba(255, 106, 61, 0.2) !important;
+        }
+
+        body.theme-sunset .nav-btn:hover {
+            background: rgba(255, 106, 61, 0.1) !important;
+            color: #2F2F2F !important;
+        }
+
+        body.theme-sunset .nav-btn.active {
+            background: var(--primary) !important;
+            color: #FFFFFF !important;
+        }
+
+        body.theme-sunset input,
+        body.theme-sunset select,
+        body.theme-sunset textarea {
+            background: #F7EEE9;
+            color: #2F2F2F;
+            border: 1px solid #EDDED2;
+        }
+
+        body.theme-sunset label {
+            color: #FF6A3D;
+        }
+
+        body.theme-sunset .modal-content {
+            background: rgba(255, 255, 255, 0.98);
+            color: #2F2F2F;
+            border: 1px solid #EDDED2;
+        }
+
+        body.theme-sunset .modal-header h2 {
+            color: #FF6A3D;
+        }
+
+        body.theme-sunset .modal-close {
+            color: #2F2F2F;
+        }
+
+        body.theme-sunset .empty-state {
+            color: #5A5A5A;
+        }
+
+        body.theme-sunset .empty-state i {
+            color: #FF6A3D;
+        }
+
+        body.theme-sunset .status-online {
+            background: rgba(70, 195, 113, 0.15);
+            color: #46C371;
+        }
+
+        body.theme-sunset .status-offline {
+            background: rgba(228, 74, 87, 0.15);
+            color: #E44A57;
+        }
+
+        body.theme-sunset .status-maintenance {
+            background: rgba(247, 193, 78, 0.15);
+            color: #F7C14E;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-cube"></i> Manage Services</h1>
+            <p class="subtitle">Add and manage the services that appear on your dashboard</p>
+        </header>
+
+        <!-- Services Section -->
+        <div class="services-section">
+            <h2>
+                <span><i class="fas fa-cube"></i> My Services</span>
+                <button class="btn btn-primary" id="add-service-btn">
+                    <i class="fas fa-plus"></i> Add New Service
+                </button>
+            </h2>
+
+            <!-- Services Grid -->
+            <div class="services-grid" id="services-list-container">
+                <!-- Services will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Modal -->
+    <div id="service-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Add New Service</h2>
+                <button class="modal-close" id="close-service-modal" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="service-form" class="modal-form">
+                <!-- Service Template Selection -->
+                <div class="form-group">
+                    <label for="service-template-select">Choose Service Template</label>
+                    <select id="service-template-select">
+                        <option value="">-- Select from Popular Services --</option>
+                        <option value="custom">+ Create Custom Service</option>
+                        <optgroup label="File & Storage">
+                            <option value="nextcloud">Nextcloud</option>
+                            <option value="synology">Synology NAS</option>
+                            <option value="truenas">TrueNAS</option>
+                            <option value="seafile">Seafile</option>
+                        </optgroup>
+                        <optgroup label="Media & Entertainment">
+                            <option value="plex">Plex Media Server</option>
+                            <option value="jellyfin">Jellyfin</option>
+                            <option value="emby">Emby</option>
+                            <option value="kaleidescape">Kaleidescape</option>
+                        </optgroup>
+                        <optgroup label="Development & Code">
+                            <option value="gitlab">GitLab</option>
+                            <option value="gitea">Gitea</option>
+                            <option value="github-enterprise">GitHub Enterprise</option>
+                            <option value="jenkins">Jenkins</option>
+                        </optgroup>
+                        <optgroup label="Communication">
+                            <option value="mattermost">Mattermost</option>
+                            <option value="jitsi">Jitsi Meet</option>
+                            <option value="rocketchat">Rocket.Chat</option>
+                            <option value="matrix">Matrix/Synapse</option>
+                        </optgroup>
+                        <optgroup label="Monitoring & Admin">
+                            <option value="portainer">Portainer</option>
+                            <option value="unraid">Unraid</option>
+                            <option value="proxmox">Proxmox VE</option>
+                            <option value="esxi">VMware ESXi</option>
+                            <option value="pfsense">pfSense</option>
+                            <option value="opnsense">OPNsense</option>
+                        </optgroup>
+                        <optgroup label="Password & Security">
+                            <option value="vaultwarden">Vaultwarden</option>
+                            <option value="keycloak">Keycloak</option>
+                            <option value="authentik">Authentik</option>
+                        </optgroup>
+                        <optgroup label="Download & Content">
+                            <option value="qbittorrent">qBittorrent</option>
+                            <option value="transmission">Transmission</option>
+                            <option value="sonarr">Sonarr</option>
+                            <option value="radarr">Radarr</option>
+                            <option value="lidarr">Lidarr</option>
+                            <option value="prowlarr">Prowlarr</option>
+                        </optgroup>
+                        <optgroup label="Utilities">
+                            <option value="homeassistant">Home Assistant</option>
+                            <option value="pihole">Pi-hole</option>
+                            <option value="adguard">AdGuard Home</option>
+                            <option value="unmanic">Unmanic</option>
+                            <option value="openvpn">OpenVPN</option>
+                            <option value="wireguard">WireGuard</option>
+                        </optgroup>
+                        <optgroup label="Documentation & Wiki">
+                            <option value="wiki">Wiki.js</option>
+                            <option value="confluence">Confluence</option>
+                            <option value="mediawiki">MediaWiki</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <!-- Service Details -->
+                <div class="form-group">
+                    <label for="service-name-input">Service Name</label>
+                    <input type="text" id="service-name-input" placeholder="e.g., My Nextcloud" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="service-url-input">Service URL</label>
+                    <input type="url" id="service-url-input" placeholder="https://service.example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="service-description-input">Description</label>
+                    <textarea id="service-description-input" placeholder="What does this service do?"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="service-status-input">Status</label>
+                    <select id="service-status-input">
+                        <option value="online">Online</option>
+                        <option value="offline">Offline</option>
+                        <option value="maintenance">Maintenance</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="service-access-input">Visible To</label>
+                    <select id="service-access-input">
+                        <option value="public">Everyone (Public)</option>
+                        <option value="user">Users & Up</option>
+                        <option value="poweruser">Power Users & Admins</option>
+                        <option value="admin">Admins Only</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" id="cancel-service-btn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="submit-service-btn">Add Service</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="api.js"></script>
+    <script>
+        // Page-specific initialization called by base.js after auth check
+        window.pageInit = async function(user) {
+            setupEventListeners();
+            await loadServices();
+        };
+
+        function setupEventListeners() {
+            const addBtn = document.getElementById('add-service-btn');
+            const closeBtn = document.getElementById('close-service-modal');
+            const cancelBtn = document.getElementById('cancel-service-btn');
+            const form = document.getElementById('service-form');
+            const modal = document.getElementById('service-modal');
+
+            if (addBtn) addBtn.addEventListener('click', openServiceModal);
+            if (closeBtn) closeBtn.addEventListener('click', closeServiceModal);
+            if (cancelBtn) cancelBtn.addEventListener('click', closeServiceModal);
+            if (form) form.addEventListener('submit', saveService);
+            if (modal) {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) closeServiceModal();
+                });
+            }
+        }
+
+        function openServiceModal() {
+            const modal = document.getElementById('service-modal');
+            if (modal) modal.classList.add('show');
+        }
+
+        function closeServiceModal() {
+            const modal = document.getElementById('service-modal');
+            if (modal) {
+                modal.classList.remove('show');
+                document.getElementById('service-form').reset();
+            }
+        }
+
+        async function loadServices() {
+            try {
+                const response = await fetch('/api/services', {
+                    headers: {
+                        'Authorization': `Bearer ${window.Api?.token || ''}`
+                    }
+                });
+                if (!response.ok) throw new Error('Failed to load services');
+                
+                const services = await response.json();
+                displayServices(services);
+            } catch (error) {
+                console.error('Error loading services:', error);
+                const container = document.getElementById('services-list-container');
+                if (container) {
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No services yet. Add your first service!</p></div>';
+                }
+            }
+        }
+
+        function displayServices(services) {
+            const container = document.getElementById('services-list-container');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            if (services.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><i class="fas fa-inbox"></i><p>No services yet. Add your first service!</p></div>';
+                return;
+            }
+
+            services.forEach(service => {
+                const statusClass = `status-${service.status || 'offline'}`;
+                const card = document.createElement('div');
+                card.className = 'service-card';
+                card.innerHTML = `
+                    <div class="service-name">${service.name}</div>
+                    <div class="service-url"><a href="${service.url}" target="_blank" rel="noopener">${service.url}</a></div>
+                    <div class="service-description">${service.description || ''}</div>
+                    <div class="service-status ${statusClass}">
+                        <i class="fas fa-circle"></i>
+                        ${service.status ? service.status.charAt(0).toUpperCase() + service.status.slice(1) : 'Offline'}
+                    </div>
+                    <div class="service-actions">
+                        <button class="btn btn-secondary" onclick="editService(${service.id})" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-secondary" onclick="deleteService(${service.id})" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function saveService(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('service-name-input')?.value;
+            const url = document.getElementById('service-url-input')?.value;
+            const description = document.getElementById('service-description-input')?.value;
+            const status = document.getElementById('service-status-input')?.value || 'online';
+            const access = document.getElementById('service-access-input')?.value || 'public';
+
+            if (!name || !url) {
+                alert('Please fill in required fields');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/services', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${window.Api?.token || ''}`
+                    },
+                    body: JSON.stringify({
+                        name,
+                        url,
+                        description,
+                        status,
+                        access_level: access
+                    })
+                });
+
+                if (!response.ok) throw new Error('Failed to save service');
+                
+                closeServiceModal();
+                await loadServices();
+                alert('Service added successfully!');
+            } catch (error) {
+                console.error('Error saving service:', error);
+                alert('Failed to save service: ' + error.message);
+            }
+        }
+
+        async function editService(id) {
+            // Placeholder for edit functionality
+            alert('Edit functionality coming soon');
+        }
+
+        async function deleteService(id) {
+            if (!confirm('Are you sure you want to delete this service?')) return;
+
+            try {
+                const response = await fetch(`/api/services/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${window.Api?.token || ''}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Failed to delete service');
+                
+                await loadServices();
+                alert('Service deleted successfully!');
+            } catch (error) {
+                console.error('Error deleting service:', error);
+                alert('Failed to delete service: ' + error.message);
+            }
+        }
+    </script>
+    <script src="nav.js"></script>
+    <script src="base.js"></script>
+</body>
+</html>
