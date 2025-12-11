@@ -152,7 +152,14 @@ class ThemeManager {
         
         // Ensure body exists before applying classes
         if (!body) {
-            console.warn('Theme.js: body element not yet available, will retry on DOMContentLoaded');
+            // Set up a one-time listener for when DOM is ready
+            if (!this._domReadyListenerAdded) {
+                this._domReadyListenerAdded = true;
+                document.addEventListener('DOMContentLoaded', () => {
+                    this._domReadyListenerAdded = false; // Reset flag
+                    this.applyTheme();
+                });
+            }
             return;
         }
 
@@ -271,8 +278,15 @@ class ThemeManager {
         if (settings.reduceMotion !== undefined) this.reduceMotion = settings.reduceMotion;
         if (settings.animations !== undefined) this.animations = settings.animations;
         
-        this.applyTheme();
-        this.savePreferences();
+        // Apply theme if body is ready, otherwise wait for DOMContentLoaded
+        if (document.body) {
+            this.applyTheme();
+        } else {
+            document.addEventListener('DOMContentLoaded', () => this.applyTheme());
+        }
+        
+        // Update localStorage but don't save back to server (would cause infinite loop)
+        this.syncToLocalStorage();
     }
 
     /**
