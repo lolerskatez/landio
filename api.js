@@ -151,9 +151,10 @@ class ApiClient {
             const data = await response.json();
 
             if (!response.ok) {
-                // For login endpoint, 403 with ENROLLMENT_REQUIRED is not an error
-                if (response.status === 403 && data.code === 'ENROLLMENT_REQUIRED') {
-                    return data; // Return the enrollment data
+                // For login endpoint, 403 responses are special (enrollment required, account disabled, etc)
+                if (response.status === 403) {
+                    // Return 403 responses as-is for login.html to handle
+                    return data;
                 }
                 // For other errors, throw
                 throw new Error(data.error || `HTTP ${response.status}`);

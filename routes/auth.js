@@ -169,7 +169,7 @@ function is2FARequired(user, callback) {
       }
 
       let enforce2faAllUsers = false;
-      let enforce2faAdminsOnly = true;
+      let enforce2faAdminsOnly = false;
       let twoFAGracePeriod = 7;
 
       if (rows) {

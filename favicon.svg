@@ -1,19 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <defs>
     <style>
-      .favicon-bg { fill: #ff6b93; }
-      .favicon-char { fill: #ffccd5; }
+      .favicon-bg { fill: #1a1a2e; }
+      .favicon-accent { fill: #ff6b93; }
+      .favicon-icon { fill: #ffffff; }
     </style>
   </defs>
-  <!-- Background circle -->
-  <circle cx="50" cy="50" r="50" class="favicon-bg"/>
-  <!-- Simple character head -->
-  <circle cx="50" cy="35" r="15" class="favicon-char"/>
-  <!-- Character body -->
-  <ellipse cx="50" cy="60" rx="12" ry="18" class="favicon-char"/>
-  <!-- Eyes -->
-  <circle cx="45" cy="32" r="2" fill="#333"/>
-  <circle cx="55" cy="32" r="2" fill="#333"/>
-  <!-- Smile -->
-  <path d="M45 38 Q50 40 55 38" stroke="#333" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Background -->
+  <rect width="100" height="100" class="favicon-bg"/>
+  <!-- Server/Dashboard icon -->
+  <!-- Top server -->
+  <rect x="20" y="15" width="60" height="20" rx="2" class="favicon-icon" opacity="0.8"/>
+  <circle cx="28" cy="25" r="2" class="favicon-accent"/>
+  <circle cx="37" cy="25" r="2" class="favicon-accent"/>
+  <circle cx="46" cy="25" r="2" class="favicon-accent"/>
+  <!-- Middle server -->
+  <rect x="20" y="40" width="60" height="20" rx="2" class="favicon-icon" opacity="0.9"/>
+  <circle cx="28" cy="50" r="2" class="favicon-accent"/>
+  <circle cx="37" cy="50" r="2" class="favicon-accent"/>
+  <circle cx="46" cy="50" r="2" class="favicon-accent"/>
+  <!-- Bottom server -->
+  <rect x="20" y="65" width="60" height="20" rx="2" class="favicon-icon" opacity="0.7"/>
+  <circle cx="28" cy="75" r="2" class="favicon-accent"/>
+  <circle cx="37" cy="75" r="2" class="favicon-accent"/>
+  <circle cx="46" cy="75" r="2" class="favicon-accent"/>
 </svg>

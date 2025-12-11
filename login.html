@@ -989,8 +989,16 @@
                 // Use API for authentication
                 const response = await window.Api.login(username, password);
 
+                // Debug log the response structure
+                console.log('Login response:', response);
+
+                // Validate response exists
+                if (!response) {
+                    throw new Error('No response from server');
+                }
+
                 // Check if 2FA enrollment is required
-                if (response.code === 'ENROLLMENT_REQUIRED') {
+                if (response && response.code === 'ENROLLMENT_REQUIRED') {
                     // Check if this is immediate enrollment required or just a grace period reminder
                     if (response.enrollmentRequired) {
                         // Immediate enrollment required - user cannot login without 2FA
@@ -1025,6 +1033,11 @@
                     }
                 }
 
+                // Check if response is a 403 error (account disabled, etc)
+                if (response && response.error && !response.user && !response.token) {
+                    throw new Error(response.error);
+                }
+
                 // Check if 2FA is required
                 if (response.requiresTwoFactor) {
                     // Store temporary session data for 2FA verification
@@ -1053,6 +1066,10 @@
                 }
 
                 // Save user profile to localStorage (for auth.js)
+                if (!response.user) {
+                    console.error('Response missing user data:', response);
+                    throw new Error('Invalid login response: user data missing');
+                }
                 localStorage.setItem('currentUser', JSON.stringify(response.user));
 
                 // Save "Remember Me" preference

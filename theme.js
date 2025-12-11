@@ -33,11 +33,17 @@ class ThemeManager {
      */
     async loadFromServer() {
         try {
+            // Only attempt to load from server if user is authenticated
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                return; // Skip server load, use localStorage defaults
+            }
+
             const response = await fetch('/api/settings/theme/preferences', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
+                    'Authorization': `Bearer ${token}`
                 }
             });
 
