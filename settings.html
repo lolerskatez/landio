@@ -917,7 +917,7 @@
             }
             
             h1 {
-                font-size: 2rem;
+                font-size: 1.8rem;
             }
             
             .character-container {
@@ -1020,6 +1020,12 @@
                 flex-direction: column;
                 gap: 10px;
                 align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
             }
         }
         
@@ -1857,13 +1863,12 @@
 </head>
 <body>
     <div class="container">
+
         <header>
-            <div class="decoration decoration-1"></div>
-            <div class="decoration decoration-2"></div>
-            
-            <h1>Server Settings</h1>
+            <h1><i class="fas fa-cogs"></i>Server Settings</h1>
             <p class="subtitle">Configure your server and application settings</p>
         </header>
+
         
         <div class="admin-content">
             <div>
