@@ -17,6 +17,9 @@ const servicesRoutes = require('./routes/services');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Trust proxy for Cloudflare tunnels and other reverse proxies
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet({
   contentSecurityPolicy: {
@@ -24,8 +27,8 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
-      connectSrc: ["'self'", "https://cdn.jsdelivr.net"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://static.cloudflareinsights.com"],
+      connectSrc: ["'self'", "https://cdn.jsdelivr.net", "https://static.cloudflareinsights.com"],
       imgSrc: ["'self'", "data:", "https:"],
     },
   },

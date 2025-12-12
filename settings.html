@@ -2158,7 +2158,9 @@
                                 External API access key for integrations
                             </p>
                             <div class="form-group">
-                                <input type="password" id="api-key" placeholder="Enter API key" value="">
+                                <form id="api-key-form" onsubmit="event.preventDefault();">
+                                    <input type="password" id="api-key" placeholder="Enter API key" value="">
+                                </form>
                             </div>
                         </div>
                         
@@ -2669,7 +2671,9 @@
                         
                         <div class="form-group">
                             <label for="sso-client-secret">Client Secret</label>
-                            <input type="password" id="sso-client-secret" placeholder="your-client-secret">
+                            <form id="sso-secret-form" onsubmit="event.preventDefault();">
+                                <input type="password" id="sso-client-secret" placeholder="your-client-secret">
+                            </form>
                         </div>
                         
                         <div class="form-group">
@@ -2834,7 +2838,9 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="smtp-password">Password / App Password</label>
-                                    <input type="password" id="smtp-password" placeholder="Enter password" value="">
+                                    <form id="smtp-password-form" onsubmit="event.preventDefault();">
+                                        <input type="password" id="smtp-password" placeholder="Enter password" value="">
+                                    </form>
                                 </div>
                             </div>
                             
