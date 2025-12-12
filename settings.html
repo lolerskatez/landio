@@ -4802,7 +4802,13 @@
                     'lockout-duration': 'lockoutDuration',
                     'enforce-2fa-all-users': 'enforce2faAllUsers',
                     'twofa-grace-period': 'twoFAGracePeriod',
-                    'enforce-2fa-admins-only': 'enforce2faAdminsOnly',\n                    'sso-enabled': 'ssoEnabled',\n                    'sso-issuer-url': 'ssoIssuerUrl',\n                    'sso-client-id': 'ssoClientId',\n                    'sso-client-secret': 'ssoClientSecret',\n                    'sso-redirect-uri': 'ssoRedirectUri',\n                    'sso-scopes': 'ssoScopes'
+                    'enforce-2fa-admins-only': 'enforce2faAdminsOnly',
+                    'sso-enabled': 'ssoEnabled',
+                    'sso-issuer-url': 'ssoIssuerUrl',
+                    'sso-client-id': 'ssoClientId',
+                    'sso-client-secret': 'ssoClientSecret',
+                    'sso-redirect-uri': 'ssoRedirectUri',
+                    'sso-scopes': 'ssoScopes'
                 };
                 
                 for (const [fieldId, settingKey] of Object.entries(fieldMappings)) {
@@ -6093,12 +6099,17 @@
                     });
                 }
                 
-                // Save SSO enabled setting
+                // Save all SSO settings individually to settings table
                 const ssoSettings = {
-                    ssoEnabled: { value: String(ssoEnabled), category: 'sso' }
+                    'sso-enabled': { value: String(ssoEnabled), category: 'sso' },
+                    'sso-issuer-url': { value: document.getElementById('sso-issuer-url').value, category: 'sso' },
+                    'sso-client-id': { value: document.getElementById('sso-client-id').value, category: 'sso' },
+                    'sso-client-secret': { value: document.getElementById('sso-client-secret').value, category: 'sso' },
+                    'sso-redirect-uri': { value: document.getElementById('sso-redirect-uri').value, category: 'sso' },
+                    'sso-scopes': { value: document.getElementById('sso-scopes').value, category: 'sso' }
                 };
                 
-                await window.Api.updateSettings(ssoSettings, 'user');
+                await window.Api.updateSettings(ssoSettings, 'system');
                 
                 btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
                 showNotification('SSO settings saved successfully!', 'success');

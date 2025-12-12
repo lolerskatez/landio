@@ -35,17 +35,29 @@ router.post('/config', async (req, res) => {
             scopes: scopes || 'openid profile email'
         };
 
-        // Save to database for persistence
+        // Save to database for persistence - both as sso-config JSON and individual settings
         global.db.run(
             `INSERT OR REPLACE INTO settings (user_id, key, value, category) VALUES (NULL, ?, ?, ?)`,
             ['sso-config', JSON.stringify(ssoConfig), 'sso'],
             (err) => {
                 if (err) {
                     console.error('Error saving SSO config to database:', err);
-                    // Continue anyway - config is in memory
                 }
             }
         );
+
+        // Also save individual SSO settings fields for use by settings page
+        const stmt = global.db.prepare(
+            `INSERT OR REPLACE INTO settings (user_id, key, value, category) VALUES (NULL, ?, ?, 'sso')`
+        );
+
+        stmt.run('sso-enabled', String(enabled || false));
+        stmt.run('sso-issuer-url', issuerUrl || '');
+        stmt.run('sso-client-id', clientId || '');
+        stmt.run('sso-client-secret', clientSecret || '');
+        stmt.run('sso-redirect-uri', redirectUri || `${req.protocol}://${req.get('host')}/api/sso/callback`);
+        stmt.run('sso-scopes', scopes || 'openid profile email');
+        stmt.finalize();
 
         // Initialize OIDC client if enabled
         if (enabled && issuerUrl && clientId && clientSecret) {

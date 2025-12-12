@@ -99,6 +99,38 @@ db.serialize(() => {
     });
   });
 
+  // Settings table - stores both system-wide and user-specific settings
+  db.run(`
+    CREATE TABLE IF NOT EXISTS settings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER DEFAULT NULL,
+      key TEXT NOT NULL,
+      value TEXT NOT NULL,
+      category TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(user_id, key),
+      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) {
+      console.error('Error creating settings table:', err);
+    } else {
+      console.log('✓ Settings table created');
+    }
+  });
+
+  // Create index for faster lookups
+  db.run(`
+    CREATE INDEX IF NOT EXISTS idx_settings_user_key ON settings(user_id, key)
+  `, (err) => {
+    if (err) {
+      console.error('Error creating index:', err);
+    } else {
+      console.log('✓ Settings index created');
+    }
+  });
+
   // Close database after tables are created
   setTimeout(() => {
     db.close((err) => {
