@@ -144,7 +144,8 @@ router.get('/login', async (req, res) => {
         const authParams = {
             scope: ssoConfig.scopes,
             state: state,
-            prompt: 'login'  // Force re-authentication even if user has active session
+            prompt: 'login',  // Force re-authentication even if user has active session
+            max_age: 0  // Require immediate re-authentication, ignore any existing SSO session
         };
 
         // Only include PKCE if the issuer supports it
@@ -497,31 +498,39 @@ router.get('/logout', async (req, res) => {
         });
     }
 
-    // If SSO is configured, redirect to Authentik's end_session endpoint
+    // Try to logout from Authentik via server-side request
     if (oidcClient) {
         try {
-            // Get the end_session_endpoint from OIDC metadata
             const issuer = oidcClient.issuer;
             const endSessionEndpoint = issuer.end_session_endpoint;
             
             if (endSessionEndpoint) {
-                const redirectUri = `${process.env.BASE_URL || 'https://up-down.xyz'}/login.html`;
+                // Make server-side request to logout endpoint
+                const https = require('https');
+                const http = require('http');
+                const urlModule = require('url');
                 
-                // Redirect to SSO provider's logout with post_logout_redirect_uri
-                const logoutUrl = `${endSessionEndpoint}?post_logout_redirect_uri=${encodeURIComponent(redirectUri)}`;
+                const logoutUrl = new urlModule.URL(endSessionEndpoint);
+                const protocol = logoutUrl.protocol === 'https:' ? https : http;
                 
-                console.log('SSO logout, redirecting to:', logoutUrl);
-                return res.redirect(logoutUrl);
-            } else {
-                console.warn('OIDC provider does not support end_session_endpoint, falling back to local logout');
+                console.log('Attempting server-side logout to:', endSessionEndpoint);
+                
+                // Fire and forget - don't wait for response
+                protocol.get(endSessionEndpoint, (response) => {
+                    console.log('Authentik logout response:', response.statusCode);
+                }).on('error', (err) => {
+                    console.error('Authentik logout error:', err.message);
+                });
             }
         } catch (err) {
-            console.error('SSO logout error:', err);
+            console.error('Error calling Authentik logout:', err);
         }
     }
-    
-    // Fallback: redirect to login page
-    res.redirect('/login.html');
+
+    // Redirect to root domain immediately
+    const redirectUri = `${process.env.BASE_URL || 'https://up-down.xyz'}/`;
+    console.log('Redirecting to:', redirectUri);
+    res.redirect(redirectUri);
 });
 
 // Export function for server to call on startup
