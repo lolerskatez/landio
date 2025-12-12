@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  landio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: landio
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET:-your-jwt-secret-change-in-production}
+      - SESSION_SECRET=${SESSION_SECRET:-your-session-secret-change-in-production}
+    volumes:
+      - landio_data:/app/data
+    restart: unless-stopped
+    networks:
+      - landio_network
+    # Optional: Uncomment for HTTPS via reverse proxy
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.http.routers.landio.rule=Host(`your-domain.com`)"
+    #   - "traefik.http.services.landio.loadbalancer.server.port=3001"
+
+volumes:
+  landio_data:
+    driver: local
+
+networks:
+  landio_network:
+    driver: bridge
