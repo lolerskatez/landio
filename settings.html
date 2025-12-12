@@ -1392,6 +1392,13 @@
             text-align: center;
         }
 
+        .user-username {
+            color: #999;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
         .user-role {
             display: inline-block;
             padding: 6px 15px;
@@ -3189,8 +3196,18 @@
                         
                         <form id="user-form" class="modal-form">
                             <div class="form-group">
+                                <label for="user-username">Username (optional)</label>
+                                <input type="text" id="user-username" placeholder="Leave empty to auto-generate from email">
+                            </div>
+                            
+                            <div class="form-group">
                                 <label for="user-name">Full Name</label>
                                 <input type="text" id="user-name" placeholder="Enter full name" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="user-display-name">Display Name (optional)</label>
+                                <input type="text" id="user-display-name" placeholder="Leave empty to use full name">
                             </div>
                             
                             <div class="form-group">
@@ -3406,7 +3423,8 @@
                 const userCard = document.createElement('div');
                 userCard.className = 'user-card';
                 userCard.innerHTML = `
-                    <h3 class="user-name">${user.name}</h3>
+                    <h3 class="user-name">${user.display_name || user.name}</h3>
+                    <div class="user-username"><small>${user.username ? `@${user.username}` : '(no username)'}</small></div>
                     <div class="user-email">${user.email}</div>
                     <div class="user-role role-${user.role}">${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</div>
                     <div class="user-status ${statusClass}">
@@ -3513,16 +3531,18 @@
                 userForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
                     
+                    const username = document.getElementById('user-username').value;
                     const name = document.getElementById('user-name').value;
+                    const displayName = document.getElementById('user-display-name').value;
                     const email = document.getElementById('user-email').value;
                     const password = document.getElementById('user-password').value;
                     const role = document.getElementById('user-role').value;
                     const isActive = document.getElementById('user-status').value === 'active';
                     
                     if (editingUserId) {
-                        await updateUser(editingUserId, name, email, role, isActive);
+                        await updateUser(editingUserId, username, name, displayName, email, role, isActive);
                     } else {
-                        await addUser(name, email, password, role, isActive);
+                        await addUser(username, name, displayName, email, password, role, isActive);
                     }
                 });
             }
@@ -3718,10 +3738,12 @@
             if (modalTitle) modalTitle.textContent = 'Add New User';
         }
 
-        async function addUser(name, email, password, role, isActive) {
+        async function addUser(username, name, displayName, email, password, role, isActive) {
             try {
                 await window.Api.createUser({
+                    username,
                     name,
+                    displayName,
                     email,
                     password,
                     role,
@@ -3737,10 +3759,12 @@
             }
         }
 
-        async function updateUser(id, name, email, role, isActive) {
+        async function updateUser(id, username, name, displayName, email, role, isActive) {
             try {
                 await window.Api.updateUser(id, {
+                    username,
                     name,
+                    display_name: displayName,
                     email,
                     role,
                     is_active: isActive
@@ -3802,7 +3826,9 @@
             const user = users.find(u => u.id === parseInt(id));
             
             if (user) {
+                document.getElementById('user-username').value = user.username || '';
                 document.getElementById('user-name').value = user.name;
+                document.getElementById('user-display-name').value = user.display_name || '';
                 document.getElementById('user-email').value = user.email;
                 document.getElementById('user-role').value = user.role;
                 document.getElementById('user-status').value = user.is_active ? 'active' : 'inactive';
