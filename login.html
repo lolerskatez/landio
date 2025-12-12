@@ -1179,13 +1179,25 @@
 
         function redirectToDashboard(user) {
             // Direct to dashboard - onboarding removed
+            console.log('redirectToDashboard called with user:', user);
 
             // Redirect based on role
+            let redirectUrl;
             if (user.role === 'admin') {
-                window.location.href = 'index.html';
+                console.log('User is admin, redirecting to /index.html');
+                redirectUrl = '/index.html';
             } else {
-                window.location.href = 'dashboard.html';
+                console.log('User is standard, redirecting to /dashboard.html');
+                redirectUrl = '/dashboard.html';
             }
+            
+            // Use alert to pause before redirect, giving time to capture console logs
+            // Open console (F12) and click OK to see the logs before redirect
+            const logMessage = `SSO Login Successful!\n\nUser: ${user.username || user.email}\nRole: ${user.role}\n\nOpen your browser console (F12) to see detailed logs.\n\nClick OK to proceed to dashboard.`;
+            alert(logMessage);
+            
+            console.log('Now redirecting to:', redirectUrl);
+            window.location.href = redirectUrl;
         }
 
         // Check SSO configuration
@@ -1230,8 +1242,11 @@
             const ssoToken = urlParams.get('sso_token');
             const error = urlParams.get('error');
             
+            console.log('SSO Callback: ssoToken=' + (ssoToken ? 'present' : 'missing'), 'error=' + error);
+            
             if (error) {
                 const message = urlParams.get('message') || 'SSO authentication failed';
+                console.error('SSO Error:', error, message);
                 showError(decodeURIComponent(message));
                 // Clean URL
                 window.history.replaceState({}, document.title, window.location.pathname);
@@ -1239,27 +1254,76 @@
             }
             
             if (ssoToken) {
-                // Store the token
-                localStorage.setItem('token', ssoToken);
+                console.log('Storing SSO token and fetching user info...');
+                // Store the token with the correct key name
+                localStorage.setItem('authToken', ssoToken);
                 
-                // Get user info and redirect
+                // Parse the JWT to get user info directly (without making API call)
+                try {
+                    // JWT format: header.payload.signature
+                    const parts = ssoToken.split('.');
+                    console.log('JWT parts:', parts.length);
+                    
+                    if (parts.length === 3) {
+                        try {
+                            // Decode payload (add padding if needed)
+                            let payload = parts[1];
+                            // Add padding if necessary
+                            const padding = 4 - (payload.length % 4);
+                            if (padding !== 4) {
+                                payload += '='.repeat(padding);
+                            }
+                            
+                            const decoded = JSON.parse(atob(payload));
+                            console.log('Decoded JWT user data:', decoded);
+                            
+                            if (decoded && decoded.id) {
+                                // We have the user data from the JWT, redirect directly
+                                console.log('Redirecting to dashboard with user:', decoded.role);
+                                redirectToDashboard(decoded);
+                                return;
+                            } else {
+                                console.warn('Decoded JWT missing id field:', decoded);
+                            }
+                        } catch (parseErr) {
+                            console.error('Error parsing JWT payload:', parseErr);
+                        }
+                    } else {
+                        console.error('Invalid JWT format, expected 3 parts, got:', parts.length);
+                    }
+                } catch (err) {
+                    console.error('Error decoding JWT:', err);
+                }
+                
+                console.log('JWT decode fallback: attempting to fetch /api/auth/me');
+                // Fallback: fetch user info from API (if JWT parsing failed)
                 fetch('/api/auth/me', {
                     headers: {
                         'Authorization': `Bearer ${ssoToken}`
                     }
                 })
-                .then(res => res.json())
+                .then(res => {
+                    console.log('Auth/me response:', res.status, res.statusText);
+                    if (!res.ok) {
+                        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                    }
+                    return res.json();
+                })
                 .then(user => {
-                    if (user) {
+                    console.log('User data received:', user);
+                    if (user && user.id) {
                         redirectToDashboard(user);
                     } else {
+                        console.error('Invalid user data:', user);
                         showError('Failed to load user information');
                     }
                 })
                 .catch(error => {
-                    console.error('Error fetching user:', error);
-                    showError('Failed to complete SSO login');
+                    console.error('Error in SSO callback:', error);
+                    showError('Failed to complete SSO login: ' + error.message);
                 });
+            } else {
+                console.log('No SSO token found in URL');
             }
         }
 

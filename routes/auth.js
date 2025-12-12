@@ -18,8 +18,11 @@ const authenticateToken = (req, res, next) => {
 
   jwt.verify(token, JWT_SECRET, (err, user) => {
     if (err) {
+      console.error('JWT verification failed:', err.message);
       return res.status(403).json({ error: 'Invalid or expired token' });
     }
+
+    console.log('JWT verified for user:', user.id, 'email:', user.email);
 
     // CRITICAL: Verify user still exists in database
     // This prevents orphaned tokens from being used after user deletion/redeployment
@@ -37,6 +40,8 @@ const authenticateToken = (req, res, next) => {
           return res.status(403).json({ error: 'User not found or has been deleted' });
         }
 
+        console.log('User found in database:', dbUser.email, 'is_active:', dbUser.is_active);
+
         if (!dbUser.is_active) {
           console.warn(`Token validation failed: user ${user.id} is disabled`);
           return res.status(403).json({ error: 'User account is disabled' });
@@ -48,6 +53,7 @@ const authenticateToken = (req, res, next) => {
           ['ip-whitelist'],
           (err, row) => {
             const ipWhitelistEnabled = row && row.value === 'true';
+            console.log('IP whitelist check: enabled =', ipWhitelistEnabled);
 
             if (ipWhitelistEnabled) {
               global.db.get(
@@ -56,12 +62,15 @@ const authenticateToken = (req, res, next) => {
                 (err, ipsRow) => {
                   if (!ipsRow) {
                     // No IPs configured, allow all
+                    console.log('No IPs configured, allowing access');
                     req.user = user;
                     return next();
                   }
 
                   const allowedIPs = ipsRow.value.split(',').map(ip => ip.trim());
                   const clientIP = req.ip || req.connection.remoteAddress;
+
+                  console.log('Checking IP:', clientIP, 'against whitelist:', allowedIPs);
 
                   // Check if IP matches or is in CIDR range
                   const ipMatches = allowedIPs.some(allowedIP => {
@@ -76,10 +85,11 @@ const authenticateToken = (req, res, next) => {
                   });
 
                   if (!ipMatches) {
-                    console.warn(`IP whitelist blocked access from ${clientIP}`);
+                    console.warn(`IP whitelist blocked access from ${clientIP}, allowed:`, allowedIPs);
                     return res.status(403).json({ error: 'Access denied: IP not whitelisted' });
                   }
 
+                  console.log('IP whitelist passed for:', clientIP);
                   req.user = user;
                   next();
                 }

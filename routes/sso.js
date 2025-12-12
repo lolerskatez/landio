@@ -3,7 +3,7 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const { Issuer, generators } = require('openid-client');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || 'your-jwt-secret-change-in-production';
 
 // SSO Configuration (will be loaded from settings)
 let ssoConfig = {
@@ -17,7 +17,6 @@ let ssoConfig = {
 
 // OIDC Client cache
 let oidcClient = null;
-let codeVerifier = null;
 
 /**
  * Update SSO configuration
@@ -115,6 +114,7 @@ router.get('/config', (req, res) => {
 router.get('/login', async (req, res) => {
     try {
         if (!ssoConfig.enabled) {
+            console.log('SSO login attempted but SSO is not enabled');
             return res.status(400).json({ 
                 success: false, 
                 message: 'SSO is not enabled' 
@@ -122,25 +122,48 @@ router.get('/login', async (req, res) => {
         }
 
         if (!oidcClient) {
+            console.error('OIDC client not initialized. SSO Config:', {
+                enabled: ssoConfig.enabled,
+                issuerUrl: ssoConfig.issuerUrl,
+                clientId: ssoConfig.clientId ? '***' : 'missing',
+                redirectUri: ssoConfig.redirectUri
+            });
             return res.status(500).json({ 
                 success: false, 
                 message: 'SSO client not initialized' 
             });
         }
 
-        // Generate code verifier and challenge for PKCE
-        codeVerifier = generators.codeVerifier();
+        // Generate code verifier for PKCE
+        const codeVerifier = generators.codeVerifier();
         const codeChallenge = generators.codeChallenge(codeVerifier);
+        
+        // Generate state for CSRF protection
+        const state = generators.state();
 
-        const authUrl = oidcClient.authorizationUrl({
+        const authParams = {
             scope: ssoConfig.scopes,
-            code_challenge: codeChallenge,
-            code_challenge_method: 'S256'
-        });
+            state: state
+        };
 
+        // Only include PKCE if the issuer supports it
+        // Comment out these lines if your OIDC provider doesn't support PKCE
+        // authParams.code_challenge = codeChallenge;
+        // authParams.code_challenge_method = 'S256';
+
+        // Generate authorization URL
+        const authUrl = oidcClient.authorizationUrl(authParams);
+
+        // Store state and code verifier in session for validation on callback
+        req.session.oidc = {
+            state,
+            codeVerifier
+        };
+
+        console.log('SSO login initiated, state stored in session, redirecting to:', authUrl.split('?')[0]);
         res.json({ 
             success: true, 
-            authUrl 
+            authUrl: authUrl
         });
     } catch (error) {
         console.error('Error initiating SSO login:', error);
@@ -157,18 +180,39 @@ router.get('/login', async (req, res) => {
  */
 router.get('/callback', async (req, res) => {
     try {
+        console.log('SSO callback received, query params:', req.query);
+        
         if (!oidcClient) {
+            console.error('OIDC client not initialized for callback');
             return res.redirect('/login.html?error=sso_not_configured');
         }
 
         const params = oidcClient.callbackParams(req);
+        console.log('Callback params extracted:', { code: params.code ? 'present' : 'missing', state: params.state });
         
+        // Retrieve state and code verifier from session
+        const sessionOidc = req.session.oidc || {};
+        console.log('Session OIDC data:', { 
+            hasState: !!sessionOidc.state, 
+            hasCodeVerifier: !!sessionOidc.codeVerifier 
+        });
+        
+        const callbackChecks = {
+            state: sessionOidc.state
+        };
+        
+        // Build options for callback - include code_verifier only if PKCE was used
+        const callbackOptions = sessionOidc.codeVerifier ? { code_verifier: sessionOidc.codeVerifier } : {};
+        
+        console.log('Exchanging code for tokens...');
         const tokenSet = await oidcClient.callback(
             ssoConfig.redirectUri,
             params,
-            { code_verifier: codeVerifier }
+            callbackChecks,
+            callbackOptions
         );
 
+        console.log('Getting user info...');
         const userInfo = await oidcClient.userinfo(tokenSet.access_token);
 
         // Extract user data from OIDC claims
@@ -253,8 +297,12 @@ router.get('/callback', async (req, res) => {
                                 { expiresIn: '24h' }
                             );
 
-                            // Redirect to dashboard with token
-                            res.redirect(`/dashboard.html?sso_token=${token}`);
+                            // Clean up OIDC session data
+                            delete req.session.oidc;
+
+                            // Redirect to login page to handle SSO token callback
+                            console.log('SSO callback complete, redirecting to login with token for user:', baseUsername);
+                            res.redirect(`/login.html?sso_token=${token}`);
                         }
                     );
                 } else {
@@ -335,8 +383,11 @@ router.get('/callback', async (req, res) => {
                                                 { expiresIn: '24h' }
                                             );
 
-                                            // Redirect to dashboard with token
-                                            res.redirect(`/dashboard.html?sso_token=${token}`);
+                                            // Clean up OIDC session data
+                                            delete req.session.oidc;
+
+                                            // Redirect to login page to handle SSO token callback
+                                            res.redirect(`/login.html?sso_token=${token}`);
                                         }
                                     );
                                 }
@@ -350,6 +401,8 @@ router.get('/callback', async (req, res) => {
         );
     } catch (error) {
         console.error('SSO callback error:', error);
+        // Clean up OIDC session data on error
+        delete req.session.oidc;
         res.redirect(`/login.html?error=sso_failed&message=${encodeURIComponent(error.message)}`);
     }
 });
