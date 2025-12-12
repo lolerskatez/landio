@@ -691,20 +691,13 @@
 
         // Load and display services
         async function loadServices(user) {
-            // Only load services for admin users
-            if (!user || user.role !== 'admin') {
+            // Load services for all users
+            if (!user) {
                 const servicesContainer = document.getElementById('services-container');
                 const emptyState = document.getElementById('empty-state');
                 if (servicesContainer && emptyState) {
                     emptyState.style.display = 'block';
                     servicesContainer.innerHTML = '';
-                    // Update empty state message for non-admin users
-                    const emptyMessage = emptyState.querySelector('h3');
-                    const emptyDesc = emptyState.querySelector('p');
-                    if (emptyMessage && emptyDesc) {
-                        emptyMessage.textContent = 'Services Management';
-                        emptyDesc.textContent = 'Service management is available to administrators only.';
-                    }
                 }
                 return;
             }

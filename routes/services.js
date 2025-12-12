@@ -20,6 +20,14 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
+// Middleware to check if user is admin or power user
+const requireAdminOrPowerUser = (req, res, next) => {
+  if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'poweruser')) {
+    return res.status(403).json({ error: 'Admin or Power User access required' });
+  }
+  next();
+};
+
 // Initialize database table for services
 const initializeServicesTable = () => {
   const db = getDb();
@@ -551,16 +559,26 @@ function checkUrlReachable(url, timeout = 5000) {
   });
 }
 
-// GET /api/services - Get all services for current user (admin)
-router.get('/', authenticateToken, requireAdmin, async (req, res) => {
+// GET /api/services - Get all services for current user (admin or power user)
+router.get('/', authenticateToken, async (req, res) => {
   try {
     const db = getDb();
     const userId = req.user.id;
+    const userRole = req.user.role;
 
-    db.all(
-      `SELECT * FROM services WHERE user_id = ? ORDER BY created_at DESC`,
-      [userId],
-      (err, services) => {
+    let query, params;
+
+    if (userRole === 'admin' || userRole === 'poweruser') {
+      // Admins and power users see all services
+      query = 'SELECT DISTINCT * FROM services ORDER BY created_at DESC';
+      params = [];
+    } else {
+      // Regular users see only public services
+      query = 'SELECT DISTINCT * FROM services WHERE access_level = ? ORDER BY created_at DESC';
+      params = ['public'];
+    }
+
+    db.all(query, params, (err, services) => {
         if (err) {
           console.error('Database error:', err);
           return res.status(500).json({ error: 'Database error' });
@@ -582,8 +600,8 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-// POST /api/services - Create a new service
-router.post('/', authenticateToken, requireAdmin, async (req, res) => {
+// POST /api/services - Create a new service (admin or power user)
+router.post('/', authenticateToken, requireAdminOrPowerUser, async (req, res) => {
   try {
     const {
       name,
@@ -657,7 +675,7 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
 });
 
 // PUT /api/services/:id - Update a service
-router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
+router.put('/:id', authenticateToken, requireAdminOrPowerUser, async (req, res) => {
   try {
     const { id } = req.params;
     const {

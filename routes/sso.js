@@ -143,9 +143,7 @@ router.get('/login', async (req, res) => {
 
         const authParams = {
             scope: ssoConfig.scopes,
-            state: state,
-            prompt: 'login',  // Force re-authentication even if user has active session
-            max_age: 0  // Require immediate re-authentication, ignore any existing SSO session
+            state: state
         };
 
         // Only include PKCE if the issuer supports it
