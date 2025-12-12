@@ -97,7 +97,16 @@ function logout() {
     localStorage.removeItem('currentUser');
     localStorage.removeItem('authToken');
     localStorage.removeItem('authentik_tokens'); // Clear Authentik tokens
-    window.location.href = 'login.html';
+    
+    // Check if user logged in via SSO
+    if (user && user.ssoProvider) {
+        // Perform SSO logout by redirecting to backend SSO logout endpoint
+        // This will end the Authentik session and redirect back to login
+        window.location.href = '/api/sso/logout';
+    } else {
+        // Regular local logout
+        window.location.href = 'login.html';
+    }
 }
 
 function requireAuth() {

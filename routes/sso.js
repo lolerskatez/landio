@@ -143,7 +143,8 @@ router.get('/login', async (req, res) => {
 
         const authParams = {
             scope: ssoConfig.scopes,
-            state: state
+            state: state,
+            prompt: 'login'  // Force re-authentication even if user has active session
         };
 
         // Only include PKCE if the issuer supports it
@@ -230,7 +231,7 @@ router.get('/callback', async (req, res) => {
         // Map OIDC groups to role (configurable, defaults to 'user')
         let role = 'user'; // Default role
         const adminGroups = ['admin', 'administrators', 'realm-management:manage-users'];
-        const powerUserGroups = ['poweruser', 'power-users', 'managers'];
+        const powerUserGroups = ['poweruser', 'power-users', 'power users', 'managers'];
         
         if (Array.isArray(groups)) {
             const groupLower = groups.map(g => g.toLowerCase());
@@ -482,6 +483,46 @@ function loadSSOConfigFromDatabase() {
         );
     });
 }
+
+// SSO Logout endpoint - logs user out of both Landio and Authentik
+router.get('/logout', async (req, res) => {
+    console.log('SSO logout endpoint called');
+    
+    // Clear server session
+    if (req.session) {
+        req.session.destroy((err) => {
+            if (err) {
+                console.error('Session destruction error:', err);
+            }
+        });
+    }
+
+    // If SSO is configured, redirect to Authentik's end_session endpoint
+    if (oidcClient) {
+        try {
+            // Get the end_session_endpoint from OIDC metadata
+            const issuer = oidcClient.issuer;
+            const endSessionEndpoint = issuer.end_session_endpoint;
+            
+            if (endSessionEndpoint) {
+                const redirectUri = `${process.env.BASE_URL || 'https://up-down.xyz'}/login.html`;
+                
+                // Redirect to SSO provider's logout with post_logout_redirect_uri
+                const logoutUrl = `${endSessionEndpoint}?post_logout_redirect_uri=${encodeURIComponent(redirectUri)}`;
+                
+                console.log('SSO logout, redirecting to:', logoutUrl);
+                return res.redirect(logoutUrl);
+            } else {
+                console.warn('OIDC provider does not support end_session_endpoint, falling back to local logout');
+            }
+        } catch (err) {
+            console.error('SSO logout error:', err);
+        }
+    }
+    
+    // Fallback: redirect to login page
+    res.redirect('/login.html');
+});
 
 // Export function for server to call on startup
 router.loadSSOConfig = loadSSOConfigFromDatabase;

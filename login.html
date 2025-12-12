@@ -1191,11 +1191,6 @@
                 redirectUrl = '/dashboard.html';
             }
             
-            // Use alert to pause before redirect, giving time to capture console logs
-            // Open console (F12) and click OK to see the logs before redirect
-            const logMessage = `SSO Login Successful!\n\nUser: ${user.username || user.email}\nRole: ${user.role}\n\nOpen your browser console (F12) to see detailed logs.\n\nClick OK to proceed to dashboard.`;
-            alert(logMessage);
-            
             console.log('Now redirecting to:', redirectUrl);
             window.location.href = redirectUrl;
         }
@@ -1278,6 +1273,10 @@
                             console.log('Decoded JWT user data:', decoded);
                             
                             if (decoded && decoded.id) {
+                                // Store user data in localStorage for auth.js to find
+                                localStorage.setItem('currentUser', JSON.stringify(decoded));
+                                console.log('Stored user in localStorage.currentUser');
+                                
                                 // We have the user data from the JWT, redirect directly
                                 console.log('Redirecting to dashboard with user:', decoded.role);
                                 redirectToDashboard(decoded);
