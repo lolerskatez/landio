@@ -676,7 +676,7 @@
 
     <!-- Service Modal -->
     <div id="service-modal" class="modal-overlay">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 650px;">
             <div class="modal-header">
                 <h2 id="modal-title">Add New Service</h2>
                 <button class="modal-close" id="close-service-modal" title="Close">
@@ -685,124 +685,254 @@
             </div>
 
             <form id="service-form" class="modal-form">
+                <!-- Service Icon Preview -->
+                <div class="form-group" style="text-align: center; margin-bottom: 25px;">
+                    <div id="service-icon-preview" style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; border-radius: 16px; background: linear-gradient(135deg, #f5f5f5, #e8e8e8); border: 2px solid #ddd; transition: all 0.3s ease;">
+                        <i class="fas fa-cube" style="font-size: 2.5rem; color: #999;"></i>
+                    </div>
+                    <div id="service-type-label" style="margin-top: 10px; font-size: 0.9rem; color: #666; font-weight: 600;">Custom Service</div>
+                </div>
+
                 <!-- Service Template Selection -->
                 <div class="form-group">
-                    <label for="service-template-select">Choose Service Template</label>
+                    <label for="service-template-select">
+                        <i class="fas fa-layer-group"></i> Choose Service Template
+                    </label>
                     <select id="service-template-select">
                         <option value="">-- Select from Popular Services --</option>
-                        <option value="custom">+ Create Custom Service</option>
+                        <option value="custom">✨ Create Custom Service</option>
                         <optgroup label="File & Storage">
-                            <option value="nextcloud">Nextcloud</option>
-                            <option value="synology">Synology NAS</option>
-                            <option value="truenas">TrueNAS</option>
-                            <option value="seafile">Seafile</option>
+                            <option value="nextcloud">☁️ Nextcloud</option>
+                            <option value="synology">🔌 Synology NAS</option>
+                            <option value="truenas">💾 TrueNAS</option>
+                            <option value="seafile">🌊 Seafile</option>
                         </optgroup>
                         <optgroup label="Media & Entertainment">
-                            <option value="plex">Plex Media Server</option>
-                            <option value="jellyfin">Jellyfin</option>
-                            <option value="emby">Emby</option>
-                            <option value="kaleidescape">Kaleidescape</option>
+                            <option value="plex">▶️ Plex Media Server</option>
+                            <option value="jellyfin">🎬 Jellyfin</option>
+                            <option value="emby">📹 Emby</option>
+                            <option value="kaleidescape">🎞️ Kaleidescape</option>
                         </optgroup>
                         <optgroup label="Development & Code">
-                            <option value="gitlab">GitLab</option>
-                            <option value="gitea">Gitea</option>
-                            <option value="github-enterprise">GitHub Enterprise</option>
-                            <option value="jenkins">Jenkins</option>
+                            <option value="gitlab">🦊 GitLab</option>
+                            <option value="gitea">🍵 Gitea</option>
+                            <option value="github-enterprise">😺 GitHub Enterprise</option>
+                            <option value="jenkins">⚙️ Jenkins</option>
                         </optgroup>
                         <optgroup label="Communication">
-                            <option value="mattermost">Mattermost</option>
-                            <option value="jitsi">Jitsi Meet</option>
-                            <option value="rocketchat">Rocket.Chat</option>
-                            <option value="matrix">Matrix/Synapse</option>
+                            <option value="mattermost">💬 Mattermost</option>
+                            <option value="jitsi">📞 Jitsi Meet</option>
+                            <option value="rocketchat">🚀 Rocket.Chat</option>
+                            <option value="matrix">🔗 Matrix/Synapse</option>
                         </optgroup>
                         <optgroup label="Monitoring & Admin">
-                            <option value="portainer">Portainer</option>
-                            <option value="unraid">Unraid</option>
-                            <option value="proxmox">Proxmox VE</option>
-                            <option value="esxi">VMware ESXi</option>
-                            <option value="pfsense">pfSense</option>
-                            <option value="opnsense">OPNsense</option>
+                            <option value="portainer">🐳 Portainer</option>
+                            <option value="unraid">🗄️ Unraid</option>
+                            <option value="proxmox">📺 Proxmox VE</option>
+                            <option value="esxi">💻 VMware ESXi</option>
+                            <option value="pfsense">🛡️ pfSense</option>
+                            <option value="opnsense">🔒 OPNsense</option>
                         </optgroup>
                         <optgroup label="Password & Security">
-                            <option value="vaultwarden">Vaultwarden</option>
-                            <option value="keycloak">Keycloak</option>
-                            <option value="authentik">Authentik</option>
+                            <option value="vaultwarden">🔐 Vaultwarden</option>
+                            <option value="keycloak">🔑 Keycloak</option>
+                            <option value="authentik">🛡️ Authentik</option>
                         </optgroup>
                         <optgroup label="Download & Content">
-                            <option value="qbittorrent">qBittorrent</option>
-                            <option value="transmission">Transmission</option>
-                            <option value="sonarr">Sonarr</option>
-                            <option value="radarr">Radarr</option>
-                            <option value="lidarr">Lidarr</option>
-                            <option value="prowlarr">Prowlarr</option>
+                            <option value="qbittorrent">📥 qBittorrent</option>
+                            <option value="transmission">⬇️ Transmission</option>
+                            <option value="sonarr">📺 Sonarr</option>
+                            <option value="radarr">🎥 Radarr</option>
+                            <option value="lidarr">🎵 Lidarr</option>
+                            <option value="prowlarr">🔍 Prowlarr</option>
                         </optgroup>
                         <optgroup label="Utilities">
-                            <option value="homeassistant">Home Assistant</option>
-                            <option value="pihole">Pi-hole</option>
-                            <option value="adguard">AdGuard Home</option>
-                            <option value="unmanic">Unmanic</option>
-                            <option value="openvpn">OpenVPN</option>
-                            <option value="wireguard">WireGuard</option>
+                            <option value="homeassistant">🏠 Home Assistant</option>
+                            <option value="pihole">🕳️ Pi-hole</option>
+                            <option value="adguard">🛡️ AdGuard Home</option>
+                            <option value="unmanic">✨ Unmanic</option>
+                            <option value="openvpn">🔒 OpenVPN</option>
+                            <option value="wireguard">🔐 WireGuard</option>
                         </optgroup>
                         <optgroup label="Documentation & Wiki">
-                            <option value="wiki">Wiki.js</option>
-                            <option value="confluence">Confluence</option>
-                            <option value="mediawiki">MediaWiki</option>
+                            <option value="wiki">📚 Wiki.js</option>
+                            <option value="confluence">📄 Confluence</option>
+                            <option value="mediawiki">📖 MediaWiki</option>
                         </optgroup>
                     </select>
                 </div>
 
                 <!-- Service Details -->
                 <div class="form-group">
-                    <label for="service-name-input">Service Name</label>
-                    <input type="text" id="service-name-input" placeholder="e.g., My Nextcloud" required>
+                    <label for="service-name-input">
+                        <i class="fas fa-tag"></i> Service Name
+                    </label>
+                    <input type="text" id="service-name-input" placeholder="e.g., My Nextcloud Server" required>
+                    <small style="display: block; margin-top: 5px; color: #999; font-size: 0.85rem;">Give your service a friendly name</small>
                 </div>
 
                 <div class="form-group">
-                    <label for="service-url-input">Service URL</label>
+                    <label for="service-url-input">
+                        <i class="fas fa-link"></i> Service URL
+                        <button type="button" id="autodiscover-btn" class="btn-autodiscover" title="Auto-discover service" style="display: none;">
+                            <i class="fas fa-magic"></i> Auto-discover
+                        </button>
+                    </label>
                     <input type="url" id="service-url-input" placeholder="https://service.example.com" required>
+                    <small id="url-helper-text" style="display: block; margin-top: 5px; color: #999; font-size: 0.85rem;">Enter the full URL to access your service</small>
+                    <div id="autodiscover-results" style="display: none; margin-top: 10px; padding: 10px; background: #f0f8ff; border-radius: 8px; border-left: 3px solid #4CAF50;">
+                        <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 5px;">
+                            <i class="fas fa-check-circle" style="color: #4CAF50;"></i> Auto-discovery Results
+                        </div>
+                        <div id="autodiscover-content"></div>
+                    </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="service-description-input">Description</label>
-                    <textarea id="service-description-input" placeholder="What does this service do?"></textarea>
+                    <label for="service-description-input">
+                        <i class="fas fa-info-circle"></i> Description
+                    </label>
+                    <textarea id="service-description-input" placeholder="What does this service do?" rows="3"></textarea>
+                    <small style="display: block; margin-top: 5px; color: #999; font-size: 0.85rem;">
+                        <span id="description-mode-indicator">Auto-filled for template services</span>
+                    </small>
                 </div>
 
-                <div class="form-group">
-                    <label for="service-status-input">Status</label>
-                    <select id="service-status-input">
-                        <option value="online">Online</option>
-                        <option value="offline">Offline</option>
-                        <option value="maintenance">Maintenance</option>
-                    </select>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label for="service-status-input">
+                            <i class="fas fa-circle"></i> Status
+                        </label>
+                        <select id="service-status-input">
+                            <option value="online">✅ Online</option>
+                            <option value="offline">❌ Offline</option>
+                            <option value="maintenance">⚠️ Maintenance</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="service-access-input">
+                            <i class="fas fa-users"></i> Visible To
+                        </label>
+                        <select id="service-access-input">
+                            <option value="public">👥 Everyone (Public)</option>
+                            <option value="user">👤 Users & Up</option>
+                            <option value="poweruser">⭐ Power Users & Admins</option>
+                            <option value="admin">👑 Admins Only</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="service-access-input">Visible To</label>
-                    <select id="service-access-input">
-                        <option value="public">Everyone (Public)</option>
-                        <option value="user">Users & Up</option>
-                        <option value="poweruser">Power Users & Admins</option>
-                        <option value="admin">Admins Only</option>
-                    </select>
-                </div>
-
-                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-                    <button type="button" class="btn btn-secondary" id="cancel-service-btn">Cancel</button>
-                    <button type="submit" class="btn btn-primary" id="submit-service-btn">Add Service</button>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px;">
+                    <button type="button" class="btn btn-secondary" id="cancel-service-btn">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="submit-service-btn">
+                        <i class="fas fa-plus"></i> Add Service
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
+    <style>
+        /* Enhanced Modal Styling */
+        .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group label i {
+            opacity: 0.7;
+        }
+
+        .btn-autodiscover {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: auto;
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-autodiscover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        #service-icon-preview.has-template {
+            background: linear-gradient(135deg, var(--icon-color, #667eea), var(--icon-color-dark, #764ba2)) !important;
+            border-color: var(--icon-color, #667eea) !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        #service-icon-preview.has-template i {
+            color: white !important;
+        }
+
+        /* Theme-aware modal label colors */
+        body.theme-cyber .form-group label i {
+            opacity: 0.9;
+        }
+
+        body.theme-cyber .btn-autodiscover {
+            background: linear-gradient(135deg, #FF5FA2, #C77DFF);
+        }
+
+        body.theme-sunset .btn-autodiscover {
+            background: linear-gradient(135deg, #FF6A3D, #A14BFF);
+        }
+
+        body.theme-cyber #autodiscover-results {
+            background: rgba(255, 95, 162, 0.1) !important;
+            border-left-color: #FF5FA2 !important;
+        }
+
+        body.theme-sunset #autodiscover-results {
+            background: rgba(255, 106, 61, 0.1) !important;
+            border-left-color: #FF6A3D !important;
+        }
+    </style>
+
     <!-- Scripts -->
     <script src="api.js"></script>
     <script>
+        // Global state
+        let serviceTemplates = {};
+        let currentEditingId = null;
+
         // Page-specific initialization called by base.js after auth check
         window.pageInit = async function(user) {
+            await loadTemplates();
             setupEventListeners();
             await loadServices();
         };
+
+        async function loadTemplates() {
+            try {
+                const response = await fetch('/api/services/templates', {
+                    headers: {
+                        'Authorization': `Bearer ${window.Api?.token || ''}`
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    serviceTemplates = data.templates || {};
+                }
+            } catch (error) {
+                console.error('Error loading templates:', error);
+            }
+        }
 
         function setupEventListeners() {
             const addBtn = document.getElementById('add-service-btn');
@@ -810,6 +940,9 @@
             const cancelBtn = document.getElementById('cancel-service-btn');
             const form = document.getElementById('service-form');
             const modal = document.getElementById('service-modal');
+            const templateSelect = document.getElementById('service-template-select');
+            const autodiscoverBtn = document.getElementById('autodiscover-btn');
+            const urlInput = document.getElementById('service-url-input');
 
             if (addBtn) addBtn.addEventListener('click', openServiceModal);
             if (closeBtn) closeBtn.addEventListener('click', closeServiceModal);
@@ -820,18 +953,285 @@
                     if (e.target === modal) closeServiceModal();
                 });
             }
+
+            // Template selection handler
+            if (templateSelect) {
+                templateSelect.addEventListener('change', handleTemplateChange);
+            }
+
+            // Autodiscover button handler
+            if (autodiscoverBtn) {
+                autodiscoverBtn.addEventListener('click', handleAutodiscover);
+            }
+
+            // URL input handler for autodiscover button visibility
+            if (urlInput) {
+                urlInput.addEventListener('input', () => {
+                    const template = document.getElementById('service-template-select')?.value;
+                    const url = urlInput.value.trim();
+                    if (autodiscoverBtn) {
+                        autodiscoverBtn.style.display = (template && template !== 'custom' && url) ? 'inline-flex' : 'none';
+                    }
+                });
+            }
+        }
+
+        function handleTemplateChange(e) {
+            const templateKey = e.target.value;
+            const template = serviceTemplates[templateKey];
+            
+            const iconPreview = document.getElementById('service-icon-preview');
+            const typeLabel = document.getElementById('service-type-label');
+            const nameInput = document.getElementById('service-name-input');
+            const descInput = document.getElementById('service-description-input');
+            const urlInput = document.getElementById('service-url-input');
+            const urlHelper = document.getElementById('url-helper-text');
+            const descIndicator = document.getElementById('description-mode-indicator');
+            const autodiscoverBtn = document.getElementById('autodiscover-btn');
+
+            if (template && templateKey !== 'custom') {
+                // Update icon preview
+                if (iconPreview) {
+                    iconPreview.classList.add('has-template');
+                    iconPreview.innerHTML = `<i class="${template.icon}" style="font-size: 2.5rem;"></i>`;
+                    
+                    // Set CSS custom properties for gradient
+                    const iconColor = template.iconColor || '#667eea';
+                    const iconColorDark = adjustColor(iconColor, -20);
+                    iconPreview.style.setProperty('--icon-color', iconColor);
+                    iconPreview.style.setProperty('--icon-color-dark', iconColorDark);
+                }
+
+                // Update type label
+                if (typeLabel) {
+                    typeLabel.textContent = template.name;
+                }
+
+                // Pre-fill name if empty
+                if (nameInput && !nameInput.value) {
+                    nameInput.value = template.name;
+                    nameInput.placeholder = `e.g., My ${template.name}`;
+                }
+
+                // Pre-fill description
+                if (descInput) {
+                    descInput.value = template.description;
+                    descInput.readOnly = false;
+                }
+
+                // Update URL helper text
+                if (urlHelper && template.defaultPorts) {
+                    const ports = template.defaultPorts.join(', ');
+                    urlHelper.innerHTML = `<i class="fas fa-lightbulb"></i> Typical ${template.name} ports: ${ports}`;
+                    urlHelper.style.color = '#4CAF50';
+                }
+
+                // Show autodiscover button if URL is entered
+                if (autodiscoverBtn && urlInput?.value.trim()) {
+                    autodiscoverBtn.style.display = 'inline-flex';
+                }
+
+                if (descIndicator) {
+                    descIndicator.innerHTML = '<i class="fas fa-magic"></i> Auto-filled from template (editable)';
+                }
+
+            } else {
+                // Reset to custom/default state
+                if (iconPreview) {
+                    iconPreview.classList.remove('has-template');
+                    iconPreview.innerHTML = '<i class="fas fa-cube" style="font-size: 2.5rem; color: #999;"></i>';
+                    iconPreview.style.removeProperty('--icon-color');
+                    iconPreview.style.removeProperty('--icon-color-dark');
+                }
+
+                if (typeLabel) {
+                    typeLabel.textContent = 'Custom Service';
+                }
+
+                if (nameInput) {
+                    nameInput.placeholder = 'e.g., My Custom Service';
+                }
+
+                if (descInput) {
+                    descInput.value = '';
+                    descInput.readOnly = false;
+                }
+
+                if (urlHelper) {
+                    urlHelper.textContent = 'Enter the full URL to access your service';
+                    urlHelper.style.color = '#999';
+                }
+
+                if (autodiscoverBtn) {
+                    autodiscoverBtn.style.display = 'none';
+                }
+
+                if (descIndicator) {
+                    descIndicator.textContent = 'Describe what this custom service does';
+                }
+            }
+        }
+
+        async function handleAutodiscover() {
+            const urlInput = document.getElementById('service-url-input');
+            const templateSelect = document.getElementById('service-template-select');
+            const resultsDiv = document.getElementById('autodiscover-results');
+            const resultsContent = document.getElementById('autodiscover-content');
+            const autodiscoverBtn = document.getElementById('autodiscover-btn');
+
+            const baseUrl = urlInput?.value.trim();
+            const templateKey = templateSelect?.value;
+
+            if (!baseUrl) {
+                alert('Please enter a URL first');
+                return;
+            }
+
+            // Show loading state
+            if (autodiscoverBtn) {
+                autodiscoverBtn.disabled = true;
+                autodiscoverBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Discovering...';
+            }
+
+            try {
+                const response = await fetch('/api/services/autodiscover', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${window.Api?.token || ''}`
+                    },
+                    body: JSON.stringify({
+                        baseUrl: baseUrl,
+                        templateKey: templateKey !== 'custom' ? templateKey : null
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Autodiscovery failed');
+                }
+
+                const results = await response.json();
+
+                // Display results
+                if (resultsDiv && resultsContent) {
+                    resultsDiv.style.display = 'block';
+                    
+                    if (results.discovered) {
+                        const suggestion = results.suggestions[0];
+                        resultsContent.innerHTML = `
+                            <div style="font-size: 0.85rem; line-height: 1.6;">
+                                ✅ Service detected at <strong>${suggestion.url}</strong><br>
+                                <span style="color: #666;">Status: ${suggestion.statusCode} • Response: ${suggestion.responseTime}ms</span>
+                            </div>
+                        `;
+                        
+                        // Update URL if different
+                        if (suggestion.url !== baseUrl && urlInput) {
+                            urlInput.value = suggestion.url;
+                        }
+                    } else if (results.suggestions && results.suggestions.length > 0) {
+                        resultsContent.innerHTML = `
+                            <div style="font-size: 0.85rem; margin-bottom: 8px;">⚠️ Could not auto-detect. Try these suggestions:</div>
+                            ${results.suggestions.map(s => `
+                                <button type="button" class="url-suggestion" data-url="${s.url}" style="display: block; width: 100%; text-align: left; padding: 6px 10px; margin: 5px 0; background: white; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
+                                    🔗 ${s.url} ${s.reason ? `<span style="color: #666;">(${s.reason})</span>` : ''}
+                                </button>
+                            `).join('')}
+                        `;
+
+                        // Add click handlers to suggestions
+                        resultsContent.querySelectorAll('.url-suggestion').forEach(btn => {
+                            btn.addEventListener('click', (e) => {
+                                const url = e.currentTarget.dataset.url;
+                                if (urlInput) {
+                                    urlInput.value = url;
+                                    resultsDiv.style.display = 'none';
+                                }
+                            });
+                        });
+                    } else {
+                        resultsContent.innerHTML = `
+                            <div style="font-size: 0.85rem; color: #ff9800;">
+                                ⚠️ Could not auto-discover service. Please verify the URL is correct.
+                            </div>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error('Autodiscover error:', error);
+                if (resultsDiv && resultsContent) {
+                    resultsDiv.style.display = 'block';
+                    resultsContent.innerHTML = `
+                        <div style="font-size: 0.85rem; color: #f44336;">
+                            ❌ Autodiscovery failed. Please check the URL and try again.
+                        </div>
+                    `;
+                }
+            } finally {
+                // Restore button state
+                if (autodiscoverBtn) {
+                    autodiscoverBtn.disabled = false;
+                    autodiscoverBtn.innerHTML = '<i class="fas fa-magic"></i> Auto-discover';
+                }
+            }
+        }
+
+        // Utility function to darken a hex color
+        function adjustColor(hex, percent) {
+            const num = parseInt(hex.replace('#', ''), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = Math.max(0, Math.min(255, (num >> 16) + amt));
+            const G = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amt));
+            const B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
+            return '#' + (0x1000000 + (R * 0x10000) + (G * 0x100) + B).toString(16).slice(1);
         }
 
         function openServiceModal() {
             const modal = document.getElementById('service-modal');
             if (modal) modal.classList.add('show');
+            
+            // Reset form
+            document.getElementById('service-form')?.reset();
+            currentEditingId = null;
+            
+            // Reset icon preview
+            const iconPreview = document.getElementById('service-icon-preview');
+            if (iconPreview) {
+                iconPreview.classList.remove('has-template');
+                iconPreview.innerHTML = '<i class="fas fa-cube" style="font-size: 2.5rem; color: #999;"></i>';
+            }
+            
+            // Reset type label
+            const typeLabel = document.getElementById('service-type-label');
+            if (typeLabel) typeLabel.textContent = 'Custom Service';
+            
+            // Reset modal title and button
+            const modalTitle = document.getElementById('modal-title');
+            const submitBtn = document.getElementById('submit-service-btn');
+            if (modalTitle) modalTitle.textContent = 'Add New Service';
+            if (submitBtn) {
+                submitBtn.textContent = 'Add Service';
+                delete submitBtn.dataset.serviceId;
+            }
+            
+            // Hide autodiscover elements
+            const autodiscoverBtn = document.getElementById('autodiscover-btn');
+            if (autodiscoverBtn) autodiscoverBtn.style.display = 'none';
+            
+            const autodiscoverResults = document.getElementById('autodiscover-results');
+            if (autodiscoverResults) autodiscoverResults.style.display = 'none';
         }
 
         function closeServiceModal() {
             const modal = document.getElementById('service-modal');
             if (modal) {
                 modal.classList.remove('show');
-                document.getElementById('service-form').reset();
+                document.getElementById('service-form')?.reset();
+                currentEditingId = null;
+                
+                // Reset autodiscover display
+                const autodiscoverResults = document.getElementById('autodiscover-results');
+                if (autodiscoverResults) autodiscoverResults.style.display = 'none';
             }
         }
 
@@ -870,8 +1270,22 @@
                 const statusClass = `status-${service.status || 'offline'}`;
                 const card = document.createElement('div');
                 card.className = 'service-card';
+                
+                // Get template info if available
+                const template = service.template_key && serviceTemplates[service.template_key] 
+                    ? serviceTemplates[service.template_key] 
+                    : null;
+                
+                const iconColor = template?.iconColor || '#999';
+                const iconClass = service.icon || 'fas fa-cube';
+                
                 card.innerHTML = `
-                    <div class="service-name">${service.name}</div>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                        <div style="display: inline-flex; align-items: center; justify-content: center; width: 50px; height: 50px; border-radius: 12px; background: linear-gradient(135deg, ${iconColor}, ${adjustColor(iconColor, -20)}); box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                            <i class="${iconClass}" style="font-size: 24px; color: white;"></i>
+                        </div>
+                        <div class="service-name">${service.name}</div>
+                    </div>
                     <div class="service-url"><a href="${service.url}" target="_blank" rel="noopener">${service.url}</a></div>
                     <div class="service-description">${service.description || ''}</div>
                     <div class="service-status ${statusClass}">
@@ -879,26 +1293,44 @@
                         ${service.status ? service.status.charAt(0).toUpperCase() + service.status.slice(1) : 'Offline'}
                     </div>
                     <div class="service-actions">
-                        <button class="btn btn-secondary" onclick="editService(${service.id})" title="Edit">
-                            <i class="fas fa-edit"></i>
+                        <button class="btn btn-secondary edit-service-btn" data-service-id="${service.id}" title="Edit">
+                            <i class="fas fa-edit"></i> Edit
                         </button>
-                        <button class="btn btn-secondary" onclick="deleteService(${service.id})" title="Delete">
-                            <i class="fas fa-trash"></i>
+                        <button class="btn btn-secondary delete-service-btn" data-service-id="${service.id}" title="Delete">
+                            <i class="fas fa-trash"></i> Delete
                         </button>
                     </div>
                 `;
                 container.appendChild(card);
+            });
+
+            // Add event delegation for edit and delete buttons
+            container.querySelectorAll('.edit-service-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const serviceId = parseInt(e.currentTarget.dataset.serviceId);
+                    editService(serviceId);
+                });
+            });
+
+            container.querySelectorAll('.delete-service-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const serviceId = parseInt(e.currentTarget.dataset.serviceId);
+                    deleteService(serviceId);
+                });
             });
         }
 
         async function saveService(e) {
             e.preventDefault();
 
+            const templateKey = document.getElementById('service-template-select')?.value;
+            const template = templateKey && templateKey !== 'custom' ? serviceTemplates[templateKey] : null;
             const name = document.getElementById('service-name-input')?.value;
             const url = document.getElementById('service-url-input')?.value;
             const description = document.getElementById('service-description-input')?.value;
             const status = document.getElementById('service-status-input')?.value || 'online';
             const access = document.getElementById('service-access-input')?.value || 'public';
+            const submitBtn = document.getElementById('submit-service-btn');
 
             if (!name || !url) {
                 alert('Please fill in required fields');
@@ -906,35 +1338,115 @@
             }
 
             try {
-                const response = await fetch('/api/services', {
-                    method: 'POST',
+                const payload = {
+                    name,
+                    url,
+                    description,
+                    status,
+                    access_level: access,
+                    icon: template ? template.icon : 'fas fa-cube',
+                    template_key: template ? templateKey : null
+                };
+
+                const isEdit = currentEditingId !== null;
+                const method = isEdit ? 'PUT' : 'POST';
+                const endpoint = isEdit ? `/api/services/${currentEditingId}` : '/api/services';
+
+                const response = await fetch(endpoint, {
+                    method: method,
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${window.Api?.token || ''}`
                     },
-                    body: JSON.stringify({
-                        name,
-                        url,
-                        description,
-                        status,
-                        access_level: access
-                    })
+                    body: JSON.stringify(payload)
                 });
 
                 if (!response.ok) throw new Error('Failed to save service');
                 
                 closeServiceModal();
                 await loadServices();
-                alert('Service added successfully!');
+                
+                // Show success message
+                const action = isEdit ? 'updated' : 'added';
+                showNotification(`✅ Service ${action} successfully!`, 'success');
             } catch (error) {
                 console.error('Error saving service:', error);
-                alert('Failed to save service: ' + error.message);
+                showNotification('❌ Failed to save service: ' + error.message, 'error');
             }
         }
 
         async function editService(id) {
-            // Placeholder for edit functionality
-            alert('Edit functionality coming soon');
+            try {
+                // Find the service in the current list
+                const response = await fetch('/api/services', {
+                    headers: {
+                        'Authorization': `Bearer ${window.Api?.token || ''}`
+                    }
+                });
+                if (!response.ok) throw new Error('Failed to load services');
+                
+                const services = await response.json();
+                const service = services.find(s => s.id === id);
+                
+                if (!service) {
+                    alert('Service not found');
+                    return;
+                }
+
+                // Populate form with service data
+                const templateSelect = document.getElementById('service-template-select');
+                const nameInput = document.getElementById('service-name-input');
+                const urlInput = document.getElementById('service-url-input');
+                const descInput = document.getElementById('service-description-input');
+                const statusSelect = document.getElementById('service-status-input');
+                const accessSelect = document.getElementById('service-access-input');
+                const submitBtn = document.getElementById('submit-service-btn');
+                const modalTitle = document.getElementById('modal-title');
+
+                // Try to find a matching template
+                let matchingTemplate = null;
+                if (service.template_key) {
+                    matchingTemplate = service.template_key;
+                } else {
+                    // Try to find by icon match
+                    for (const [key, template] of Object.entries(serviceTemplates)) {
+                        if (template.icon === service.icon) {
+                            matchingTemplate = key;
+                            break;
+                        }
+                    }
+                }
+
+                // Set template
+                if (matchingTemplate) {
+                    templateSelect.value = matchingTemplate;
+                    handleTemplateChange({ target: templateSelect });
+                } else {
+                    templateSelect.value = 'custom';
+                    handleTemplateChange({ target: templateSelect });
+                }
+
+                // Populate fields
+                nameInput.value = service.name;
+                urlInput.value = service.url;
+                descInput.value = service.description || '';
+                statusSelect.value = service.status;
+                accessSelect.value = service.access_level || 'public';
+
+                // Update modal for edit mode
+                modalTitle.textContent = 'Edit Service';
+                submitBtn.textContent = 'Update Service';
+                submitBtn.dataset.serviceId = id;
+                currentEditingId = id;
+
+                // Show modal
+                const modal = document.getElementById('service-modal');
+                if (modal) modal.classList.add('show');
+
+            } catch (error) {
+                console.error('Error loading service for edit:', error);
+                showNotification('Failed to load service for editing', 'error');
+            }
         }
 
         async function deleteService(id) {
@@ -951,13 +1463,61 @@
                 if (!response.ok) throw new Error('Failed to delete service');
                 
                 await loadServices();
-                alert('Service deleted successfully!');
+                showNotification('✅ Service deleted successfully!', 'success');
             } catch (error) {
                 console.error('Error deleting service:', error);
-                alert('Failed to delete service: ' + error.message);
+                showNotification('❌ Failed to delete service: ' + error.message, 'error');
             }
         }
+
+        // Simple notification system
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
+                color: white;
+                border-radius: 12px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                z-index: 10000;
+                font-weight: 600;
+                animation: slideIn 0.3s ease;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
     </script>
+    <style>
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+    </style>
     <script src="nav.js"></script>
     <script src="base.js"></script>
 </body>

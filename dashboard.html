@@ -607,17 +607,50 @@
     </div>
 
     <script>
+        // Global state
+        let serviceTemplates = {};
+
         // Dashboard-specific initialization
         function pageInit(user) {
-            // Load services
-            loadServices(user).catch(error => {
-                console.error('Failed to load services:', error);
+            // Load templates first
+            loadTemplates().then(() => {
+                // Load services
+                loadServices(user).catch(error => {
+                    console.error('Failed to load services:', error);
+                });
             });
 
             // Track user activity
             if (window.Auth && window.Auth.trackActivity) {
                 window.Auth.trackActivity('activity');
             }
+        }
+
+        // Load service templates
+        async function loadTemplates() {
+            try {
+                const response = await fetch('/api/services/templates', {
+                    headers: {
+                        'Authorization': `Bearer ${window.Api?.token || ''}`
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    serviceTemplates = data.templates || {};
+                }
+            } catch (error) {
+                console.error('Error loading templates:', error);
+            }
+        }
+
+        // Utility function to darken a hex color
+        function adjustColor(hex, percent) {
+            const num = parseInt(hex.replace('#', ''), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = Math.max(0, Math.min(255, (num >> 16) + amt));
+            const G = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amt));
+            const B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
+            return '#' + (0x1000000 + (R * 0x10000) + (G * 0x100) + B).toString(16).slice(1);
         }
 
         // Load and display services
@@ -680,10 +713,23 @@
                 const statusClass = `status-${service.status || 'offline'}`;
                 const statusText = (service.status || 'offline').charAt(0).toUpperCase() + (service.status || 'offline').slice(1);
 
+                // Get template info if available
+                const template = service.template_key && serviceTemplates[service.template_key] 
+                    ? serviceTemplates[service.template_key] 
+                    : null;
+                
+                const iconColor = template?.iconColor || '#999';
+                const iconClass = service.icon || 'fas fa-cube';
+
                 const serviceCard = document.createElement('div');
                 serviceCard.className = 'service-card';
                 serviceCard.innerHTML = `
-                    <h3 class="service-name">${service.name}</h3>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                        <div style="display: inline-flex; align-items: center; justify-content: center; width: 50px; height: 50px; border-radius: 12px; background: linear-gradient(135deg, ${iconColor}, ${adjustColor(iconColor, -20)}); box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                            <i class="${iconClass}" style="font-size: 24px; color: white;"></i>
+                        </div>
+                        <h3 class="service-name">${service.name}</h3>
+                    </div>
                     <div class="service-url">
                         <a href="${service.url}" target="_blank" rel="noopener noreferrer">
                             ${service.url} <i class="fas fa-external-link-alt"></i>

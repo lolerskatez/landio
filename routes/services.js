@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 const fs = require('fs').promises;
+const https = require('https');
+const http = require('http');
 
 // Get db from global scope
 const getDb = () => global.db;
@@ -63,207 +65,327 @@ const initializeServicesTable = () => {
 // Call initialization on startup
 initializeServicesTable();
 
-// Service templates database
+// Service templates database with enhanced metadata
 const SERVICE_TEMPLATES = {
   nextcloud: {
     name: 'Nextcloud',
     icon: 'fas fa-cloud',
-    description: 'File sharing and collaboration platform with sync, calendar, and contacts'
+    iconColor: '#0082C9',
+    description: 'File sharing and collaboration platform with sync, calendar, and contacts',
+    defaultPorts: [80, 443],
+    probeUrls: ['/status.php', '/index.php/login']
   },
   synology: {
     name: 'Synology NAS',
     icon: 'fas fa-network-wired',
-    description: 'Network attached storage with backup, media, and application features'
+    iconColor: '#FF8C00',
+    description: 'Network attached storage with backup, media, and application features',
+    defaultPorts: [5000, 5001],
+    probeUrls: ['/webman/login.cgi', '/webman/index.cgi']
   },
   truenas: {
     name: 'TrueNAS',
     icon: 'fas fa-database',
-    description: 'Open source network-attached storage and hyperconverged infrastructure'
+    iconColor: '#0095D5',
+    description: 'Open source network-attached storage and hyperconverged infrastructure',
+    defaultPorts: [80, 443],
+    probeUrls: ['/ui/', '/api/v2.0/']
   },
   seafile: {
     name: 'Seafile',
     icon: 'fas fa-share-alt',
-    description: 'Self-hosted cloud storage and collaboration platform'
+    iconColor: '#0093DD',
+    description: 'Self-hosted cloud storage and collaboration platform',
+    defaultPorts: [8000, 8082],
+    probeUrls: ['/accounts/login/', '/api2/ping/']
   },
   plex: {
     name: 'Plex Media Server',
     icon: 'fas fa-play-circle',
-    description: 'Media streaming service for movies, TV shows, and music'
+    iconColor: '#E5A00D',
+    description: 'Media streaming service for movies, TV shows, and music',
+    defaultPorts: [32400],
+    probeUrls: ['/web/index.html', '/identity']
   },
   jellyfin: {
     name: 'Jellyfin',
     icon: 'fas fa-film',
-    description: 'Free open source media streaming platform'
+    iconColor: '#00A4DC',
+    description: 'Free open source media streaming platform',
+    defaultPorts: [8096, 8920],
+    probeUrls: ['/web/index.html', '/System/Info/Public']
   },
   emby: {
     name: 'Emby',
     icon: 'fas fa-video',
-    description: 'Powerful media server with streaming capabilities'
+    iconColor: '#52B54B',
+    description: 'Powerful media server with streaming capabilities',
+    defaultPorts: [8096, 8920],
+    probeUrls: ['/web/index.html', '/emby/System/Info/Public']
   },
   kaleidescape: {
     name: 'Kaleidescape',
     icon: 'fas fa-cube',
-    description: 'Premium movie server and streaming solution'
+    iconColor: '#1C3F94',
+    description: 'Premium movie server and streaming solution',
+    defaultPorts: [443],
+    probeUrls: ['/']
   },
   gitlab: {
     name: 'GitLab',
     icon: 'fab fa-gitlab',
-    description: 'Git repository management with CI/CD pipelines'
+    iconColor: '#FC6D26',
+    description: 'Git repository management with CI/CD pipelines',
+    defaultPorts: [80, 443],
+    probeUrls: ['/users/sign_in', '/api/v4/version']
   },
   gitea: {
     name: 'Gitea',
     icon: 'fas fa-code-branch',
-    description: 'Lightweight self-hosted Git repository management'
+    iconColor: '#609926',
+    description: 'Lightweight self-hosted Git repository management',
+    defaultPorts: [3000],
+    probeUrls: ['/user/login', '/api/v1/version']
   },
   'github-enterprise': {
     name: 'GitHub Enterprise',
     icon: 'fab fa-github',
-    description: 'Enterprise GitHub instance for private repositories'
+    iconColor: '#24292E',
+    description: 'Enterprise GitHub instance for private repositories',
+    defaultPorts: [80, 443],
+    probeUrls: ['/login', '/api/v3']
   },
   jenkins: {
     name: 'Jenkins',
     icon: 'fas fa-cogs',
-    description: 'Automation server for building and testing code'
+    iconColor: '#D24939',
+    description: 'Automation server for building and testing code',
+    defaultPorts: [8080],
+    probeUrls: ['/login', '/api/json']
   },
   mattermost: {
     name: 'Mattermost',
     icon: 'fas fa-comments',
-    description: 'Self-hosted team communication and collaboration'
+    iconColor: '#0072C6',
+    description: 'Self-hosted team communication and collaboration',
+    defaultPorts: [8065],
+    probeUrls: ['/login', '/api/v4/system/ping']
   },
   jitsi: {
     name: 'Jitsi Meet',
     icon: 'fas fa-video',
-    description: 'Open source video conference platform'
+    iconColor: '#1D76BA',
+    description: 'Open source video conference platform',
+    defaultPorts: [443],
+    probeUrls: ['/', '/config.js']
   },
   rocketchat: {
     name: 'Rocket.Chat',
     icon: 'fas fa-rocket',
-    description: 'Self-hosted team chat and collaboration platform'
+    iconColor: '#F5455C',
+    description: 'Self-hosted team chat and collaboration platform',
+    defaultPorts: [3000],
+    probeUrls: ['/home', '/api/info']
   },
   matrix: {
     name: 'Matrix/Synapse',
     icon: 'fas fa-comments',
-    description: 'Decentralized communication protocol and homeserver'
+    iconColor: '#000000',
+    description: 'Decentralized communication protocol and homeserver',
+    defaultPorts: [8008, 8448],
+    probeUrls: ['/_matrix/client/versions', '/_synapse/admin/v1/server_version']
   },
   portainer: {
     name: 'Portainer',
     icon: 'fas fa-docker',
-    description: 'Docker and Kubernetes container management platform'
+    iconColor: '#13BEF9',
+    description: 'Docker and Kubernetes container management platform',
+    defaultPorts: [9000, 9443],
+    probeUrls: ['/api/status', '/']
   },
   unraid: {
     name: 'Unraid',
     icon: 'fas fa-server',
-    description: 'NAS and virtualization operating system'
+    iconColor: '#F15A2C',
+    description: 'NAS and virtualization operating system',
+    defaultPorts: [80, 443],
+    probeUrls: ['/Main', '/']
   },
   proxmox: {
     name: 'Proxmox VE',
     icon: 'fas fa-tv',
-    description: 'Open source virtualization management platform'
+    iconColor: '#E57000',
+    description: 'Open source virtualization management platform',
+    defaultPorts: [8006],
+    probeUrls: ['/api2/json/version', '/#v1:0:18:4::::::']
   },
   esxi: {
     name: 'VMware ESXi',
     icon: 'fas fa-microchip',
-    description: 'VMware hypervisor for virtual machines'
+    iconColor: '#607078',
+    description: 'VMware hypervisor for virtual machines',
+    defaultPorts: [443],
+    probeUrls: ['/ui/', '/sdk']
   },
   pfsense: {
     name: 'pfSense',
     icon: 'fas fa-shield-alt',
-    description: 'Open source firewall and routing platform'
+    iconColor: '#212D3B',
+    description: 'Open source firewall and routing platform',
+    defaultPorts: [80, 443],
+    probeUrls: ['/index.php', '/']
   },
   opnsense: {
     name: 'OPNsense',
     icon: 'fas fa-lock',
-    description: 'Open source firewall and routing platform'
+    iconColor: '#D94F00',
+    description: 'Open source firewall and routing platform',
+    defaultPorts: [80, 443],
+    probeUrls: ['/ui/core/login', '/']
   },
   vaultwarden: {
     name: 'Vaultwarden',
     icon: 'fas fa-lock',
-    description: 'Self-hosted password manager and vault'
+    iconColor: '#175DDC',
+    description: 'Self-hosted password manager and vault',
+    defaultPorts: [80, 443],
+    probeUrls: ['/', '/api/config']
   },
   keycloak: {
     name: 'Keycloak',
     icon: 'fas fa-key',
-    description: 'Open source identity and access management'
+    iconColor: '#4D4D4D',
+    description: 'Open source identity and access management',
+    defaultPorts: [8080, 8443],
+    probeUrls: ['/auth/', '/realms/master']
   },
   authentik: {
     name: 'Authentik',
     icon: 'fas fa-shield-alt',
-    description: 'Authentication and authorization platform'
+    iconColor: '#FD4B2D',
+    description: 'Authentication and authorization platform',
+    defaultPorts: [9000, 9443],
+    probeUrls: ['/if/flow/initial-setup/', '/api/v3/']
   },
   qbittorrent: {
     name: 'qBittorrent',
     icon: 'fas fa-download',
-    description: 'Lightweight BitTorrent client'
+    iconColor: '#3E7FC1',
+    description: 'Lightweight BitTorrent client',
+    defaultPorts: [8080],
+    probeUrls: ['/api/v2/app/version', '/']
   },
   transmission: {
     name: 'Transmission',
     icon: 'fas fa-arrow-down',
-    description: 'Open source BitTorrent client'
+    iconColor: '#C41E3A',
+    description: 'Open source BitTorrent client',
+    defaultPorts: [9091],
+    probeUrls: ['/transmission/web/', '/transmission/rpc']
   },
   sonarr: {
     name: 'Sonarr',
     icon: 'fas fa-tv',
-    description: 'TV show downloader and organizer'
+    iconColor: '#35C5F4',
+    description: 'TV show downloader and organizer',
+    defaultPorts: [8989],
+    probeUrls: ['/api/v3/system/status', '/']
   },
   radarr: {
     name: 'Radarr',
     icon: 'fas fa-film',
-    description: 'Movie downloader and organizer'
+    iconColor: '#FFC230',
+    description: 'Movie downloader and organizer',
+    defaultPorts: [7878],
+    probeUrls: ['/api/v3/system/status', '/']
   },
   lidarr: {
     name: 'Lidarr',
     icon: 'fas fa-music',
-    description: 'Music downloader and organizer'
+    iconColor: '#159552',
+    description: 'Music downloader and organizer',
+    defaultPorts: [8686],
+    probeUrls: ['/api/v1/system/status', '/']
   },
   prowlarr: {
     name: 'Prowlarr',
     icon: 'fas fa-search',
-    description: 'Indexer manager and proxy for *arr applications'
+    iconColor: '#4ECDC4',
+    description: 'Indexer manager and proxy for *arr applications',
+    defaultPorts: [9696],
+    probeUrls: ['/api/v1/system/status', '/']
   },
   homeassistant: {
     name: 'Home Assistant',
     icon: 'fas fa-home',
-    description: 'Open source home automation and IoT platform'
+    iconColor: '#41BDF5',
+    description: 'Open source home automation and IoT platform',
+    defaultPorts: [8123],
+    probeUrls: ['/api/', '/manifest.json']
   },
   pihole: {
     name: 'Pi-hole',
     icon: 'fas fa-shield-alt',
-    description: 'DNS sinkhole for ad-blocking and privacy'
+    iconColor: '#96060C',
+    description: 'DNS sinkhole for ad-blocking and privacy',
+    defaultPorts: [80],
+    probeUrls: ['/admin/', '/admin/api.php']
   },
   adguard: {
     name: 'AdGuard Home',
     icon: 'fas fa-shield-alt',
-    description: 'Network-wide ad and tracker blocker'
+    iconColor: '#68BC71',
+    description: 'Network-wide ad and tracker blocker',
+    defaultPorts: [3000, 80],
+    probeUrls: ['/login.html', '/control/status']
   },
   unmanic: {
     name: 'Unmanic',
     icon: 'fas fa-wand-magic-sparkles',
-    description: 'Video transcoding automation'
+    iconColor: '#FF6600',
+    description: 'Video transcoding automation',
+    defaultPorts: [8888],
+    probeUrls: ['/', '/api/v2/settings']
   },
   openvpn: {
     name: 'OpenVPN',
-    icon: 'fas fa-vpn-lock',
-    description: 'Open source VPN solution'
+    icon: 'fas fa-lock',
+    iconColor: '#EA7E20',
+    description: 'Open source VPN solution',
+    defaultPorts: [943, 443],
+    probeUrls: ['/', '/']
   },
   wireguard: {
     name: 'WireGuard',
-    icon: 'fas fa-vpn-lock',
-    description: 'Modern VPN with improved security and performance'
+    icon: 'fas fa-lock',
+    iconColor: '#88171A',
+    description: 'Modern VPN with improved security and performance',
+    defaultPorts: [51820],
+    probeUrls: ['/']
   },
   wiki: {
     name: 'Wiki.js',
     icon: 'fas fa-book',
-    description: 'Modern, lightweight wiki software'
+    iconColor: '#1976D2',
+    description: 'Modern, lightweight wiki software',
+    defaultPorts: [3000],
+    probeUrls: ['/', '/login']
   },
   confluence: {
     name: 'Confluence',
     icon: 'fas fa-file-alt',
-    description: 'Team workspace and documentation platform'
+    iconColor: '#205081',
+    description: 'Team workspace and documentation platform',
+    defaultPorts: [8090],
+    probeUrls: ['/login.action', '/']
   },
   mediawiki: {
     name: 'MediaWiki',
     icon: 'fas fa-database',
-    description: 'Wiki engine that powers Wikipedia'
+    iconColor: '#006699',
+    description: 'Wiki engine that powers Wikipedia',
+    defaultPorts: [80, 443],
+    probeUrls: ['/api.php', '/index.php/Main_Page']
   }
 };
 
@@ -278,6 +400,156 @@ router.get('/templates', authenticateToken, (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+// POST /api/services/autodiscover - Attempt to auto-discover service details from URL
+router.post('/autodiscover', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { baseUrl, templateKey } = req.body;
+    
+    if (!baseUrl) {
+      return res.status(400).json({ error: 'Base URL is required' });
+    }
+
+    // Normalize URL - add protocol if missing
+    let normalizedUrl = baseUrl.trim();
+    if (!normalizedUrl.match(/^https?:\/\//)) {
+      normalizedUrl = 'http://' + normalizedUrl;
+    }
+
+    // Parse URL
+    let parsedUrl;
+    try {
+      parsedUrl = new URL(normalizedUrl);
+    } catch (e) {
+      return res.status(400).json({ error: 'Invalid URL format. Please use format: http://example.com or example.com' });
+    }
+
+    const results = {
+      url: normalizedUrl,
+      discovered: false,
+      suggestions: [],
+      template: null
+    };
+
+    // If template key provided, use its metadata
+    if (templateKey && SERVICE_TEMPLATES[templateKey]) {
+      const template = SERVICE_TEMPLATES[templateKey];
+      results.template = templateKey;
+      
+      // Try to probe the service at the given URL
+      const probePaths = template.probeUrls || ['/'];
+
+      for (const probePath of probePaths.slice(0, 3)) { // Limit to 3 probe attempts
+        try {
+          const probeUrl = new URL(probePath, normalizedUrl).toString();
+          const probeResult = await checkUrlReachable(probeUrl, 3000);
+          
+          if (probeResult.success) {
+            results.discovered = true;
+            results.suggestions.push({
+              url: normalizedUrl,
+              statusCode: probeResult.statusCode,
+              responseTime: probeResult.responseTime,
+              confidence: 'high',
+              probeUrl: probeUrl
+            });
+            break;
+          }
+        } catch (e) {
+          // Continue to next probe
+          console.log('Probe failed for', probePath, ':', e.message);
+        }
+      }
+
+      // Suggest alternative ports if discovery failed
+      if (!results.discovered && template.defaultPorts) {
+        for (const port of template.defaultPorts) {
+          const protocol = port === 443 || port >= 8443 ? 'https' : 'http';
+          const suggestedUrl = `${protocol}://${parsedUrl.hostname}:${port}`;
+          results.suggestions.push({
+            url: suggestedUrl,
+            port: port,
+            confidence: 'medium',
+            reason: `Default ${template.name} port`
+          });
+        }
+      }
+    } else {
+      // No template - just try to reach the URL
+      try {
+        const probeResult = await checkUrlReachable(normalizedUrl, 5000);
+        if (probeResult.success) {
+          results.discovered = true;
+          results.suggestions.push({
+            url: normalizedUrl,
+            statusCode: probeResult.statusCode,
+            responseTime: probeResult.responseTime,
+            confidence: 'medium'
+          });
+        } else {
+          results.suggestions.push({
+            url: normalizedUrl,
+            confidence: 'low',
+            statusCode: probeResult.statusCode,
+            error: `Service returned HTTP ${probeResult.statusCode}`
+          });
+        }
+      } catch (e) {
+        results.suggestions.push({
+          url: normalizedUrl,
+          confidence: 'low',
+          error: e.message || 'Could not reach service'
+        });
+      }
+    }
+
+    res.json(results);
+  } catch (err) {
+    console.error('Error in autodiscover:', err);
+    res.status(500).json({ error: 'Autodiscovery failed', details: err.message });
+  }
+});
+
+// Helper function to check if a URL is reachable
+function checkUrlReachable(url, timeout = 5000) {
+  return new Promise((resolve, reject) => {
+    try {
+      const urlObj = new URL(url);
+      const protocol = urlObj.protocol === 'https:' ? https : http;
+      
+      const startTime = Date.now();
+      const request = protocol.get(url, {
+        timeout: timeout,
+        rejectUnauthorized: false, // Allow self-signed certificates
+        headers: {
+          'User-Agent': 'Landio-Service-Discovery/1.0'
+        }
+      }, (res) => {
+        const responseTime = Date.now() - startTime;
+        
+        // Consume response to free up memory
+        res.resume();
+        
+        resolve({
+          success: res.statusCode < 500,
+          statusCode: res.statusCode,
+          responseTime: responseTime
+        });
+      });
+
+      request.on('error', (err) => {
+        reject(new Error(err.message || 'Request failed'));
+      });
+
+      request.on('timeout', () => {
+        request.destroy();
+        reject(new Error('Request timeout'));
+      });
+    } catch (err) {
+      reject(new Error(err.message || 'URL parsing error'));
+    }
+  });
+}
 
 // GET /api/services - Get all services for current user (admin)
 router.get('/', authenticateToken, requireAdmin, async (req, res) => {
