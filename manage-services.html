@@ -72,6 +72,30 @@
             margin-bottom: 0;
         }
 
+        /* Decorative elements */
+        .decoration {
+            position: absolute;
+            z-index: -1;
+        }
+
+        .decoration-1 {
+            top: -50px;
+            left: -50px;
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 182, 193, 0.2);
+            border-radius: 50%;
+        }
+
+        .decoration-2 {
+            bottom: -30px;
+            right: -30px;
+            width: 120px;
+            height: 120px;
+            background: rgba(166, 216, 255, 0.2);
+            border-radius: 50%;
+        }
+
         /* Services section */
         .services-section {
             background-color: rgba(255, 255, 255, 0.95);
@@ -699,6 +723,9 @@
 <body>
     <div class="container">
         <header>
+            <div class="decoration decoration-1"></div>
+            <div class="decoration decoration-2"></div>
+
             <h1><i class="fas fa-cube"></i> Manage Services</h1>
             <p class="subtitle">Add and manage the services that appear on your dashboard</p>
         </header>
