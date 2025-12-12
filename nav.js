@@ -297,10 +297,10 @@ function addUserInfoButton(navContainer, user) {
     userBtn.className = 'nav-btn user-info-btn';
     userBtn.innerHTML = `
         <i class="fas fa-user-circle"></i> 
-        <span class="user-name">${user.name}</span>
+        <span class="user-name">${user.displayName || user.name}</span>
         <span class="user-role">${formatRole(user.role)}</span>
     `;
-    userBtn.title = `Logged in as ${user.name} (${user.role})`;
+    userBtn.title = `Logged in as ${user.displayName || user.name} (${user.role})`;
     userBtn.style.opacity = '0.7';
     userBtn.style.cursor = 'default';
     userBtn.disabled = true;
