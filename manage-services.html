@@ -42,8 +42,8 @@
             background-color: rgba(255, 255, 255, 0.9);
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            margin-bottom: 30px;
+            padding: 20px 30px;
+            margin-bottom: 20px;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -51,15 +51,15 @@
         
         h1 {
             color: var(--primary);
-            font-size: 2.5rem;
-            margin-bottom: 10px;
+            font-size: 2rem;
+            margin-bottom: 5px;
             text-shadow: 2px 2px 0px rgba(255, 182, 193, 0.3);
         }
         
         .subtitle {
             color: #7a7a7a;
-            font-size: 1.2rem;
-            margin-bottom: 15px;
+            font-size: 1rem;
+            margin-bottom: 0;
         }
 
         /* Services section */
@@ -68,7 +68,7 @@
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             padding: 30px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
 
@@ -91,7 +91,7 @@
         }
 
         .service-card {
-            background: rgba(30, 30, 45, 0.8);
+            background: var(--light-bg);
             border-radius: 16px;
             padding: 20px;
             border: 1px solid rgba(255, 107, 147, 0.2);
@@ -110,7 +110,6 @@
             transform: translateY(-8px) scale(1.05);
             box-shadow: 0 15px 40px rgba(255, 107, 147, 0.2);
             border-color: rgba(255, 107, 147, 0.5);
-            background: rgba(40, 40, 60, 0.9);
         }
 
         .service-icon-box {
@@ -135,10 +134,16 @@
         }
 
         .service-name {
-            font-size: 1.3rem;
-            color: var(--primary);
+            font-size: 1.1rem;
+            color: var(--text);
             margin-bottom: 10px;
             font-weight: 600;
+            min-height: 2.6em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            line-height: 1.3;
         }
 
         .service-url {
@@ -1313,7 +1318,7 @@
                     <div class="service-icon-box" style="background: linear-gradient(135deg, ${iconColor}, ${adjustColor(iconColor, -20)});">
                         <i class="${iconClass}"></i>
                     </div>
-                    <div class="service-name" style="font-size: 1.1rem; font-weight: 600; color: white; margin-bottom: 8px; line-height: 1.3; min-height: 2.6em; display: flex; align-items: center; justify-content: center;">${service.name}</div>
+                    <div class="service-name">${service.name}</div>
                     <div class="service-status ${statusClass}" style="margin-bottom: 12px; font-size: 0.85rem;">
                         <i class="fas fa-circle"></i>
                         ${service.status ? service.status.charAt(0).toUpperCase() + service.status.slice(1) : 'Offline'}
