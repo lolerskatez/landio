@@ -32,8 +32,7 @@ Landio is a Node.js/Express-based server management dashboard with SQLite databa
 │  ┌──────────────────────────────────────────────┐   │
 │  │           Route Handlers                     │   │
 │  │ - /api/auth (Authentication)                 │   │
-│  │ - /api/2fa (Two-Factor Auth)                 │   │
-│  │ - /api/users (User Management)               │   │
+│  │ - /api/2fa (Two-Factor Auth)                 │   ││  ├─ /api/sso (SSO/OIDC Integration)            │   ││  │ - /api/users (User Management)               │   │
 │  │ - /api/settings (Settings & Preferences)     │   │
 │  │ - /api/services (Service Management)         │   │
 │  │ - /api/notifications (Alerts)                │   │
@@ -404,10 +403,160 @@ landio/
 
 ## Future Enhancements
 
-- OAuth2/OIDC authentication
 - Advanced service monitoring with metrics
 - Email-based user invitations
 - Audit trail with detailed change tracking
 - API key management for external integrations
 - Webhook support for custom notifications
 - Database replication for high availability
+
+## SSO/OIDC Integration
+
+### Overview
+Landio supports OpenID Connect (OIDC) authentication via Authentik or compatible providers. SSO users are automatically created and managed with group-based role assignment.
+
+### Configuration
+SSO configuration is stored in the `settings` table (system-level, `user_id IS NULL`):
+- `sso_issuer` - OIDC provider issuer URL
+- `sso_client_id` - OAuth2 application client ID
+- `sso_client_secret` - OAuth2 application client secret
+- `sso_redirect_uri` - Callback URL (e.g., `https://your-domain/api/sso/callback`)
+
+#### Configuration Endpoint
+```
+POST /api/sso/config
+Body: {
+  "issuer": "https://auth.example.com",
+  "clientId": "...",
+  "clientSecret": "..."
+}
+```
+
+### Authentication Flow
+
+```
+User clicks SSO Login
+    ↓
+GET /api/sso/login
+    ├─ Generate authorization URL with PKCE (disabled by default)
+    ├─ Store state in session
+    └─ Redirect to OIDC provider
+
+User authenticates at provider
+    ↓
+Provider redirects to:
+GET /api/sso/callback?code=xxx&state=yyy
+    ├─ Verify state token matches session
+    ├─ Exchange code for ID token
+    ├─ Extract user claims: sub, email, name, groups
+    ├─ Lookup or create user in database
+    ├─ Map Authentik groups to roles
+    ├─ Generate JWT token
+    └─ Redirect to login.html with sso_token URL parameter
+
+Frontend processes token
+    ├─ Decodes JWT payload with atob()
+    ├─ Stores in localStorage (authToken, currentUser)
+    └─ Redirects to role-based dashboard
+```
+
+### Group-to-Role Mapping
+Authentik groups are mapped to Landio roles:
+
+| Authentik Group | Landio Role | Access Level |
+|---|---|---|
+| Administrators, admin | `admin` | Full system access |
+| Power Users, power-users, power users, managers | `poweruser` | Service management, all services |
+| Users (default) | `user` | Dashboard access, public services |
+
+### User Lifecycle
+
+#### New SSO User
+1. User logs in via SSO for the first time
+2. OIDC `sub` claim used as unique identifier
+3. New user created in database:
+   - `username` generated from email (e.g., `john` from `john@example.com`)
+   - `sso_provider` set to issuer URL
+   - `sso_id` set to OIDC `sub` claim
+   - `role` assigned based on Authentik groups
+   - `is_active` set to true
+   - `display_name` populated from `name` claim
+4. JWT generated with database user ID
+5. Activity logged as `sso_signup`
+
+#### Existing SSO User
+1. User logs in again
+2. Lookup by `sso_id` (OIDC `sub` claim)
+3. Update on each login:
+   - `display_name` (from name claim)
+   - `role` (from groups - allows group changes to propagate)
+   - `groups` field (JSON of user's OIDC groups)
+   - `last_login` timestamp
+   - `login_count` incremented
+4. JWT generated with database user ID
+5. Activity logged as `sso_login`
+
+### Logout
+```
+GET /api/sso/logout
+    ├─ Clear Express session
+    ├─ Call OIDC provider end_session_endpoint
+    └─ Redirect to root domain
+
+Frontend cleanup (auth.js)
+    ├─ Clear localStorage (authToken, currentUser, etc.)
+    └─ Redirect to login page
+```
+
+### User Fields for SSO
+The `users` table includes SSO-specific fields:
+- `sso_provider` (TEXT) - OIDC issuer URL for SSO users
+- `sso_id` (TEXT UNIQUE) - OIDC `sub` claim for lookup
+- `username` (TEXT UNIQUE) - User login identifier
+- `display_name` (TEXT) - Friendly display name
+- `groups` (TEXT) - JSON array of OIDC groups
+
+## Service Access Levels
+
+### Overview
+Services have access level controls to restrict visibility based on user role:
+
+```
+Access Level | Visible To | Use Case
+---|---|---
+public | Everyone | General services, monitoring tools
+user | Users & Up | User-specific services  
+poweruser | Power Users & Admins | Administrative tools
+admin | Admins Only | Sensitive admin-only services
+```
+
+### Query Logic
+- **Admin users**: See all services regardless of access_level
+- **Power users**: See `public`, `user`, `poweruser` (NOT `admin`-only)
+- **Regular users**: See only `public` and `user` services
+
+### Database
+Services stored in `services` table with `access_level` field.
+Frontend provides access level selector when creating/editing services:
+- 👥 Everyone (Public)
+- 👤 Users & Up
+- ⭐ Power Users & Admins
+- 👑 Admins Only
+
+### API Endpoint: GET /api/services
+Filtering applied at query level based on user role:
+```javascript
+// Admin: All services
+SELECT * FROM services ORDER BY created_at DESC
+
+// Power User: public, user, poweruser
+SELECT * FROM services 
+WHERE access_level IN ('public', 'user', 'poweruser')
+ORDER BY created_at DESC
+
+// Regular User: public, user only
+SELECT * FROM services 
+WHERE access_level IN ('public', 'user')
+ORDER BY created_at DESC
+```
+
