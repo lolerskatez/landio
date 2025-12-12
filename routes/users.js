@@ -35,9 +35,9 @@ const requireAdmin = (req, res, next) => {
 router.get('/', authenticateToken, requireAdmin, (req, res) => {
   console.log('GET /api/users - User authenticated:', req.user);
   const query = `
-    SELECT u.id, u.name, u.email, u.role, u.avatar, u.groups, u.permissions,
+    SELECT u.id, u.username, u.name, u.display_name, u.email, u.role, u.avatar, u.groups, u.permissions,
            u.last_login, u.created_at, u.updated_at, u.is_active,
-           u.login_count, u.last_activity,
+           u.login_count, u.last_activity, u.sso_provider,
            (SELECT value FROM settings WHERE user_id = u.id AND key = 'twoFactorEnabled' LIMIT 1) as twoFactorEnabled
     FROM users u
     ORDER BY u.created_at DESC
@@ -85,9 +85,9 @@ router.get('/:id', authenticateToken, (req, res) => {
   }
 
   const query = `
-    SELECT id, name, email, role, avatar, groups, permissions,
+    SELECT id, username, name, display_name, email, role, avatar, groups, permissions,
            last_login, created_at, updated_at, is_active,
-           login_count, last_activity
+           login_count, last_activity, sso_provider
     FROM users WHERE id = ?
   `;
 
@@ -161,7 +161,7 @@ router.get('/:id/2fa-status', authenticateToken, (req, res) => {
 // Create new user (admin only)
 router.post('/', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const { name, email, password, role, groups, permissions } = req.body;
+    const { username, name, displayName, email, password, role, groups, permissions } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Name, email, and password are required' });
@@ -178,66 +178,84 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
         return res.status(409).json({ error: 'User with this email already exists' });
       }
 
-      // Hash password
-      const passwordHash = await bcrypt.hash(password, 10);
+      // Generate username if not provided
+      let finalUsername = username || email.split('@')[0];
 
-      // Prepare user data
-      const userData = {
-        name,
-        email,
-        password_hash: passwordHash,
-        role: role || 'user',
-        avatar: name.split(' ').map(n => n[0]).join('').toUpperCase(),
-        groups: JSON.stringify(groups || ['users']),
-        permissions: JSON.stringify(permissions || {
-          canViewServices: true,
-          canManageOwnServices: false,
-          canViewPerformance: true,
-          canManageUsers: false,
-          canAccessSettings: false,
-          canViewLogs: false,
-          canManageSystem: false
-        })
-      };
-
-      // Insert user
-      const query = `
-        INSERT INTO users (name, email, password_hash, role, avatar, groups, permissions)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `;
-
-      global.db.run(query, [
-        userData.name,
-        userData.email,
-        userData.password_hash,
-        userData.role,
-        userData.avatar,
-        userData.groups,
-        userData.permissions
-      ], function(err) {
+      // Check username is unique
+      global.db.get('SELECT id FROM users WHERE username = ?', [finalUsername], async (err, userWithUsername) => {
         if (err) {
           console.error('Database error:', err);
-          return res.status(500).json({ error: 'Failed to create user' });
+          return res.status(500).json({ error: 'Database error' });
         }
 
-        const newUserId = this.lastID;
+        if (userWithUsername) {
+          return res.status(409).json({ error: 'Username already exists' });
+        }
 
-        // Log activity
-        global.db.run(
-          'INSERT INTO activity_log (user_id, action, details, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)',
-          [req.user.id, 'create_user', `Created user: ${name} (${email})`, req.ip, req.get('User-Agent')]
-        );
+        // Hash password
+        const passwordHash = await bcrypt.hash(password, 10);
 
-        // Return created user (without password)
-        global.db.get('SELECT id, name, email, role, avatar, groups, permissions, created_at FROM users WHERE id = ?',
-          [newUserId], (err, user) => {
-            if (err) {
-              return res.status(500).json({ error: 'User created but failed to retrieve' });
-            }
+        // Prepare user data
+        const userData = {
+          username: finalUsername,
+          name,
+          display_name: displayName || name,
+          email,
+          password_hash: passwordHash,
+          role: role || 'user',
+          avatar: name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
+          groups: JSON.stringify(groups || ['users']),
+          permissions: JSON.stringify(permissions || {
+            canViewServices: true,
+            canManageOwnServices: false,
+            canViewPerformance: true,
+            canManageUsers: false,
+            canAccessSettings: false,
+            canViewLogs: false,
+            canManageSystem: false
+          })
+        };
 
-            try {
-              user.groups = JSON.parse(user.groups || '[]');
-              user.permissions = JSON.parse(user.permissions || '{}');
+        // Insert user
+        const query = `
+          INSERT INTO users (username, name, display_name, email, password_hash, role, avatar, groups, permissions)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        global.db.run(query, [
+          userData.username,
+          userData.name,
+          userData.display_name,
+          userData.email,
+          userData.password_hash,
+          userData.role,
+          userData.avatar,
+          userData.groups,
+          userData.permissions
+        ], function(err) {
+          if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Failed to create user' });
+          }
+
+          const newUserId = this.lastID;
+
+          // Log activity
+          global.db.run(
+            'INSERT INTO activity_log (user_id, action, details, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)',
+            [req.user.id, 'create_user', `Created user: ${name} (${email})`, req.ip, req.get('User-Agent')]
+          );
+
+          // Return created user (without password)
+          global.db.get('SELECT id, username, name, display_name, email, role, avatar, groups, permissions, created_at FROM users WHERE id = ?',
+            [newUserId], (err, user) => {
+              if (err) {
+                return res.status(500).json({ error: 'User created but failed to retrieve' });
+              }
+
+              try {
+                user.groups = JSON.parse(user.groups || '[]');
+                user.permissions = JSON.parse(user.permissions || '{}');
             } catch (e) {
               user.groups = [];
               user.permissions = {};
@@ -343,7 +361,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
       }
 
       // Handle other fields
-      ['name', 'email', 'role', 'avatar', 'is_active'].forEach(field => {
+      ['username', 'name', 'display_name', 'email', 'role', 'avatar', 'is_active'].forEach(field => {
         if (updates[field] !== undefined) {
           updateData[field] = updates[field];
           updateFields.push(`${field} = ?`);

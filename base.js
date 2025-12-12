@@ -1065,10 +1065,10 @@ function populateUserInfo(user) {
     userBtn.className = 'nav-btn user-dropdown-btn';
     userBtn.innerHTML = `
         <i class="fas fa-user-circle"></i>
-        <span class="user-name">${user.name}</span>
+        <span class="user-name">${user.displayName || user.name}</span>
         <i class="fas fa-chevron-down user-dropdown-arrow"></i>
     `;
-    userBtn.title = `${user.name} (${user.role})`;
+    userBtn.title = `${user.displayName || user.name} (${user.role})`;
     
     // Create dropdown menu
     const userDropdownMenu = document.createElement('div');

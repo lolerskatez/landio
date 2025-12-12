@@ -129,7 +129,7 @@ router.get('/login', async (req, res) => {
 });
 
 /**
- * SSO callback handler
+ * SSO callback handler - Create/upsert user in database
  */
 router.get('/callback', async (req, res) => {
     try {
@@ -147,30 +147,183 @@ router.get('/callback', async (req, res) => {
 
         const userInfo = await oidcClient.userinfo(tokenSet.access_token);
 
-        // Map OIDC user to your user structure
-        const user = {
-            id: userInfo.sub,
-            email: userInfo.email,
-            name: userInfo.name || userInfo.preferred_username || userInfo.email,
-            role: 'user', // Default role - you might want to map this from claims
-            avatar: userInfo.picture || '👤',
-            ssoUser: true
-        };
+        // Extract user data from OIDC claims
+        const ssoId = userInfo.sub;
+        const email = userInfo.email;
+        const displayName = userInfo.name || userInfo.preferred_username || userInfo.email;
+        const picture = userInfo.picture;
+        
+        // Extract groups/roles from OIDC claims (different providers use different claim names)
+        const groups = userInfo.groups || 
+                      (userInfo.resource_access && userInfo.resource_access.roles) ||
+                      (userInfo.realm_access && userInfo.realm_access.roles) || 
+                      [];
+        
+        // Map OIDC groups to role (configurable, defaults to 'user')
+        let role = 'user'; // Default role
+        const adminGroups = ['admin', 'administrators', 'realm-management:manage-users'];
+        const powerUserGroups = ['poweruser', 'power-users', 'managers'];
+        
+        if (Array.isArray(groups)) {
+            const groupLower = groups.map(g => g.toLowerCase());
+            if (groupLower.some(g => adminGroups.some(ag => g.includes(ag)))) {
+                role = 'admin';
+            } else if (groupLower.some(g => powerUserGroups.some(pg => g.includes(pg)))) {
+                role = 'poweruser';
+            }
+        }
 
-        // Generate JWT token
-        const token = jwt.sign(
-            { 
-                id: user.id, 
-                email: user.email, 
-                name: user.name, 
-                role: user.role 
-            },
-            JWT_SECRET,
-            { expiresIn: '24h' }
+        // Generate username from email (handle duplicates)
+        const baseUsername = email.split('@')[0];
+        
+        // Upsert user in database
+        global.db.get(
+            'SELECT id, name, display_name, email, role FROM users WHERE sso_id = ?',
+            [ssoId],
+            (err, existingUser) => {
+                if (err) {
+                    console.error('Database lookup error:', err);
+                    return res.redirect(`/login.html?error=db_error&message=${encodeURIComponent(err.message)}`);
+                }
+
+                if (existingUser) {
+                    // User exists - update last_login and other fields
+                    const updateQuery = `
+                        UPDATE users 
+                        SET last_login = CURRENT_TIMESTAMP, 
+                            login_count = login_count + 1,
+                            display_name = ?,
+                            role = ?,
+                            groups = ?,
+                            is_active = 1
+                        WHERE id = ?
+                    `;
+                    
+                    global.db.run(
+                        updateQuery,
+                        [displayName, role, JSON.stringify(groups), existingUser.id],
+                        (err) => {
+                            if (err) {
+                                console.error('Database update error:', err);
+                                return res.redirect(`/login.html?error=db_error`);
+                            }
+                            
+                            // Log activity
+                            global.db.run(
+                                'INSERT INTO activity_log (user_id, action, details) VALUES (?, ?, ?)',
+                                [existingUser.id, 'sso_login', `SSO login via ${ssoConfig.issuerUrl}`]
+                            );
+
+                            // Generate JWT with database user ID
+                            const token = jwt.sign(
+                                { 
+                                    id: existingUser.id, 
+                                    username: baseUsername,
+                                    email: existingUser.email, 
+                                    name: existingUser.name,
+                                    displayName: displayName,
+                                    role: role,
+                                    ssoProvider: ssoConfig.issuerUrl
+                                },
+                                JWT_SECRET,
+                                { expiresIn: '24h' }
+                            );
+
+                            // Redirect to dashboard with token
+                            res.redirect(`/dashboard.html?sso_token=${token}`);
+                        }
+                    );
+                } else {
+                    // New user - create in database
+                    // Generate unique username
+                    let username = baseUsername;
+                    let counter = 1;
+                    
+                    const checkAndCreateUser = (usernameToTry) => {
+                        global.db.get(
+                            'SELECT id FROM users WHERE username = ?',
+                            [usernameToTry],
+                            (err, userExists) => {
+                                if (err) {
+                                    console.error('Username check error:', err);
+                                    return res.redirect(`/login.html?error=db_error`);
+                                }
+
+                                if (userExists) {
+                                    // Username taken, try next
+                                    checkAndCreateUser(`${baseUsername}${++counter}`);
+                                } else {
+                                    // Username available, create user
+                                    const createQuery = `
+                                        INSERT INTO users (
+                                            username, name, display_name, email, 
+                                            role, avatar, sso_provider, sso_id, 
+                                            groups, is_active, last_login, login_count
+                                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, 1)
+                                    `;
+                                    
+                                    const avatar = displayName.split(' ')
+                                        .map(n => n[0])
+                                        .join('')
+                                        .toUpperCase()
+                                        .slice(0, 2);
+                                    
+                                    global.db.run(
+                                        createQuery,
+                                        [
+                                            usernameToTry,
+                                            displayName,
+                                            displayName,
+                                            email,
+                                            role,
+                                            avatar,
+                                            ssoConfig.issuerUrl,
+                                            ssoId,
+                                            JSON.stringify(groups),
+                                            1
+                                        ],
+                                        function(err) {
+                                            if (err) {
+                                                console.error('User creation error:', err);
+                                                return res.redirect(`/login.html?error=create_failed&message=${encodeURIComponent(err.message)}`);
+                                            }
+
+                                            const newUserId = this.lastID;
+
+                                            // Log activity
+                                            global.db.run(
+                                                'INSERT INTO activity_log (user_id, action, details) VALUES (?, ?, ?)',
+                                                [newUserId, 'sso_signup', `New SSO user via ${ssoConfig.issuerUrl}`]
+                                            );
+
+                                            // Generate JWT with new database user ID
+                                            const token = jwt.sign(
+                                                { 
+                                                    id: newUserId, 
+                                                    username: usernameToTry,
+                                                    email: email, 
+                                                    name: displayName,
+                                                    displayName: displayName,
+                                                    role: role,
+                                                    ssoProvider: ssoConfig.issuerUrl
+                                                },
+                                                JWT_SECRET,
+                                                { expiresIn: '24h' }
+                                            );
+
+                                            // Redirect to dashboard with token
+                                            res.redirect(`/dashboard.html?sso_token=${token}`);
+                                        }
+                                    );
+                                }
+                            }
+                        );
+                    };
+
+                    checkAndCreateUser(username);
+                }
+            }
         );
-
-        // Redirect to dashboard with token
-        res.redirect(`/dashboard.html?sso_token=${token}`);
     } catch (error) {
         console.error('SSO callback error:', error);
         res.redirect(`/login.html?error=sso_failed&message=${encodeURIComponent(error.message)}`);

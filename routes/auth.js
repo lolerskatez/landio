@@ -451,6 +451,7 @@ router.post('/setup', (req, res) => {
 
         console.log('Password hashed successfully, creating user...');
         const avatar = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        const username = email.split('@')[0]; // Use email prefix as username for initial setup
         const groups = JSON.stringify(['admins', 'users']);
         const permissions = JSON.stringify({
           canViewServices: true,
@@ -462,14 +463,14 @@ router.post('/setup', (req, res) => {
           canManageSystem: true
         });
 
-        const insertSql = `INSERT INTO users (name, email, password_hash, role, avatar, groups, permissions, is_active, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`;
+        const insertSql = `INSERT INTO users (username, name, display_name, email, password_hash, role, avatar, groups, permissions, is_active, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`;
         
         console.log('Executing insert with avatar:', avatar);
 
         global.db.run(
           insertSql,
-          [name, email, passwordHash, 'admin', avatar, groups, permissions, 1],
+          [username, name, name, email, passwordHash, 'admin', avatar, groups, permissions, 1],
           function(insertErr) {
             if (insertErr) {
               console.error('Error creating admin user:', insertErr);
@@ -649,7 +650,9 @@ router.post('/login', async (req, res) => {
                 // Create JWT token with session timeout from settings
                 const tokenData = {
                   id: user.id,
+                  username: user.username,
                   name: user.name,
+                  displayName: user.display_name || user.name,
                   email: user.email,
                   role: user.role,
                   avatar: user.avatar
@@ -684,7 +687,9 @@ router.post('/login', async (req, res) => {
                     token,
                     user: {
                       id: user.id,
+                      username: user.username,
                       name: user.name,
+                      displayName: user.display_name || user.name,
                       email: user.email,
                       role: user.role,
                       avatar: user.avatar,
@@ -755,10 +760,13 @@ router.get('/me', authenticateToken, (req, res) => {
 
     res.json({
       id: user.id,
+      username: user.username,
       name: user.name,
+      displayName: user.display_name || user.name,
       email: user.email,
       role: user.role,
       avatar: user.avatar,
+      ssoProvider: user.sso_provider,
       groups,
       permissions,
       lastLogin: user.last_login,
@@ -774,8 +782,10 @@ router.post('/refresh', authenticateToken, (req, res) => {
   const newToken = jwt.sign(
     {
       id: req.user.id,
+      username: req.user.username,
       email: req.user.email,
       name: req.user.name,
+      displayName: req.user.displayName,
       role: req.user.role
     },
     JWT_SECRET,
@@ -814,7 +824,9 @@ router.post('/2fa-complete', authenticateToken, async (req, res) => {
       // Create JWT token
       const tokenData = {
         id: user.id,
+        username: user.username,
         name: user.name,
+        displayName: user.display_name || user.name,
         email: user.email,
         role: user.role,
         avatar: user.avatar
@@ -845,7 +857,9 @@ router.post('/2fa-complete', authenticateToken, async (req, res) => {
         token,
         user: {
           id: user.id,
+          username: user.username,
           name: user.name,
+          displayName: user.display_name || user.name,
           email: user.email,
           role: user.role,
           avatar: user.avatar,
