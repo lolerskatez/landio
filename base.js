@@ -281,27 +281,30 @@ function injectNavBarCSS() {
         }
 
         .user-dropdown-btn {
-            background: rgba(255, 182, 193, 0.3) !important;
-            border: 1px solid rgba(255, 182, 193, 0.5) !important;
-            cursor: pointer !important;
-            padding: 8px 12px !important;
+            background: transparent;
+            border: 2px solid var(--primary, #ff6b93);
+            cursor: pointer;
+            padding: 10px 16px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            color: var(--text, #5a5a5a);
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
         }
 
         .user-dropdown-btn:hover {
-            background: rgba(255, 182, 193, 0.5) !important;
-            transform: translateY(-1px) !important;
+            background: var(--primary, #ff6b93);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
-        .user-dropdown-btn span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            flex-direction: column;
-            text-align: right;
-            font-size: 0.8rem;
+        .user-dropdown-btn .user-name {
+            font-size: 0.95rem;
+            font-weight: 600;
         }
 
         .user-dropdown-arrow {
@@ -1062,7 +1065,7 @@ function populateUserInfo(user) {
     userBtn.className = 'nav-btn user-dropdown-btn';
     userBtn.innerHTML = `
         <i class="fas fa-user-circle"></i>
-        <span><span class="user-name">${user.name}</span></span>
+        <span class="user-name">${user.name}</span>
         <i class="fas fa-chevron-down user-dropdown-arrow"></i>
     `;
     userBtn.title = `${user.name} (${user.role})`;

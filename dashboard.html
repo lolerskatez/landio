@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | Server Services</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Load theme manager early to apply preferences before page renders -->
     <script src="theme.js"></script>
@@ -13,30 +14,20 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
         }
 
-        /* Import Inter font for better typography */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap');
-
         :root {
-            --primary: #FF82A9;
-            --primary-light: #FFC9D8;
-            --primary-dark: #E64F82;
-            --accent-blue: #7CC9FF;
-            --accent-yellow: #FFE89B;
-            --bg-main: #FFF7FB;
-            --bg-card: #FFFFFF;
-            --bg-surface: #F9EFF8;
-            --text-primary: #333333;
-            --text-secondary: #666666;
-            --success: #4CAF50;
-            --warning: #FFB020;
-            --error: #E53935;
+            --primary: #ff6b93;
+            --secondary: #a6d8ff;
+            --accent: #ffccd5;
+            --text: #5a5a5a;
+            --light-bg: #fff9fb;
+            --dark: #4a4a4a;
         }
 
         body {
-            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-main);
+            background: linear-gradient(135deg, #ffd1dc, #c9e9ff);
             min-height: 100vh;
             color: var(--text);
             padding: 20px;
@@ -52,8 +43,8 @@
             background-color: rgba(255, 255, 255, 0.9);
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            margin-bottom: 30px;
+            padding: 20px 30px;
+            margin-bottom: 20px;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -61,15 +52,15 @@
 
         h1 {
             color: var(--primary);
-            font-size: 2.5rem;
-            margin-bottom: 10px;
+            font-size: 2rem;
+            margin-bottom: 5px;
             text-shadow: 2px 2px 0px rgba(255, 182, 193, 0.3);
         }
 
         .subtitle {
             color: #7a7a7a;
-            font-size: 1.2rem;
-            margin-bottom: 15px;
+            font-size: 1rem;
+            margin-bottom: 0;
         }
 
         /* User info bar */
@@ -105,6 +96,11 @@
         .user-name {
             font-weight: bold;
             color: var(--primary);
+            transition: color 0.3s ease;
+        }
+
+        .user-dropdown-btn:hover .user-name {
+            color: white;
         }
 
         .user-role {
@@ -118,52 +114,6 @@
         .user-actions {
             display: flex;
             gap: 10px;
-        }
-
-
-
-        /* Character container */
-        .character-container {
-            position: relative;
-            height: 200px;
-            margin: 30px 0;
-        }
-
-        .character {
-            position: absolute;
-            bottom: 0;
-            width: 150px;
-            height: 180px;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 180"><circle cx="75" cy="45" r="35" fill="%23ffccd5"/><path d="M75,80 Q75,120 45,140 Q75,160 105,140 Q75,120 75,80" fill="%23ffccd5"/><circle cx="60" cy="40" r="5" fill="%23333"/><circle cx="90" cy="40" r="5" fill="%23333"/><path d="M65,55 Q75,65 85,55" stroke="%23333" stroke-width="2" fill="none"/><path d="M50,100 Q75,130 100,100" stroke="%23ff6b93" stroke-width="3" fill="none"/></svg>');
-            background-repeat: no-repeat;
-            background-position: center bottom;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .bubble {
-            position: absolute;
-            top: 20px;
-            right: 30px;
-            background: white;
-            padding: 15px;
-            border-radius: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            max-width: 250px;
-            text-align: left;
-            font-size: 0.9rem;
-            color: var(--text);
-            border: 2px solid var(--accent);
-        }
-
-        .bubble:after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 20px;
-            border-width: 10px 10px 0;
-            border-style: solid;
-            border-color: white transparent;
         }
 
         /* Services section */
@@ -328,7 +278,6 @@
             transform: translateY(-2px);
         }
 
-        /* Responsive adjustments */
         /* Responsive Design */
         @media (max-width: 768px) {
             body {
@@ -394,25 +343,6 @@
                 font-size: 2rem;
             }
             
-            .character-container {
-                height: 160px;
-                margin: 20px 0;
-            }
-            
-            .character {
-                width: 100px;
-                height: 130px;
-            }
-            
-            .bubble {
-                top: 5px;
-                right: 5px;
-                left: auto;
-                max-width: 200px;
-                font-size: 0.8rem;
-                padding: 12px;
-            }
-            
             .services-grid {
                 grid-template-columns: 1fr;
                 gap: 15px;
@@ -460,21 +390,6 @@
                 font-size: 1rem;
             }
             
-            .character-container {
-                height: 140px;
-            }
-            
-            .character {
-                width: 80px;
-                height: 110px;
-            }
-            
-            .bubble {
-                max-width: 160px;
-                font-size: 0.75rem;
-                padding: 10px;
-            }
-            
             .user-info {
                 padding: 12px;
             }
@@ -500,8 +415,30 @@
         }
 
         /* ============================================ */
-        /* THEME PACK 1: Cyber Sakura */
+        /* THEME SYSTEM - 3 Themes */
         /* ============================================ */
+
+        /* THEME 0: Original Pastel (Default) */
+        body.theme-pastel {
+            --primary: #ff6b93;
+            --secondary: #a6d8ff;
+            --accent: #ffccd5;
+            --text: #5a5a5a;
+            --light-bg: #fff9fb;
+            --dark: #4a4a4a;
+            background: linear-gradient(135deg, #ffd1dc, #c9e9ff);
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        body.theme-pastel header {
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        /* THEME 1: Cyber Sakura */
         body.theme-cyber {
             --primary: #FF5FA2;
             --primary-glow: #FF9BD4;
@@ -518,55 +455,16 @@
             background: linear-gradient(135deg, #0E0A1F, #1A0F2E);
             font-family: 'Poppins', sans-serif;
             color: #FFFFFF;
+            min-height: 100vh;
+            padding: 20px;
         }
 
         body.theme-cyber header {
             background-color: rgba(28, 20, 51, 0.9);
-            border-radius: 12px;
             box-shadow: 0 0 20px rgba(255, 95, 162, 0.3);
         }
 
-        body.theme-cyber .container,
-        body.theme-cyber .services-section {
-            background-color: var(--bg-card);
-            border-radius: 12px;
-            box-shadow: 0 0 20px rgba(255, 95, 162, 0.2);
-        }
-
-        body.theme-cyber h1 {
-            color: var(--primary-glow);
-            font-weight: 700;
-            text-shadow: 0 0 10px rgba(255, 95, 162, 0.6);
-        }
-
-        body.theme-cyber .service-card {
-            background: var(--bg-surface);
-            border: 1px solid rgba(255, 95, 162, 0.3);
-            border-radius: 12px;
-            box-shadow: 0 0 10px rgba(0, 224, 255, 0.1);
-        }
-
-        body.theme-cyber .service-card:hover {
-            box-shadow: 0 0 20px rgba(255, 95, 162, 0.4);
-        }
-
-        body.theme-cyber .btn {
-            background: transparent;
-            border: 2px solid var(--primary);
-            color: var(--primary-glow);
-            border-radius: 12px;
-            box-shadow: 0 0 10px rgba(255, 95, 162, 0.3);
-        }
-
-        body.theme-cyber .btn:hover {
-            background: var(--primary);
-            color: #FFFFFF;
-            box-shadow: 0 0 20px rgba(255, 95, 162, 0.6);
-        }
-
-        /* ============================================ */
-        /* THEME PACK 2: Sunset Gradient */
-        /* ============================================ */
+        /* THEME 2: Sunset Gradient */
         body.theme-sunset {
             --primary: #FF6A3D;
             --primary-dark: #D44A20;
@@ -582,122 +480,13 @@
             --error: #E44A57;
             background: linear-gradient(135deg, #FF6A3D, #A14BFF);
             font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            padding: 20px;
         }
 
         body.theme-sunset header {
             background-color: rgba(255, 255, 255, 0.95);
-            border-radius: 16px;
             box-shadow: 0 10px 28px rgba(255, 106, 61, 0.15);
-        }
-
-        body.theme-sunset .container,
-        body.theme-sunset .services-section {
-            background-color: var(--bg-card);
-            border-radius: 16px;
-            box-shadow: 0 10px 28px rgba(255, 106, 61, 0.1);
-        }
-
-        body.theme-sunset h1 {
-            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-weight: 700;
-        }
-
-        body.theme-sunset .service-card {
-            background: var(--bg-surface);
-            border-radius: 14px;
-            border-left: 4px solid var(--primary);
-        }
-
-        body.theme-sunset .btn {
-            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-            border-radius: 14px;
-            color: white;
-        }
-
-        /* ============================================ */
-        /* THEME-AWARE COMPONENT STYLING - DASHBOARD */
-        /* ============================================ */
-
-        /* Header - Theme Specific */
-        body.theme-cyber header {
-            background: rgba(28, 20, 51, 0.95) !important;
-            color: #FFFFFF !important;
-            box-shadow: 0 0 20px rgba(255, 95, 162, 0.3) !important;
-        }
-
-        body.theme-cyber h1,
-        body.theme-cyber h2,
-        body.theme-cyber h3 {
-            color: var(--primary-glow) !important;
-            text-shadow: 0 0 10px rgba(255, 95, 162, 0.4) !important;
-        }
-
-        body.theme-sunset header {
-            background: rgba(255, 255, 255, 0.95) !important;
-        }
-
-        /* Service Cards - Theme Specific Backgrounds */
-        body.theme-cyber .services-section {
-            background: rgba(36, 26, 64, 0.9) !important;
-            border: 1px solid rgba(255, 95, 162, 0.2) !important;
-        }
-
-        body.theme-cyber .service-card {
-            background: rgba(24, 16, 48, 0.8) !important;
-            border: 1px solid rgba(255, 95, 162, 0.3) !important;
-            color: #FFFFFF !important;
-        }
-
-        body.theme-cyber .service-status {
-            color: #FFFFFF !important;
-        }
-
-        /* User Info Bar - Theme Specific */
-        body.theme-cyber .user-info {
-            background: rgba(36, 26, 64, 0.9) !important;
-            border-color: rgba(255, 95, 162, 0.3) !important;
-            color: #FFFFFF !important;
-        }
-
-        body.theme-cyber .user-name {
-            color: var(--primary-glow) !important;
-        }
-
-        /* Buttons - Theme Specific */
-        body.theme-cyber .btn {
-            background: rgba(255, 95, 162, 0.15) !important;
-            color: var(--primary-glow) !important;
-            border: 1px solid rgba(255, 95, 162, 0.3) !important;
-        }
-
-        body.theme-cyber .btn:hover {
-            background: rgba(255, 95, 162, 0.25) !important;
-            box-shadow: 0 0 10px rgba(255, 95, 162, 0.3) !important;
-        }
-
-        body.theme-cyber .btn-primary {
-            background: rgba(255, 95, 162, 0.2) !important;
-            border: 2px solid var(--primary) !important;
-        }
-
-        body.theme-cyber .btn-primary:hover {
-            background: var(--primary) !important;
-            color: #FFFFFF !important;
-        }
-
-        /* Light Theme Button Styling */
-        body.theme-sunset .btn {
-            background: rgba(255, 255, 255, 0.8) !important;
-            border: 1px solid var(--primary) !important;
-            color: var(--primary) !important;
-        }
-
-        body.theme-sunset .btn:hover {
-            background: var(--primary) !important;
-            color: #FFFFFF !important;
         }
 
         /* Navigation Button Styling - Sunset Theme */
@@ -717,242 +506,68 @@
             color: #FFFFFF !important;
         }
 
-        /* Input Fields - Theme Specific */
-        body.theme-cyber input,
-        body.theme-cyber select,
-        body.theme-cyber textarea {
-            background: rgba(20, 20, 30, 0.8) !important;
+        /* ============================================ */
+        /* THEME-AWARE COMPONENT STYLING */
+        /* ============================================ */
+
+        /* Header - Theme Specific */
+        body.theme-cyber header {
+            background: rgba(28, 20, 51, 0.95) !important;
             color: #FFFFFF !important;
-            border: 1px solid rgba(255, 95, 162, 0.3) !important;
+            box-shadow: 0 0 20px rgba(255, 95, 162, 0.3) !important;
         }
 
-        body.theme-cyber input::placeholder {
-            color: rgba(255, 255, 255, 0.5) !important;
+        body.theme-cyber h1,
+        body.theme-cyber h2,
+        body.theme-cyber h3 {
+            color: #FF9BD4 !important;
+            text-shadow: 0 0 10px rgba(255, 95, 162, 0.4) !important;
         }
 
-        /* Status Badges - Theme Specific */
-        body.theme-cyber .status-badge {
-            background: rgba(255, 95, 162, 0.2) !important;
-            color: var(--primary-glow) !important;
-            border: 1px solid rgba(255, 95, 162, 0.3) !important;
+        body.theme-cyber .subtitle {
+            color: rgba(255, 255, 255, 0.7) !important;
         }
 
-        body.theme-cyber .status-badge.active {
-            background: rgba(0, 255, 163, 0.2) !important;
-            color: #00FFA3 !important;
-            border-color: rgba(0, 255, 163, 0.3) !important;
+        /* Services Section - Theme Specific */
+        body.theme-cyber .services-section {
+            background: rgba(28, 20, 51, 0.95) !important;
+            box-shadow: 0 0 20px rgba(255, 95, 162, 0.2) !important;
         }
 
-        /* Dark Mode */
-        body.dark-mode {
-            --bg-primary: #0d0d0d;
-            --bg-secondary: #1a1a1a;
-            --text-primary: #f0f0f0;
-            --text-secondary: #b0b0b0;
-            background: linear-gradient(135deg, #0a0a0a, #141428) !important;
+        body.theme-cyber .service-card {
+            background: rgba(36, 26, 64, 0.9) !important;
+            border-left-color: #FF5FA2 !important;
         }
 
-        body.dark-mode .container {
-            background: rgba(15, 15, 25, 0.97);
-            color: #f0f0f0;
-            border-color: rgba(255, 107, 147, 0.1);
+        body.theme-cyber .service-name {
+            color: #FF9BD4 !important;
         }
 
-        body.dark-mode header {
-            background-color: rgba(10, 10, 20, 0.98) !important;
-            color: #f0f0f0;
-            border-bottom: 1px solid rgba(255, 107, 147, 0.2);
+        body.theme-cyber .service-url,
+        body.theme-cyber .service-description {
+            color: rgba(255, 255, 255, 0.7) !important;
         }
 
-        body.dark-mode h1,
-        body.dark-mode h2,
-        body.dark-mode h3 {
-            color: #f0f0f0;
-            font-weight: 600;
+        body.theme-cyber .user-name {
+            color: #FF9BD4 !important;
         }
 
-        body.dark-mode h1 {
-            color: #ff9cb5;
-            text-shadow: 0 0 10px rgba(255, 107, 147, 0.3);
+        body.theme-cyber .user-dropdown-btn:hover .user-name {
+            color: white !important;
         }
 
-        body.dark-mode .user-info {
-            background: rgba(25, 25, 40, 0.8);
-            color: #f0f0f0;
-            border-left-color: #ff6b93;
-            border-left: 5px solid #ff6b93;
+        /* Sunset Theme Specifics */
+        body.theme-sunset .services-section {
+            background: rgba(255, 255, 255, 0.95) !important;
         }
 
-        body.dark-mode input,
-        body.dark-mode select,
-        body.dark-mode textarea {
-            background: rgba(30, 30, 45, 0.8);
-            color: #f0f0f0;
-            border-color: rgba(166, 216, 255, 0.2);
-            border: 1px solid rgba(166, 216, 255, 0.2);
+        body.theme-sunset .service-card {
+            background: rgba(255, 255, 255, 0.9) !important;
+            border-left-color: #FF6A3D !important;
         }
 
-        body.dark-mode input:focus,
-        body.dark-mode select:focus,
-        body.dark-mode textarea:focus {
-            border-color: rgba(255, 107, 147, 0.5);
-            box-shadow: 0 0 5px rgba(255, 107, 147, 0.2);
-        }
-
-        body.dark-mode .btn {
-            background: rgba(255, 107, 147, 0.1);
-            color: #ff9cb5;
-            border: 1px solid rgba(255, 107, 147, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        body.dark-mode .btn:hover {
-            background: rgba(255, 107, 147, 0.2);
-            border-color: rgba(255, 107, 147, 0.5);
-            box-shadow: 0 0 10px rgba(255, 107, 147, 0.2);
-        }
-
-        body.dark-mode .services-section {
-            background-color: rgba(15, 15, 25, 0.95);
-            color: #f0f0f0;
-        }
-
-        body.dark-mode .section-title {
-            color: #ff9cb5;
-            border-bottom-color: rgba(255, 107, 147, 0.3);
-        }
-
-        body.dark-mode .service-card {
-            background: rgba(25, 25, 40, 0.8);
-            border-left-color: #ff6b93;
-            color: #f0f0f0;
-        }
-
-        body.dark-mode .service-card:hover {
-            box-shadow: 0 10px 20px rgba(255, 107, 147, 0.2);
-        }
-
-        body.dark-mode .service-name {
-            color: #ff9cb5;
-        }
-
-        body.dark-mode .service-url {
-            color: #a6d8ff;
-        }
-
-        body.dark-mode .service-description {
-            color: #b0b0b0;
-        }
-
-        body.dark-mode .status-online {
-            background: rgba(46, 125, 50, 0.3);
-            color: #81c784;
-            border: 1px solid rgba(129, 199, 132, 0.5);
-        }
-
-        body.dark-mode .status-offline {
-            background: rgba(198, 40, 40, 0.3);
-            color: #e57373;
-            border: 1px solid rgba(229, 115, 115, 0.5);
-        }
-
-        body.dark-mode .status-maintenance {
-            background: rgba(239, 108, 0, 0.3);
-            color: #ffb74d;
-            border: 1px solid rgba(255, 183, 77, 0.5);
-        }
-
-        body.dark-mode .empty-state {
-            color: #7a7a7a;
-        }
-
-        body.dark-mode .add-service-btn {
-            background: rgba(255, 107, 147, 0.15);
-            color: #ff9cb5;
-            border: 2px solid rgba(255, 107, 147, 0.3);
-        }
-
-        body.dark-mode .add-service-btn:hover {
-            background: rgba(255, 107, 147, 0.25);
-            border-color: rgba(255, 107, 147, 0.5);
-        }
-
-        body.dark-mode .service-actions button {
-            background: rgba(166, 216, 255, 0.1);
-            color: #a6d8ff;
-            border: 1px solid rgba(166, 216, 255, 0.3);
-        }
-
-        body.dark-mode .service-actions button:hover {
-            background: rgba(166, 216, 255, 0.2);
-            border-color: rgba(166, 216, 255, 0.5);
-        }
-
-        body.dark-mode .service-actions button.remove {
-            background: rgba(198, 40, 40, 0.1);
-            color: #e57373;
-            border-color: rgba(229, 115, 115, 0.3);
-        }
-
-        body.dark-mode .service-actions button.remove:hover {
-            background: rgba(198, 40, 40, 0.2);
-            border-color: rgba(229, 115, 115, 0.5);
-        }
-
-        /* Font Size Classes */
-        body.font-small {
-            font-size: 14px;
-        }
-
-        body.font-small * {
-            font-size: inherit;
-        }
-
-        body.font-medium {
-            font-size: 16px;
-        }
-
-        body.font-medium * {
-            font-size: inherit;
-        }
-
-        body.font-large {
-            font-size: 18px;
-        }
-
-        body.font-large * {
-            font-size: inherit;
-        }
-
-        body.font-extra-large {
-            font-size: 20px;
-        }
-
-        body.font-extra-large * {
-            font-size: inherit;
-        }
-
-        /* High Contrast Mode */
-        body.high-contrast {
-            --text-primary: #ffffff;
-            --text-secondary: #ffffff;
-            --bg-primary: #000000;
-            --bg-secondary: #000000;
-            --border-color: #ffffff;
-            --primary: #ffff00;
-            --secondary: #00ffff;
-        }
-
-        /* Reduce Motion */
-        body.reduce-motion * {
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
-        }
-
-        /* Animations */
-        body.animations-enabled * {
-            animation: normal !important;
+        body.theme-sunset .service-name {
+            color: #FF6A3D !important;
         }
     </style>
 </head>
@@ -969,9 +584,6 @@
         <section class="services-section">
             <h2 class="section-title">
                 <i class="fas fa-server"></i> Available Services
-                <span class="service-status status-online">
-                    <i class="fas fa-circle"></i> System Operational
-                </span>
             </h2>
 
             <div class="services-grid" id="services-container">
@@ -997,25 +609,10 @@
     <script>
         // Dashboard-specific initialization
         function pageInit(user) {
-            // Update character bubble based on role
-            const bubble = document.getElementById('character-bubble');
-            if (user.role === 'admin') {
-                bubble.textContent = "Welcome back, Administrator! You have full access to manage services.";
-            } else if (user.role === 'poweruser') {
-                bubble.textContent = "Welcome back, Power User! You can manage services and view performance metrics.";
-            } else if (user.role === 'user') {
-                bubble.textContent = "Welcome back! Here are your available services.";
-            } else {
-                bubble.textContent = "Welcome! You have limited access to view services.";
-            }
-
             // Load services
             loadServices(user).catch(error => {
                 console.error('Failed to load services:', error);
             });
-
-            // Setup character animation
-            setupCharacterAnimation();
 
             // Track user activity
             if (window.Auth && window.Auth.trackActivity) {
@@ -1100,39 +697,8 @@
                 servicesContainer.appendChild(serviceCard);
             });
         }
-
-        // Character animation
-        function setupCharacterAnimation() {
-            const character = document.querySelector('.character');
-
-            // Add subtle floating animation
-            setInterval(() => {
-                character.style.transform = `translateX(-50%) translateY(${Math.sin(Date.now() / 800) * 5}px)`;
-            }, 50);
-
-            // Add blinking animation
-            setInterval(() => {
-                if (Math.random() > 0.7) {
-                    character.style.animation = 'blink 0.3s';
-                    setTimeout(() => {
-                        character.style.animation = '';
-                    }, 300);
-                }
-            }, 3000);
-        }
-
-        // Add CSS for blink animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes blink {
-                0% { opacity: 1; }
-                50% { opacity: 0.3; }
-                100% { opacity: 1; }
-            }
-        `;
-        document.head.appendChild(style);
     </script>
     <script src="nav.js"></script>
     <script src="base.js"></script>
 </body>
-</html></content>
+</html>
