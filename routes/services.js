@@ -568,14 +568,18 @@ router.get('/', authenticateToken, async (req, res) => {
 
     let query, params;
 
-    if (userRole === 'admin' || userRole === 'poweruser') {
-      // Admins and power users see all services
+    if (userRole === 'admin') {
+      // Admins see all services
       query = 'SELECT DISTINCT * FROM services ORDER BY created_at DESC';
       params = [];
+    } else if (userRole === 'poweruser') {
+      // Power users see: public, user, poweruser (not admin-only)
+      query = 'SELECT DISTINCT * FROM services WHERE access_level IN (?, ?, ?) ORDER BY created_at DESC';
+      params = ['public', 'user', 'poweruser'];
     } else {
-      // Regular users see only public services
-      query = 'SELECT DISTINCT * FROM services WHERE access_level = ? ORDER BY created_at DESC';
-      params = ['public'];
+      // Regular users see: public and user level services
+      query = 'SELECT DISTINCT * FROM services WHERE access_level IN (?, ?) ORDER BY created_at DESC';
+      params = ['public', 'user'];
     }
 
     db.all(query, params, (err, services) => {
