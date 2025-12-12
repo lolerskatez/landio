@@ -692,7 +692,7 @@
         }
         
         .service-card {
-            background: rgba(30, 30, 45, 0.8);
+            background: var(--light-bg);
             border-radius: 16px;
             padding: 20px;
             border: 1px solid rgba(255, 107, 147, 0.2);
@@ -701,9 +701,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: center;
             text-align: center;
-            min-height: 240px;
+            min-height: 200px;
             cursor: pointer;
         }
         
@@ -711,7 +711,6 @@
             transform: translateY(-8px) scale(1.05);
             box-shadow: 0 15px 40px rgba(255, 107, 147, 0.2);
             border-color: rgba(255, 107, 147, 0.5);
-            background: rgba(40, 40, 60, 0.9);
         }
 
         .service-icon-box {
@@ -737,14 +736,15 @@
         
         .service-name {
             font-size: 1.1rem;
-            color: white;
-            margin-bottom: 8px;
-            line-height: 1.3;
+            color: var(--text);
+            margin-bottom: 10px;
+            font-weight: 600;
             min-height: 2.6em;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 600;
+            text-align: center;
+            line-height: 1.3;
         }
         
         .service-url {
@@ -2310,6 +2310,7 @@
         let services = [];
         let editingId = null;
         let currentUser = null; // Store current user for access control
+        let serviceTemplates = {}; // Templates loaded from API with iconColor
         
         // DOM elements
         const servicesContainer = document.getElementById('services-container');
@@ -2320,9 +2321,26 @@
         const submitBtn = document.getElementById('submit-btn');
         const notification = document.getElementById('notification');
         const addServiceBtn = document.getElementById('add-service-btn');
+
+        // Load service templates from API (includes iconColor)
+        async function loadTemplates() {
+            try {
+                const response = await fetch('/api/services/templates', {
+                    headers: {
+                        'Authorization': `Bearer ${window.Api?.token || ''}`
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    serviceTemplates = data.templates || {};
+                }
+            } catch (error) {
+                console.error('Error loading templates:', error);
+            }
+        }
         
         // Dashboard-specific initialization (called by base.js)
-        function pageInit(user) {
+        async function pageInit(user) {
             // Store current user for access control
             currentUser = user;
             
@@ -2341,6 +2359,9 @@
                 window.Auth.trackActivity('activity');
             }
 
+            // Load templates first, then services
+            await loadTemplates();
+            
             // Load admin-specific functionality
             loadServices().then(() => {
                 renderServices();
@@ -2392,6 +2413,17 @@
             }
         }
         
+        // Adjust color brightness for gradients
+        function adjustColor(hex, percent) {
+            if (!hex || hex.length < 7) return hex;
+            const num = parseInt(hex.replace("#",""), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = Math.max(0, Math.min(255, (num >> 16) + amt));
+            const G = Math.max(0, Math.min(255, (num >> 8 & 0x00FF) + amt));
+            const B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
+            return "#" + (0x1000000 + R*0x10000 + G*0x100 + B).toString(16).slice(1);
+        }
+
         // Render services to the page
         function renderServices() {
             servicesContainer.innerHTML = '';
@@ -2412,57 +2444,35 @@
                 const statusClass = `status-${service.status}`;
                 const statusText = service.status.charAt(0).toUpperCase() + service.status.slice(1);
                 
-                // Format uptime percentage
-                const uptimePercent = service.uptime_percentage || (service.uptimeStats ? Math.round(service.uptimeStats.uptimePercentage) : 100);
-                const avgResponseTime = service.average_response_time || (service.uptimeStats ? Math.round(service.uptimeStats.averageResponseTime) : 0);
-                
-                // Get last health check info
-                let healthCheckInfo = '';
-                if (service.last_health_check || service.lastHealthCheck) {
-                    const lastCheck = new Date(service.last_health_check || service.lastHealthCheck);
-                    const timeAgo = getTimeAgo(lastCheck);
-                    const result = service.last_health_check_result || service.lastHealthCheckResult;
-                    const statusIcon = result && result.success ? 'fa-check-circle' : 'fa-exclamation-triangle';
-                    const statusColor = result && result.success ? 'text-success' : 'text-error';
-                    
-                    healthCheckInfo = `
-                        <div class="health-info">
-                            <small class="health-status ${statusColor}">
-                                <i class="fas ${statusIcon}"></i> 
-                                ${result ? result.message : 'Unknown'}
-                            </small>
-                            <small class="health-time">Last check: ${timeAgo}</small>
-                        </div>
-                    `;
+                // Detect template match for color and icon (use API templates with iconColor)
+                let template = null;
+                if (service.template_key && serviceTemplates[service.template_key]) {
+                    template = serviceTemplates[service.template_key];
+                } else if (service.icon) {
+                    // Fallback: try to match by icon
+                    for (const key in serviceTemplates) {
+                        if (serviceTemplates[key].icon === service.icon) {
+                            template = serviceTemplates[key];
+                            break;
+                        }
+                    }
                 }
+                
+                const iconColor = template?.iconColor || '#999999';
+                const gradientColor = adjustColor(iconColor, -20);
+                const iconClass = service.icon || 'fas fa-cube';
                 
                 const serviceCard = document.createElement('div');
                 serviceCard.className = 'service-card';
-                const iconHtml = service.icon ? `<i class="${service.icon}"></i>` : '<i class="fas fa-cube"></i>';
+                serviceCard.style.cursor = 'pointer';
+                serviceCard.onclick = () => window.open(service.url, '_blank');
                 serviceCard.innerHTML = `
-                    <div class="service-icon" style="font-size: 32px; margin-bottom: 10px; color: var(--primary);">${iconHtml}</div>
+                    <div class="service-icon-box" style="background: linear-gradient(135deg, ${iconColor}, ${gradientColor});">
+                        <i class="${iconClass}"></i>
+                    </div>
                     <h3 class="service-name">${service.name}</h3>
-                    <div class="service-url">
-                        <a href="${service.url}" target="_blank">${service.url}</a>
-                    </div>
-                    <p class="service-description">${service.description}</p>
-                    ${healthCheckInfo}
-                    <div class="service-stats">
-                        <div class="stat-item">
-                            <span class="stat-label">Uptime:</span>
-                            <span class="stat-value">${uptimePercent}%</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Response:</span>
-                            <span class="stat-value">${avgResponseTime}ms</span>
-                        </div>
-                    </div>
-                    <div class="service-actions">
-                        <span class="status ${statusClass}">
-                            <i class="fas fa-circle"></i> ${statusText}
-                        </span>
-                        <button class="btn btn-secondary btn-small edit-btn" data-id="${service.id}">Edit</button>
-                        <button class="btn btn-danger btn-small delete-btn" data-id="${service.id}">Remove</button>
+                    <div class="service-status ${statusClass}" style="font-size: 0.85rem;">
+                        <i class="fas fa-circle"></i> ${statusText}
                     </div>
                 `;
                 servicesContainer.appendChild(serviceCard);
@@ -2515,19 +2525,6 @@
             serviceModal.addEventListener('click', function(e) {
                 if (e.target === serviceModal) {
                     closeServiceModal();
-                }
-            });
-            
-            // Event delegation for edit and delete buttons
-            servicesContainer.addEventListener('click', function(e) {
-                if (e.target.classList.contains('edit-btn')) {
-                    const id = e.target.getAttribute('data-id');
-                    editService(id);
-                }
-                
-                if (e.target.classList.contains('delete-btn')) {
-                    const id = e.target.getAttribute('data-id');
-                    deleteService(id);
                 }
             });
         }
