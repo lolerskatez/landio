@@ -35,6 +35,18 @@ router.post('/config', async (req, res) => {
             scopes: scopes || 'openid profile email'
         };
 
+        // Save to database for persistence
+        global.db.run(
+            `INSERT OR REPLACE INTO settings (user_id, key, value, category) VALUES (NULL, ?, ?, ?)`,
+            ['sso-config', JSON.stringify(ssoConfig), 'sso'],
+            (err) => {
+                if (err) {
+                    console.error('Error saving SSO config to database:', err);
+                    // Continue anyway - config is in memory
+                }
+            }
+        );
+
         // Initialize OIDC client if enabled
         if (enabled && issuerUrl && clientId && clientSecret) {
             try {
@@ -359,5 +371,54 @@ router.post('/logout', async (req, res) => {
         });
     }
 });
+
+/**
+ * Load SSO configuration from database on startup
+ */
+function loadSSOConfigFromDatabase() {
+    return new Promise((resolve) => {
+        global.db.get(
+            `SELECT value FROM settings WHERE user_id IS NULL AND key = 'sso-config'`,
+            (err, row) => {
+                if (err) {
+                    console.error('Error loading SSO config from database:', err);
+                    resolve();
+                    return;
+                }
+
+                if (row && row.value) {
+                    try {
+                        const savedConfig = JSON.parse(row.value);
+                        ssoConfig = savedConfig;
+                        console.log('SSO configuration loaded from database');
+
+                        // Reinitialize OIDC client if enabled
+                        if (ssoConfig.enabled && ssoConfig.issuerUrl && ssoConfig.clientId && ssoConfig.clientSecret) {
+                            Issuer.discover(ssoConfig.issuerUrl)
+                                .then((issuer) => {
+                                    oidcClient = new issuer.Client({
+                                        client_id: ssoConfig.clientId,
+                                        client_secret: ssoConfig.clientSecret,
+                                        redirect_uris: [ssoConfig.redirectUri],
+                                        response_types: ['code']
+                                    });
+                                    console.log('OIDC client reinitialized from saved config');
+                                })
+                                .catch((err) => {
+                                    console.error('Failed to reinitialize OIDC client:', err);
+                                });
+                        }
+                    } catch (parseErr) {
+                        console.error('Error parsing SSO config:', parseErr);
+                    }
+                }
+                resolve();
+            }
+        );
+    });
+}
+
+// Export function for server to call on startup
+router.loadSSOConfig = loadSSOConfigFromDatabase;
 
 module.exports = router;

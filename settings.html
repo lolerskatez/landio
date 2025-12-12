@@ -4802,7 +4802,7 @@
                     'lockout-duration': 'lockoutDuration',
                     'enforce-2fa-all-users': 'enforce2faAllUsers',
                     'twofa-grace-period': 'twoFAGracePeriod',
-                    'enforce-2fa-admins-only': 'enforce2faAdminsOnly'
+                    'enforce-2fa-admins-only': 'enforce2faAdminsOnly',\n                    'sso-enabled': 'ssoEnabled',\n                    'sso-issuer-url': 'ssoIssuerUrl',\n                    'sso-client-id': 'ssoClientId',\n                    'sso-client-secret': 'ssoClientSecret',\n                    'sso-redirect-uri': 'ssoRedirectUri',\n                    'sso-scopes': 'ssoScopes'
                 };
                 
                 for (const [fieldId, settingKey] of Object.entries(fieldMappings)) {
@@ -4845,6 +4845,16 @@
                     const smtpEnabledCheckbox = document.getElementById('smtp-enabled');
                     if (smtpEnabledCheckbox) {
                         smtpEnabledCheckbox.checked = settings['smtp-enabled'];
+                    }
+                }
+                
+                // Initialize SSO config visibility
+                const ssoConfig = document.getElementById('sso-config');
+                if (ssoConfig && settings['sso-enabled']) {
+                    ssoConfig.style.display = 'block';
+                    const ssoEnabledCheckbox = document.getElementById('sso-enabled');
+                    if (ssoEnabledCheckbox) {
+                        ssoEnabledCheckbox.checked = settings['sso-enabled'];
                     }
                 }
                 

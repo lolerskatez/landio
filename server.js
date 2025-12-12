@@ -372,11 +372,18 @@ process.on('unhandledRejection', async (reason, promise) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Server running on http://localhost:${PORT}`);
   console.log(`Frontend served from: http://localhost:${PORT}`);
   console.log(`API endpoints available at: http://localhost:${PORT}`);
   console.log(`API endpoints available at: http://localhost:${PORT}/api`);
+
+  // Load SSO configuration from database
+  try {
+    await ssoRoutes.loadSSOConfig();
+  } catch (err) {
+    console.error('Failed to load SSO config on startup:', err);
+  }
 
   // Send app start notification
   const { sendNotification } = require('./routes/notifications');
