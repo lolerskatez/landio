@@ -730,11 +730,11 @@
             <!-- Login Form -->
             <form id="loginForm" class="login-form">
                 <div class="form-group">
-                    <label for="username">Email</label>
+                    <label for="username">Username or Email</label>
                     <input 
                         type="text" 
                         id="username" 
-                        placeholder="Enter email (e.g., alice@example.com)"
+                        placeholder="Enter username or email"
                         required
                         autocomplete="username"
                     >
@@ -960,7 +960,7 @@
 
             // Validation
             if (!username) {
-                showError('Please enter an email address');
+                showError('Please enter username or email address');
                 return;
             }
 

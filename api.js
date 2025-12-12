@@ -139,13 +139,13 @@ class ApiClient {
     }
 
     // Authentication endpoints
-    async login(email, password) {
+    async login(username, password) {
         try {
             // Make direct request to handle 403 responses specially
             const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ username, password })
             });
 
             const data = await response.json();

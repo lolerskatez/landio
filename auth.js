@@ -253,7 +253,7 @@ async function fetchAuthentikUserInfo(accessToken) {
         // Check if user exists, update or create
         const existingUser = getUserByEmail(user.email);
         if (existingUser) {
-            updateUser(existingUser.id, user);
+            legacyUpdateUser(existingUser.id, user);
         } else {
             createUser(user);
         }
@@ -350,7 +350,7 @@ function createUser(userData) {
     return newUser;
 }
 
-function updateUser(userId, updates) {
+function legacyUpdateUser(userId, updates) {
     const users = getUserDatabase();
     const userIndex = users.findIndex(u => u.id === userId);
 
@@ -369,7 +369,7 @@ function updateUser(userId, updates) {
     return users[userIndex];
 }
 
-function deleteUser(userId) {
+function legacyDeleteUser(userId) {
     const users = getUserDatabase();
     const filteredUsers = users.filter(user => user.id !== userId);
     saveUserDatabase(filteredUsers);
@@ -440,8 +440,8 @@ window.Auth = {
     getUserById,
     getUserByEmail,
     createUser,
-    updateUser,
-    deleteUser,
+    legacyUpdateUser,
+    legacyDeleteUser,
     getUsersByRole,
 
     // Authentik SSO

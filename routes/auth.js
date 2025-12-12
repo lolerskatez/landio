@@ -510,13 +510,14 @@ router.get('/setup/status', (req, res) => {
   });
 });
 
-// Login endpoint - Authenticate user with email and password
+// Login endpoint - Authenticate user with username or email and password
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { username, email, password } = req.body;
+    const loginIdentifier = username || email;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+    if (!loginIdentifier || !password) {
+      return res.status(400).json({ error: 'Username or email and password are required' });
     }
 
     // Check if system is initialized
@@ -525,16 +526,17 @@ router.post('/login', async (req, res) => {
         return res.status(503).json({ error: 'System not initialized. Please complete setup first.', code: 'NOT_INITIALIZED' });
       }
 
-      // Query database for user
-      global.db.get('SELECT * FROM users WHERE email = ?', [email], (err, user) => {
+      // Query database for user - try username first, then email as fallback
+      const query = 'SELECT * FROM users WHERE username = ? OR email = ?';
+      global.db.get(query, [loginIdentifier, loginIdentifier], (err, user) => {
         if (err) {
           console.error('Database error:', err);
           return res.status(500).json({ error: 'Database error' });
         }
 
         if (!user) {
-          console.warn(`Login attempt with non-existent email: ${email}`);
-          return res.status(401).json({ error: 'Invalid email or password' });
+          console.warn(`Login attempt with non-existent username/email: ${loginIdentifier}`);
+          return res.status(401).json({ error: 'Invalid username, email or password' });
         }
 
         // Check if account is locked due to failed attempts
@@ -555,7 +557,7 @@ router.post('/login', async (req, res) => {
             }
 
             if (!isMatch) {
-              console.warn(`Failed login attempt for email: ${email}`);
+              console.warn(`Failed login attempt for username/email: ${loginIdentifier}`);
               
               // Record failed attempt
               recordFailedAttempt(user.id, (recordErr) => {
@@ -565,12 +567,12 @@ router.post('/login', async (req, res) => {
               // Send security notification for failed login
               sendNotification('security', {
                 securityEvent: 'Failed Login Attempt',
-                email: email,
+                email: user.email,
                 ipAddress: req.ip,
                 severity: 'Medium'
               }).catch(err => console.error('Security notification error:', err));
               
-              return res.status(401).json({ error: 'Invalid email or password' });
+              return res.status(401).json({ error: 'Invalid username, email or password' });
             }
 
             // Password matches - reset failed attempts

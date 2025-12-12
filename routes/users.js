@@ -256,20 +256,21 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
               try {
                 user.groups = JSON.parse(user.groups || '[]');
                 user.permissions = JSON.parse(user.permissions || '{}');
-            } catch (e) {
-              user.groups = [];
-              user.permissions = {};
-            }
+              } catch (e) {
+                user.groups = [];
+                user.permissions = {};
+              }
 
-            // Send user-activity notification
-            sendNotification('user-activity', {
-              username: req.user.name,
-              activity: `Created new user: ${name} (${email}) with role ${role}`,
-              performedBy: req.user.email
-            }).catch(err => console.error('User-activity notification error:', err));
+              // Send user-activity notification
+              sendNotification('user-activity', {
+                username: req.user.name,
+                activity: `Created new user: ${name} (${email}) with role ${role}`,
+                performedBy: req.user.email
+              }).catch(err => console.error('User-activity notification error:', err));
 
-            res.status(201).json(user);
-          });
+              res.status(201).json(user);
+            });
+        });
       });
     });
 
