@@ -1924,10 +1924,6 @@
                         My Services
                     </h2>
                     
-                    <button id="add-service-btn" class="btn btn-primary" title="Add a new service">
-                        <i class="fas fa-plus"></i> Add New Service
-                    </button>
-                    
                     <div class="services-grid" id="services-container">
                         <!-- Services will be dynamically added here -->
                     </div>
@@ -2444,9 +2440,6 @@
         
         // Set up event listeners
         function setupEventListeners() {
-            // Add Service button click
-            document.getElementById('add-service-btn').addEventListener('click', openServiceModal);
-            
             // Modal close button click
             document.getElementById('modal-close-btn').addEventListener('click', closeServiceModal);
             
