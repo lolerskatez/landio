@@ -3709,9 +3709,11 @@
             }
         }
 
-        function openAddUserModal() {
-            resetUserForm();
-            document.getElementById('user-password').value = generatePassword();
+        function openAddUserModal(skipReset = false) {
+            if (!skipReset) {
+                resetUserForm();
+                document.getElementById('user-password').value = generatePassword();
+            }
             const modal = document.getElementById('add-user-modal');
             if (modal) {
                 modal.classList.add('active');
@@ -3826,6 +3828,13 @@
             const user = users.find(u => u.id === parseInt(id));
             
             if (user) {
+                const submitBtn = document.getElementById('user-submit-btn');
+                const modalTitle = document.getElementById('modal-title');
+                if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-save"></i> Update User';
+                if (modalTitle) modalTitle.textContent = 'Edit User';
+                
+                editingUserId = id;
+                
                 document.getElementById('user-username').value = user.username || '';
                 document.getElementById('user-name').value = user.name;
                 document.getElementById('user-display-name').value = user.display_name || '';
@@ -3833,14 +3842,9 @@
                 document.getElementById('user-role').value = user.role;
                 document.getElementById('user-status').value = user.is_active ? 'active' : 'inactive';
                 document.getElementById('user-permissions').value = user.permissions || '';
+                document.getElementById('user-password').value = '';
                 
-                editingUserId = id;
-                const submitBtn = document.getElementById('user-submit-btn');
-                const modalTitle = document.getElementById('modal-title');
-                if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-save"></i> Update User';
-                if (modalTitle) modalTitle.textContent = 'Edit User';
-                
-                openAddUserModal();
+                openAddUserModal(true);
             }
         }
 
