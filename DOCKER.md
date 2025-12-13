@@ -1,6 +1,30 @@
 # Docker Setup Guide for Landio
 
-## Quick Start
+## 🚀 Automated Deployment (Recommended)
+
+For Ubuntu servers, use the automated deployment script:
+
+```bash
+# Download and run the deployment script
+curl -fsSL https://raw.githubusercontent.com/lolerskatez/landio/master/deploy.sh -o deploy.sh
+chmod +x deploy.sh
+./deploy.sh
+```
+
+The script will:
+- ✅ Install Docker, docker-compose, git, and openssl
+- ✅ Clone the Landio repository
+- ✅ Generate secure JWT and session secrets
+- ✅ Configure environment variables
+- ✅ Start Docker services
+- ✅ Verify deployment success
+- ✅ Provide access URLs and next steps
+
+**That's it!** Your Landio instance will be running at `http://your-server:3001`
+
+---
+
+## Manual Setup
 
 ### Prerequisites
 - Docker installed (20.10+)
@@ -11,7 +35,7 @@
 
 #### 1. Clone and setup
 ```bash
-git clone <repository-url>
+git clone https://github.com/lolerskatez/landio.git
 cd landio
 ```
 
