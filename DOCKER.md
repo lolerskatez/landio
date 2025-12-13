@@ -12,7 +12,8 @@ chmod +x deploy.sh
 ```
 
 The script will:
-- ✅ Install Docker, docker-compose, git, and openssl
+- ✅ Check for required prerequisites (Docker, git, openssl, curl)
+- ✅ Optionally install missing prerequisites (with user confirmation)
 - ✅ Clone the Landio repository
 - ✅ Generate secure JWT and session secrets
 - ✅ Configure environment variables
