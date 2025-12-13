@@ -148,7 +148,8 @@ app.use((err, req, res, next) => {
 });
 
 // Initialize database
-global.db = new sqlite3.Database('./database.db', (err) => {
+const dbPath = process.env.DATABASE_PATH || './database.db';
+global.db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Error opening database:', err.message);
     process.exit(1);
