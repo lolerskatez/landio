@@ -12,8 +12,7 @@ chmod +x deploy.sh
 ```
 
 The script will:
-- ✅ Check for required prerequisites (Docker, git, openssl, curl)
-- ✅ Optionally install missing prerequisites (with user confirmation)
+- ✅ Check that Docker and Docker Compose are installed and running
 - ✅ Clone the Landio repository
 - ✅ Generate secure JWT and session secrets
 - ✅ Configure environment variables
@@ -27,10 +26,14 @@ The script will:
 
 ## Manual Setup
 
-### Prerequisites
-- Docker installed (20.10+)
-- Docker Compose installed (1.29+)
-- Git
+## Prerequisites
+
+**Required:**
+- Docker (20.10+)
+- Docker Compose (1.29+ or plugin)
+- Git (for cloning repository)
+
+**Note:** The deployment script assumes Docker is already installed. If Docker is not installed, the script will provide installation instructions and exit.
 
 ### Using Docker Compose (Recommended)
 

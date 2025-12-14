@@ -53,210 +53,78 @@ check_os() {
     fi
 }
 
-# Global variables for prerequisite status
-DOCKER_INSTALLED=false
-COMPOSE_AVAILABLE=false
-COMPOSE_TYPE=""
+check_docker() {
+    log_info "Checking Docker installation..."
 
-check_prerequisites() {
-    log_info "Checking prerequisites..."
-
-    local missing_prereqs=()
-
-    # Check git
-    if command -v git >/dev/null 2>&1; then
-        log_success "Git is installed: $(git --version)"
-    else
-        missing_prereqs+=("git")
-        log_warning "Git is not installed"
-    fi
-
-    # Check openssl
-    if command -v openssl >/dev/null 2>&1; then
-        log_success "OpenSSL is installed: $(openssl version | head -1)"
-    else
-        missing_prereqs+=("openssl")
-        log_warning "OpenSSL is not installed"
-    fi
-
-    # Check curl
-    if command -v curl >/dev/null 2>&1; then
-        log_success "curl is installed: $(curl --version | head -1)"
-    else
-        missing_prereqs+=("curl")
-        log_warning "curl is not installed"
-    fi
-
-    # Check Docker
+    # Check if Docker is installed
     if command -v docker >/dev/null 2>&1; then
         log_success "Docker is installed: $(docker --version)"
-        DOCKER_INSTALLED=true
-    else
-        missing_prereqs+=("docker")
-        log_warning "Docker is not installed"
-        DOCKER_INSTALLED=false
-    fi
 
-    # Check Docker Compose (plugin or standalone)
-    if [[ "$DOCKER_INSTALLED" == true ]]; then
+        # Check if Docker Compose is available (plugin or standalone)
         if docker compose version >/dev/null 2>&1; then
             log_success "Docker Compose plugin is available: $(docker compose version)"
-            COMPOSE_AVAILABLE=true
-            COMPOSE_TYPE="plugin"
+            COMPOSE_CMD="docker compose"
         elif command -v docker-compose >/dev/null 2>&1; then
             log_success "Docker Compose standalone is available: $(docker-compose --version)"
-            COMPOSE_AVAILABLE=true
-            COMPOSE_TYPE="standalone"
+            COMPOSE_CMD="docker-compose"
         else
-            missing_prereqs+=("docker-compose")
-            log_warning "Docker Compose is not available"
-            COMPOSE_AVAILABLE=false
-        fi
-    fi
-
-    if [[ ${#missing_prereqs[@]} -eq 0 ]]; then
-        log_success "All prerequisites are installed!"
-        return 0
-    else
-        log_warning "Missing prerequisites: ${missing_prereqs[*]}"
-        return 1
-    fi
-}
-
-offer_installation() {
-    echo
-    echo "╔══════════════════════════════════════════════════════════════════════════════╗"
-    echo "║                        PREREQUISITE INSTALLATION                            ║"
-    echo "╚══════════════════════════════════════════════════════════════════════════════╝"
-    echo
-    echo "Some prerequisites are missing or could be upgraded."
-    echo
-    echo "This script can install/upgrade the following:"
-    echo "  • Git (version control)"
-    echo "  • OpenSSL (secure secret generation)"
-    echo "  • curl (HTTP client)"
-    echo "  • Docker (container runtime)"
-    echo "  • Docker Compose (container orchestration)"
-    echo
-    read -p "Would you like to install/upgrade missing prerequisites? (y/N): " -n 1 -r
-    echo
-
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        return 0
-    else
-        echo
-        log_warning "Skipping prerequisite installation."
-        echo "Please ensure you have the following installed:"
-        echo "  - git, openssl, curl"
-        echo "  - Docker and Docker Compose"
-        echo "  - Current user in docker group (may require logout/login)"
-        echo
-        read -p "Continue with deployment anyway? (y/N): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            log_info "Deployment cancelled by user."
-            exit 0
-        fi
-        return 1
-    fi
-}
-
-install_prerequisites() {
-    log_info "Installing missing prerequisites..."
-
-    local packages_to_install=()
-
-    # Check what needs to be installed
-    if ! command -v git >/dev/null 2>&1; then
-        packages_to_install+=("git")
-    fi
-
-    if ! command -v openssl >/dev/null 2>&1; then
-        packages_to_install+=("openssl")
-    fi
-
-    if ! command -v curl >/dev/null 2>&1; then
-        packages_to_install+=("curl")
-    fi
-
-    # Install basic packages if needed
-    if [[ ${#packages_to_install[@]} -gt 0 ]]; then
-        log_info "Installing basic packages: ${packages_to_install[*]}"
-        sudo apt update
-        sudo apt install -y "${packages_to_install[@]}"
-    fi
-
-    # Install Docker if not present
-    if [[ "$DOCKER_INSTALLED" == false ]]; then
-        log_info "Installing Docker using official repository..."
-
-        # Update package list if not already done
-        if [[ ${#packages_to_install[@]} -eq 0 ]]; then
-            sudo apt update
-        fi
-
-        # Remove any conflicting packages
-        sudo apt remove -y docker docker-engine docker.io containerd runc 2>/dev/null || true
-
-        # Install prerequisites for Docker
-        sudo apt install -y ca-certificates gnupg lsb-release
-
-        # Add Docker's official GPG key
-        sudo mkdir -p /etc/apt/keyrings
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-
-        # Set up Docker repository
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-        # Update package list again
-        sudo apt update
-
-        # Install Docker packages
-        sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-        # Enable and start Docker service
-        sudo systemctl enable docker
-        sudo systemctl start docker
-
-        # Add current user to docker group (optional, requires logout/login)
-        sudo usermod -aG docker $USER
-
-        # Verify Docker installation
-        if docker --version >/dev/null 2>&1; then
-            log_success "Docker installed successfully: $(docker --version)"
-            DOCKER_INSTALLED=true
-        else
-            log_error "Docker installation failed"
+            log_error "Docker Compose is not available."
+            echo
+            echo "Please install Docker Compose:"
+            echo "  Ubuntu/Debian: sudo apt install docker-compose-plugin"
+            echo "  Or: sudo apt install docker-compose"
+            echo
+            echo "Then run this script again."
             exit 1
         fi
-    fi
 
-    # Install Docker Compose if not available
-    if [[ "$COMPOSE_AVAILABLE" == false && "$DOCKER_INSTALLED" == true ]]; then
-        log_info "Installing Docker Compose..."
-
-        # Try to install the plugin first (comes with Docker CE)
-        if ! docker compose version >/dev/null 2>&1; then
-            log_warning "Docker Compose plugin not available, installing standalone version..."
-            sudo apt install -y docker-compose
-        fi
-
-        # Verify Docker Compose installation
-        if docker compose version >/dev/null 2>&1; then
-            log_success "Docker Compose plugin installed: $(docker compose version)"
-            COMPOSE_AVAILABLE=true
-            COMPOSE_TYPE="plugin"
-        elif command -v docker-compose >/dev/null 2>&1; then
-            log_success "Docker Compose standalone installed: $(docker-compose --version)"
-            COMPOSE_AVAILABLE=true
-            COMPOSE_TYPE="standalone"
-        else
-            log_error "Failed to install Docker Compose"
+        # Check if Docker daemon is running
+        if ! docker info >/dev/null 2>&1; then
+            log_error "Docker daemon is not running."
+            echo
+            echo "Please start Docker:"
+            echo "  sudo systemctl start docker"
+            echo "  sudo systemctl enable docker"
+            echo
+            echo "Then run this script again."
             exit 1
         fi
-    fi
 
-    log_success "Prerequisites installation completed"
+        return 0
+    else
+        log_error "Docker is not installed."
+        echo
+        echo "╔══════════════════════════════════════════════════════════════════════════════╗"
+        echo "║                           DOCKER INSTALLATION REQUIRED                      ║"
+        echo "╚══════════════════════════════════════════════════════════════════════════════╝"
+        echo
+        echo "This script requires Docker to be installed. Please install Docker first:"
+        echo
+        echo "📋 Ubuntu/Debian Installation:"
+        echo "  # Remove any conflicting packages"
+        echo "  sudo apt remove -y docker docker-engine docker.io containerd runc"
+        echo
+        echo "  # Install Docker using official repository"
+        echo "  sudo apt update"
+        echo "  sudo apt install -y ca-certificates curl gnupg lsb-release"
+        echo "  sudo mkdir -p /etc/apt/keyrings"
+        echo "  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg"
+        echo "  echo \"deb [arch=\$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \$(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null"
+        echo "  sudo apt update"
+        echo "  sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin"
+        echo
+        echo "  # Start and enable Docker"
+        echo "  sudo systemctl enable docker"
+        echo "  sudo systemctl start docker"
+        echo "  sudo usermod -aG docker \$USER"
+        echo
+        echo "  # Log out and back in, or run: newgrp docker"
+        echo
+        echo "🔗 For other operating systems, visit: https://docs.docker.com/get-docker/"
+        echo
+        echo "After installing Docker, run this script again: ./deploy.sh"
+        exit 1
+    fi
 }
 
 clone_repository() {
@@ -301,17 +169,8 @@ setup_environment() {
 start_services() {
     log_info "Starting Docker services..."
 
-    # Build and start containers using detected compose command
-    if [[ "$COMPOSE_TYPE" == "plugin" ]]; then
-        sudo docker compose up -d --build
-        COMPOSE_CMD="docker compose"
-    elif [[ "$COMPOSE_TYPE" == "standalone" ]]; then
-        sudo docker-compose up -d --build
-        COMPOSE_CMD="docker-compose"
-    else
-        log_error "Docker Compose is not available. Please install Docker Compose first."
-        exit 1
-    fi
+    # Build and start containers
+    sudo $COMPOSE_CMD up -d --build
 
     log_success "Docker services started"
 }
@@ -383,13 +242,7 @@ main() {
     # Pre-flight checks
     check_root
     check_os
-
-    # Check prerequisites and offer installation
-    if ! check_prerequisites; then
-        if offer_installation; then
-            install_prerequisites
-        fi
-    fi
+    check_docker
 
     # Deployment steps
     clone_repository
@@ -413,12 +266,11 @@ case "${1:-}" in
         echo "  --no-pull     Skip git pull if repository exists"
         echo
         echo "This script will:"
-        echo "  1. Check for required prerequisites (Docker, git, openssl, curl)"
-        echo "  2. Optionally install missing prerequisites (with user confirmation)"
-        echo "  3. Clone or update the Landio repository"
-        echo "  4. Generate secure JWT and session secrets"
-        echo "  5. Start the application with Docker Compose"
-        echo "  6. Verify the deployment is working"
+        echo "  1. Check that Docker and Docker Compose are installed and running"
+        echo "  2. Clone or update the Landio repository"
+        echo "  3. Generate secure JWT and session secrets"
+        echo "  4. Start the application with Docker Compose"
+        echo "  5. Verify the deployment is working"
         echo
         exit 0
         ;;
