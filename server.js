@@ -60,7 +60,11 @@ const staticLimiter = rateLimit({
            req.path.endsWith('.html') || 
            req.path.endsWith('.svg') ||
            req.path.endsWith('.ico') ||
-           req.path.endsWith('.json');
+           req.path.endsWith('.json') ||
+           req.path.endsWith('.woff2') ||
+           req.path.endsWith('.woff') ||
+           req.path.endsWith('.ttf') ||
+           req.path.endsWith('.eot');
   }
 });
 
