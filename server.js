@@ -35,6 +35,7 @@ app.use(helmet({
   hsts: false, // Disable HSTS for local deployments
   crossOriginOpenerPolicy: false, // Disable COOP for HTTP deployments
   crossOriginEmbedderPolicy: false, // Disable COEP for HTTP deployments
+  originAgentCluster: false, // Disable Origin-Agent-Cluster header
 }));
 
 // Rate limiting
