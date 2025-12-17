@@ -210,8 +210,12 @@ show_next_steps() {
     log_success "Landio has been deployed successfully!"
     echo
     echo "🌐 Access your application at:"
-    echo "   http://$(hostname -I | awk '{print $1}'):$APP_PORT"
-    echo "   http://localhost:$APP_PORT"
+    echo "   https://$(hostname -I | awk '{print $1}'):3443 (HTTPS - recommended)"
+    echo "   http://$(hostname -I | awk '{print $1}'):3001 (HTTP - redirects to HTTPS)"
+    echo "   https://localhost:3443"
+    echo
+    echo "   ⚠️  Note: You'll see a certificate warning on first access."
+    echo "       This is normal for self-signed certificates. Click 'Advanced' and proceed."
     echo
     echo "📋 Useful commands:"
     echo "   cd $REPO_NAME"
@@ -221,9 +225,10 @@ show_next_steps() {
     echo "   sudo $COMPOSE_CMD pull && sudo $COMPOSE_CMD up -d  # Update"
     echo
     echo "🔒 Initial setup:"
-    echo "   1. Navigate to http://your-server:$APP_PORT/setup.html"
-    echo "   2. Create your admin account"
-    echo "   3. Configure 2FA and other settings"
+    echo "   1. Navigate to https://your-server:3443/setup.html"
+    echo "   2. Accept the self-signed certificate warning"
+    echo "   3. Create your admin account"
+    echo "   4. Configure 2FA and other settings"
     echo
     echo "📚 Documentation:"
     echo "   - DOCKER.md     - Docker deployment guide"

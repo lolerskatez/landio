@@ -5,7 +5,8 @@ services:
       dockerfile: Dockerfile
     container_name: landio
     ports:
-      - "3001:3001"
+      - "3001:3001"   # HTTP (redirects to HTTPS)
+      - "3443:3443"   # HTTPS
     environment:
       - NODE_ENV=production
       - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
@@ -13,6 +14,7 @@ services:
       - DATABASE_PATH=/app/data/database.db
     volumes:
       - landio_data:/app/data
+      - landio_certs:/app/certs  # Persist SSL certificates
     restart: unless-stopped
     networks:
       - landio_network
@@ -24,6 +26,8 @@ services:
 
 volumes:
   landio_data:
+    driver: local
+  landio_certs:
     driver: local
 
 networks:

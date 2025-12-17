@@ -12,8 +12,8 @@ RUN npm install --production
 # Final stage
 FROM node:18-alpine
 
-# Install dumb-init to handle signals properly
-RUN apk add --no-cache dumb-init
+# Install dumb-init and openssl for certificate generation
+RUN apk add --no-cache dumb-init openssl
 
 WORKDIR /app
 
@@ -33,8 +33,17 @@ COPY *.svg ./
 # Create data directory for SQLite database
 RUN mkdir -p /app/data
 
-# Expose port
-EXPOSE 3001
+# Create certs directory
+RUN mkdir -p /app/certs
+
+# Copy certificate generation script
+COPY scripts/generate-certs.sh /app/scripts/
+
+# Make script executable
+RUN chmod +x /app/scripts/generate-certs.sh
+
+# Expose ports
+EXPOSE 3001 3443
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
@@ -43,5 +52,5 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 # Use dumb-init as entrypoint to properly handle signals
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
-# Run the application
-CMD ["npm", "start"]
+# Generate certificates and run the application
+CMD ["/bin/sh", "-c", "/app/scripts/generate-certs.sh && npm start"]

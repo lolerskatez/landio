@@ -1,4 +1,7 @@
 const express = require('express');
+const https = require('https');
+const http = require('http');
+const fs = require('fs');
 const cors = require('cors');
 const helmet = require('helmet');
 const session = require('express-session');
@@ -399,27 +402,78 @@ process.on('unhandledRejection', async (reason, promise) => {
   }
 });
 
-// Start server
-app.listen(PORT, async () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-  console.log(`Frontend served from: http://localhost:${PORT}`);
-  console.log(`API endpoints available at: http://localhost:${PORT}`);
-  console.log(`API endpoints available at: http://localhost:${PORT}/api`);
+// Start server with HTTPS support
+const HTTPS_PORT = process.env.HTTPS_PORT || 3443;
+const certPath = path.join(__dirname, 'certs', 'server.crt');
+const keyPath = path.join(__dirname, 'certs', 'server.key');
 
-  // Load SSO configuration from database
-  try {
-    await ssoRoutes.loadSSOConfig();
-  } catch (err) {
-    console.error('Failed to load SSO config on startup:', err);
-  }
+// Check if SSL certificates exist
+const sslAvailable = fs.existsSync(certPath) && fs.existsSync(keyPath);
 
-  // Send app start notification
-  const { sendNotification } = require('./routes/notifications');
-  sendNotification('app-start', {
-    message: 'Landio Dashboard application has started successfully',
-    port: PORT
-  }).catch(err => console.error('App start notification error:', err));
-}).on('error', (err) => {
+if (sslAvailable) {
+  // Start HTTPS server
+  const httpsOptions = {
+    key: fs.readFileSync(keyPath),
+    cert: fs.readFileSync(certPath)
+  };
+  
+  https.createServer(httpsOptions, app).listen(HTTPS_PORT, async () => {
+    console.log(`🔒 HTTPS Server running on https://localhost:${HTTPS_PORT}`);
+    console.log(`   Access via: https://192.168.1.183:${HTTPS_PORT}`);
+    
+    // Load SSO configuration from database
+    try {
+      await ssoRoutes.loadSSOConfig();
+    } catch (err) {
+      console.error('Failed to load SSO config on startup:', err);
+    }
+
+    // Send app start notification
+    const { sendNotification } = require('./routes/notifications');
+    sendNotification('app-start', {
+      message: 'Landio Dashboard application has started successfully (HTTPS)',
+      port: HTTPS_PORT
+    }).catch(err => console.error('App start notification error:', err));
+  }).on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`Port ${HTTPS_PORT} is already in use`);
+    } else {
+      console.error('HTTPS Server error:', err);
+    }
+  });
+  
+  // Also start HTTP server for backward compatibility and redirects
+  http.createServer((req, res) => {
+    res.writeHead(301, { Location: `https://${req.headers.host.split(':')[0]}:${HTTPS_PORT}${req.url}` });
+    res.end();
+  }).listen(PORT, () => {
+    console.log(`🔓 HTTP Server running on http://localhost:${PORT} (redirects to HTTPS)`);
+  });
+  
+} else {
+  // Fallback to HTTP only if no certificates
+  console.warn('⚠️  SSL certificates not found - running in HTTP-only mode');
+  console.warn('   Run scripts/generate-certs.sh to enable HTTPS');
+  
+  app.listen(PORT, async () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Frontend served from: http://localhost:${PORT}`);
+    console.log(`API endpoints available at: http://localhost:${PORT}/api`);
+
+    // Load SSO configuration from database
+    try {
+      await ssoRoutes.loadSSOConfig();
+    } catch (err) {
+      console.error('Failed to load SSO config on startup:', err);
+    }
+
+    // Send app start notification
+    const { sendNotification } = require('./routes/notifications');
+    sendNotification('app-start', {
+      message: 'Landio Dashboard application has started successfully',
+      port: PORT
+    }).catch(err => console.error('App start notification error:', err));
+  }).on('error', (err) => {
   console.error('Server failed to start:', err);
   process.exit(1);
 });
