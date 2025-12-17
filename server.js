@@ -474,6 +474,11 @@ if (sslAvailable) {
       port: PORT
     }).catch(err => console.error('App start notification error:', err));
   }).on('error', (err) => {
-  console.error('Server failed to start:', err);
-  process.exit(1);
-});
+    if (err.code === 'EADDRINUSE') {
+      console.error(`Port ${PORT} is already in use`);
+    } else {
+      console.error('Server error:', err);
+    }
+    process.exit(1);
+  });
+}
