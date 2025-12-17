@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     container_name: landio
     ports:
-      - "3002:3001"
+      - "3003:3001"
     environment:
       - NODE_ENV=production
       - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
