@@ -8,6 +8,7 @@ Complete guide for deploying LandIO to production environments.
 - [Linux Server Deployment](#linux-server-deployment)
 - [Windows Server Deployment](#windows-server-deployment)
 - [Cloud Platform Deployment](#cloud-platform-deployment)
+- [Reverse Proxy Setup](#reverse-proxy-setup)
 - [Database Backup & Recovery](#database-backup--recovery)
 - [Monitoring & Maintenance](#monitoring--maintenance)
 
@@ -29,7 +30,11 @@ npm run init-db
 npm run dev
 ```
 
-Server runs on `http://localhost:3001`
+Server runs on:
+- **HTTPS**: `https://localhost:3443` (recommended)
+- **HTTP**: `http://localhost:3001` (redirects to HTTPS)
+
+**Note**: Self-signed certificates are auto-generated on first run. Accept the browser warning to proceed.
 
 ## Docker Deployment
 
@@ -69,7 +74,8 @@ services:
   landio:
     build: .
     ports:
-      - "3001:3001"
+      - "3001:3001"  # HTTP (redirects to HTTPS)
+      - "3443:3443"  # HTTPS (primary)
     environment:
       - NODE_ENV=production
       - JWT_SECRET=${JWT_SECRET}
@@ -80,15 +86,19 @@ services:
       - DISCORD_ENABLED=${DISCORD_ENABLED}
       - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
     volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
+      - landio_data:/app/data
+      - landio_certs:/app/certs  # Persist SSL certificates
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      test: ["CMD", "curl", "-f", "-k", "https://localhost:3443/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+
+volumes:
+  landio_data:
+  landio_certs:
 ```
 
 ### Deploy with Docker
@@ -397,6 +407,153 @@ gcloud run deploy landio \
   --allow-unauthenticated \
   --set-env-vars JWT_SECRET="your-secret-key",NODE_ENV="production"
 ```
+
+## Reverse Proxy Setup
+
+Landio runs with built-in HTTPS support using self-signed certificates for local development. For production deployments with custom domains, use a reverse proxy to handle SSL termination.
+
+### Nginx (Recommended for Production)
+
+#### Option 1: Proxy to HTTPS (Port 3443)
+```nginx
+server {
+    listen 80;
+    server_name tanjiro.one;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name tanjiro.one;
+
+    # Let's Encrypt SSL certificates
+    ssl_certificate /etc/letsencrypt/live/tanjiro.one/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/tanjiro.one/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+
+    # Security headers
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+
+    # Reverse proxy to Landio HTTPS
+    location / {
+        proxy_pass https://127.0.0.1:3443;
+        proxy_ssl_verify off;  # Accept self-signed cert from Landio
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # Cache static assets
+    location ~* \.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$ {
+        proxy_pass https://127.0.0.1:3443;
+        proxy_ssl_verify off;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+}
+```
+
+#### Option 2: Proxy to HTTP (Port 3001)
+```nginx
+server {
+    listen 80;
+    server_name tanjiro.one;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name tanjiro.one;
+
+    # Let's Encrypt SSL certificates
+    ssl_certificate /etc/letsencrypt/live/tanjiro.one/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/tanjiro.one/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    # Reverse proxy to Landio HTTP (SSL termination at Nginx)
+    location / {
+        proxy_pass http://127.0.0.1:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+### Caddy (Automatic HTTPS)
+```caddyfile
+tanjiro.one {
+    reverse_proxy localhost:3001
+    
+    # Or proxy to HTTPS
+    # reverse_proxy https://localhost:3443 {
+    #     transport http {
+    #         tls_insecure_skip_verify
+    #     }
+    # }
+}
+```
+
+### Traefik (Docker)
+```yaml
+# docker-compose.yml with Traefik labels
+services:
+  landio:
+    image: landio:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.landio.rule=Host(`tanjiro.one`)"
+      - "traefik.http.routers.landio.entrypoints=websecure"
+      - "traefik.http.routers.landio.tls.certresolver=letsencrypt"
+      - "traefik.http.services.landio.loadbalancer.server.port=3001"
+    networks:
+      - traefik
+```
+
+### Apache
+```apache
+<VirtualHost *:80>
+    ServerName tanjiro.one
+    Redirect permanent / https://tanjiro.one/
+</VirtualHost>
+
+<VirtualHost *:443>
+    ServerName tanjiro.one
+
+    SSLEngine on
+    SSLCertificateFile /etc/letsencrypt/live/tanjiro.one/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/tanjiro.one/privkey.pem
+
+    ProxyPreserveHost On
+    ProxyPass / http://127.0.0.1:3001/
+    ProxyPassReverse / http://127.0.0.1:3001/
+
+    RequestHeader set X-Forwarded-Proto "https"
+    RequestHeader set X-Forwarded-Port "443"
+</VirtualHost>
+```
+
+### CORS Configuration
+Landio automatically allows requests from:
+- `localhost` and `127.0.0.1` (any port)
+- Local network IPs: `192.168.x.x`, `10.x.x.x`, `172.16-31.x.x`
+- **Custom domains**: Any valid domain name (e.g., `tanjiro.one`)
+
+No additional CORS configuration needed for reverse proxy deployments!
 
 ## Database Backup & Recovery
 

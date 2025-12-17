@@ -18,13 +18,16 @@ A modern, full-featured server management dashboard with two-factor authenticati
 - **User Management**: Create, edit, disable users with role assignment (admin/standard)
 - **Two-Factor Authentication (2FA)**: TOTP-based 2FA with backup codes for enhanced security
 - **Settings Management**: Comprehensive system and user settings with appearance customization
+- **HTTPS Support**: Auto-generated self-signed certificates for secure local deployment
 
 ### Security
 - **JWT Authentication**: Secure token-based authentication with automatic refresh
+- **HTTPS by Default**: Automatic HTTPS with self-signed certificates (HTTP redirects to HTTPS)
 - **2FA Enforcement**: Require 2FA for all users with configurable enforcement
 - **Role-Based Access Control (RBAC)**: Admin and standard user roles with appropriate permissions
 - **Session Management**: Configurable session timeout with secure token expiration
 - **Password Security**: Bcrypt hashing, password change functionality
+- **Custom Domain Support**: Works with reverse proxies and custom domains (via CORS)
 
 ### User Experience
 - **Dark/Light Theme**: Multiple theme options (pastel, cyber, mocha, ice, nature, sunset)
@@ -32,6 +35,7 @@ A modern, full-featured server management dashboard with two-factor authenticati
 - **Real-time Notifications**: Email and Discord notifications for system events
 - **Responsive Design**: Mobile-friendly interface that works on all devices
 - **Appearance Settings**: Customizable UI with border radius, compact mode options
+- **Local Font Awesome**: Self-hosted icons (no external CDN dependencies)
 
 ### Administrative Features
 - **Logs Viewer**: View system and activity logs with filtering
@@ -70,7 +74,11 @@ A modern, full-featured server management dashboard with two-factor authenticati
    npm start
    ```
 
-   The application will be available at `http://localhost:3001`
+   The application will be available at:
+   - **HTTPS**: `https://localhost:3443` (recommended)
+   - **HTTP**: `http://localhost:3001` (redirects to HTTPS)
+   
+   **Note**: You'll see a browser warning about the self-signed certificate - this is normal for local development. Click "Advanced" and proceed to accept the certificate.
 
 ### Development
 
@@ -81,10 +89,26 @@ npm run dev
 
 ## Initial Setup
 
-1. Navigate to `http://localhost:3001/setup.html`
+1. Navigate to `https://localhost:3443/setup.html` (accept the self-signed certificate warning)
 2. Create the initial admin account
 3. Complete 2FA enrollment (recommended)
-4. Access the admin dashboard at `http://localhost:3001/index.html`
+4. Access the admin dashboard at `https://localhost:3443/index.html`
+
+## HTTPS & Certificates
+
+Landio automatically generates self-signed SSL certificates on first run for local HTTPS deployment:
+
+- **Certificates stored in**: `./certs/` directory (persisted in Docker volume)
+- **Validity**: 365 days
+- **Automatic generation**: Created on container/server startup if missing
+- **Local network access**: Works with IP addresses (e.g., `https://192.168.1.183:3443`)
+- **Custom domains**: Configure your reverse proxy to handle SSL termination in production
+
+### Using with Reverse Proxy
+For production deployments with custom domains (e.g., `https://tanjiro.one`):
+1. Configure your reverse proxy (Nginx, Caddy, Traefik) to handle SSL termination
+2. Point proxy to the HTTP port (3001) or HTTPS port (3443)
+3. The application's CORS settings automatically allow custom domains
 
 ## User Roles
 
@@ -178,7 +202,13 @@ npm run dev
 ### Database
 - SQLite database stored in `database.db`
 - Automatically initialized on first run
+- **Auto-migration**: Schema updates applied automatically on server startup
 - Settings table stores system and user preferences
+
+### Static Assets
+- **Font Awesome 6.4.0**: Self-hosted in `assets/fontawesome/` directory
+- **No external CDN dependencies**: All assets served locally
+- **Optimized rate limiting**: Font files exempt from aggressive rate limiting
 
 ## Deployment
 
@@ -235,11 +265,13 @@ npm start
 ## Security Best Practices
 
 1. **Change JWT_SECRET** in production
-2. **Use HTTPS** in production environments
+2. **Use proper SSL certificates** in production (Let's Encrypt recommended)
 3. **Enable 2FA** for all admin accounts
 4. **Regular backups** of database
 5. **Monitor logs** for suspicious activity
 6. **Keep dependencies updated**
+7. **Firewall configuration**: Restrict access to ports 3001 and 3443 as needed
+8. **Reverse proxy**: Use Nginx/Caddy for SSL termination in production
 
 ## Support & Documentation
 
