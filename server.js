@@ -32,6 +32,7 @@ app.use(helmet({
       imgSrc: ["'self'", "data:", "https:"],
     },
   },
+  hsts: false, // Disable HSTS for local deployments
 }));
 
 // Rate limiting
@@ -67,7 +68,31 @@ app.use(staticLimiter);
 
 // CORS configuration
 app.use(cors({
-  origin: ['http://localhost:8000', 'http://localhost:3000', 'http://127.0.0.1:8000'],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow localhost and local network IPs
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:3002',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001',
+      'http://127.0.0.1:3002'
+    ];
+    
+    // Allow any IP on the local network (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+    if (/^http:\/\/(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)\d+\.\d+:300[0-2]$/.test(origin)) {
+      return callback(null, true);
+    }
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
 }));
 
