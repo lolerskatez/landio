@@ -93,6 +93,12 @@ app.use(cors({
       return callback(null, true);
     }
     
+    // Allow custom domains (for reverse proxy deployments)
+    // This allows any valid domain name with optional port
+    if (/^https?:\/\/([a-z0-9-]+\.)*[a-z0-9-]+(:\d+)?$/.test(origin)) {
+      return callback(null, true);
+    }
+    
     // Allow any origin when behind reverse proxy (for production deployments)
     // The reverse proxy should handle origin validation
     if (process.env.ALLOW_ALL_ORIGINS === 'true') {
