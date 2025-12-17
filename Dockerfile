@@ -25,6 +25,7 @@ COPY package.json ./
 COPY server.js ./
 COPY routes/ ./routes/
 COPY scripts/ ./scripts/
+COPY assets/ ./assets/
 COPY *.html ./
 COPY *.js ./
 COPY *.css ./
