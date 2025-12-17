@@ -4,10 +4,10 @@ FROM node:18-alpine as builder
 WORKDIR /app
 
 # Copy package files
-COPY package.json package-lock.json ./
+COPY package.json ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm install --production
 
 # Final stage
 FROM node:18-alpine
@@ -21,7 +21,7 @@ WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
 
 # Copy application files
-COPY package.json package-lock.json ./
+COPY package.json ./
 COPY server.js ./
 COPY routes/ ./routes/
 COPY scripts/ ./scripts/
