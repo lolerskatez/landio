@@ -20,7 +20,7 @@ const PORT = process.env.PORT || 3001;
 // Trust proxy for Cloudflare tunnels and other reverse proxies
 app.set('trust proxy', 1);
 
-// Security middleware
+// Security middleware - configured for both direct access and reverse proxy
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -32,10 +32,8 @@ app.use(helmet({
       imgSrc: ["'self'", "data:", "https:"],
     },
   },
-  hsts: false, // Disable HSTS for local deployments
-  crossOriginOpenerPolicy: false, // Disable COOP for HTTP deployments
-  crossOriginEmbedderPolicy: false, // Disable COEP for HTTP deployments
-  originAgentCluster: false, // Disable Origin-Agent-Cluster header
+  // Disable strict transport security - let reverse proxy handle HTTPS
+  strictTransportSecurity: false,
 }));
 
 // Rate limiting
@@ -69,34 +67,30 @@ const apiLimiter = rateLimit({
 
 app.use(staticLimiter);
 
-// CORS configuration
+// CORS configuration - allows local development and reverse proxy
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
+    // Allow requests with no origin (like mobile apps, curl, or same-origin)
     if (!origin) return callback(null, true);
     
-    // Allow localhost and local network IPs
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'http://localhost:3002',
-      'http://localhost:3003',
-      'http://127.0.0.1:3000',
-      'http://127.0.0.1:3001',
-      'http://127.0.0.1:3002',
-      'http://127.0.0.1:3003'
-    ];
-    
-    // Allow any IP on the local network (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
-    if (/^http:\/\/(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)\d+\.\d+:300[0-3]$/.test(origin)) {
+    // Allow localhost on any port
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
       return callback(null, true);
     }
     
-    if (allowedOrigins.includes(origin)) {
+    // Allow local network IPs (192.168.x.x, 10.x.x.x, 172.16-31.x.x) on any port
+    if (/^https?:\/\/(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)\d+\.\d+(:\d+)?$/.test(origin)) {
       return callback(null, true);
     }
     
-    return callback(new Error('Not allowed by CORS'));
+    // Allow any origin when behind reverse proxy (for production deployments)
+    // The reverse proxy should handle origin validation
+    if (process.env.ALLOW_ALL_ORIGINS === 'true') {
+      return callback(null, true);
+    }
+    
+    // Reject all other origins
+    callback(new Error('Not allowed by CORS'));
   },
   credentials: true
 }));

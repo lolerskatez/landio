@@ -15,7 +15,7 @@ NC='\033[0m' # No Color
 # Configuration
 REPO_URL="https://github.com/lolerskatez/landio.git"
 REPO_NAME="landio"
-APP_PORT=3003
+APP_PORT=3001
 
 # Functions
 log_info() {
