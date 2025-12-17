@@ -25,11 +25,11 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://static.cloudflareinsights.com"],
-      connectSrc: ["'self'", "https://cdn.jsdelivr.net", "https://static.cloudflareinsights.com"],
-      imgSrc: ["'self'", "data:", "https:"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https:", "http:"],
+      fontSrc: ["'self'", "https:", "http:", "data:"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https:", "http:"],
+      connectSrc: ["'self'", "https:", "http:"],
+      imgSrc: ["'self'", "data:", "https:", "http:"],
     },
   },
   // Disable strict transport security - let reverse proxy handle HTTPS
