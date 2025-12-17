@@ -34,6 +34,9 @@ app.use(helmet({
   },
   // Disable strict transport security - let reverse proxy handle HTTPS
   strictTransportSecurity: false,
+  crossOriginOpenerPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: false,
 }));
 
 // Rate limiting
