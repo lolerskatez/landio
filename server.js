@@ -215,13 +215,15 @@ global.db.serialize(() => {
   });
 
   // Add missing columns to existing users table if they don't exist
+  // Note: SQLite cannot add UNIQUE columns to existing tables, so we add them without UNIQUE
+  // and create indexes separately
   const columnsToAdd = [
     { name: 'onboarding_completed', type: 'BOOLEAN DEFAULT 0' },
     { name: 'failed_attempts', type: 'INTEGER DEFAULT 0' },
-    { name: 'username', type: 'TEXT UNIQUE' },
+    { name: 'username', type: 'TEXT' },  // UNIQUE constraint via index below
     { name: 'display_name', type: 'TEXT' },
     { name: 'sso_provider', type: 'TEXT' },
-    { name: 'sso_id', type: 'TEXT UNIQUE' }
+    { name: 'sso_id', type: 'TEXT' }  // UNIQUE constraint via index below
   ];
 
   columnsToAdd.forEach(col => {
@@ -231,6 +233,15 @@ global.db.serialize(() => {
         console.warn(`Note: Could not add ${col.name} column:`, err.message);
       }
     });
+  });
+
+  // Create unique indexes for username and sso_id
+  global.db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users(username);`, (err) => {
+    if (err) console.warn('Note: Could not create username index:', err.message);
+  });
+  
+  global.db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_sso_id ON users(sso_id);`, (err) => {
+    if (err) console.warn('Note: Could not create sso_id index:', err.message);
   });
 
   // Continue with remaining migrations
