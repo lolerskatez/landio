@@ -1,78 +1,103 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
-
-// Middleware to verify JWT token
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ error: 'Access token required' });
-  }
-
-  const jwt = require('jsonwebtoken');
-  const JWT_SECRET = process.env.JWT_SECRET || 'your-jwt-secret-change-in-production';
-
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).json({ error: 'Invalid or expired token' });
-    }
-    req.user = user;
-    next();
-  });
-};
-
-// Middleware to check admin role
-const requireAdmin = (req, res, next) => {
-  if (req.user.role !== 'admin') {
-    return res.status(403).json({ error: 'Admin access required' });
-  }
-  next();
-};
+const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const { sendNotification } = require('./notifications');
+const db = require('../lib/datalayer');
 
 // Get all users (admin only)
+// Supports pagination via ?page=1&limit=50 and search via ?search=term
+// When pagination params are provided, returns { users, pagination }
+// Without pagination params, returns array (backward-compatible)
 router.get('/', authenticateToken, requireAdmin, (req, res) => {
-  console.log('GET /api/users - User authenticated:', req.user);
-  const query = `
-    SELECT u.id, u.username, u.name, u.display_name, u.email, u.role, u.avatar, u.groups, u.permissions,
-           u.last_login, u.created_at, u.updated_at, u.is_active,
-           u.login_count, u.last_activity, u.sso_provider,
-           (SELECT value FROM settings WHERE user_id = u.id AND key = 'twoFactorEnabled' LIMIT 1) as twoFactorEnabled
-    FROM users u
-    ORDER BY u.created_at DESC
-  `;
+  const page = parseInt(req.query.page);
+  const limit = parseInt(req.query.limit);
+  const search = req.query.search || '';
+  const hasPagination = !isNaN(page) || !isNaN(limit);
 
-  global.db.all(query, [], (err, rows) => {
-    if (err) {
-      console.error('Database error in users GET /:', err);
-      return res.status(500).json({ error: 'Database error' });
-    }
-    console.log('Database returned', rows ? rows.length : 0, 'users');
+  const effectiveLimit = hasPagination ? Math.min(200, Math.max(1, limit || 50)) : 9999;
+  const effectivePage = hasPagination ? Math.max(1, page || 1) : 1;
+  const offset = (effectivePage - 1) * effectiveLimit;
 
-    // Parse JSON fields for each user
-    const users = rows.map(user => {
-      try {
-        return {
-          ...user,
-          groups: JSON.parse(user.groups || '[]'),
-          permissions: JSON.parse(user.permissions || '{}'),
-          twoFactorEnabled: user.twoFactorEnabled === 'true'
-        };
-      } catch (e) {
-        console.warn('Error parsing user data:', e);
-        return {
-          ...user,
-          groups: [],
-          permissions: {},
-          twoFactorEnabled: false
-        };
+  let whereClause = '';
+  const countParams = [];
+  const queryParams = [];
+
+  if (search) {
+    whereClause = 'WHERE (u.name LIKE ? OR u.email LIKE ?)';
+    const searchPattern = `%${search}%`;
+    countParams.push(searchPattern, searchPattern);
+    queryParams.push(searchPattern, searchPattern);
+  }
+
+  queryParams.push(effectiveLimit, offset);
+
+  // Get total count
+  global.db.get(
+    `SELECT COUNT(*) as count FROM users u ${whereClause}`,
+    countParams,
+    (err, countRow) => {
+      if (err) {
+        console.error('Database error counting users:', err);
+        return res.status(500).json({ error: 'Database error' });
       }
-    });
 
-    console.log('Parsed', users.length, 'users successfully');
-    res.json(users);
-  });
+      const total = countRow ? countRow.count : 0;
+      const totalPages = Math.ceil(total / effectiveLimit) || 1;
+
+      const query = `
+        SELECT u.id, u.username, u.name, u.display_name, u.email, u.role, u.avatar, u.groups, u.permissions,
+               u.last_login, u.created_at, u.updated_at, u.is_active,
+               u.login_count, u.last_activity, u.sso_provider,
+               (SELECT value FROM settings WHERE user_id = u.id AND key = 'two_factor_enabled' LIMIT 1) as twoFactorEnabled
+        FROM users u
+        ${whereClause}
+        ORDER BY u.created_at DESC
+        LIMIT ? OFFSET ?
+      `;
+
+      global.db.all(query, queryParams, (err, rows) => {
+        if (err) {
+          console.error('Database error in users GET /:', err);
+          return res.status(500).json({ error: 'Database error' });
+        }
+
+        // Parse JSON fields for each user
+        const users = rows.map(user => {
+          try {
+            return {
+              ...user,
+              groups: JSON.parse(user.groups || '[]'),
+              permissions: JSON.parse(user.permissions || '{}'),
+              twoFactorEnabled: user.twoFactorEnabled === 'true'
+            };
+          } catch (e) {
+            console.warn('Error parsing user data:', e);
+            return {
+              ...user,
+              groups: [],
+              permissions: {},
+              twoFactorEnabled: false
+            };
+          }
+        });
+
+        if (hasPagination) {
+          res.json({
+            users,
+            pagination: {
+              page: effectivePage,
+              limit: effectiveLimit,
+              total,
+              totalPages
+            }
+          });
+        } else {
+          res.json(users);
+        }
+      });
+    }
+  );
 });
 
 // Get user by ID
@@ -124,8 +149,8 @@ router.get('/:id/2fa-status', authenticateToken, (req, res) => {
   }
 
   global.db.all(
-    `SELECT key, value FROM settings 
-     WHERE user_id = ? AND key IN ('twoFactorEnabled', 'twoFactorSecret', 'twoFactorBackupCodes')`,
+    `SELECT key, value FROM settings
+     WHERE user_id = ? AND key IN ('two_factor_enabled', 'two_factor_secret', 'two_factor_backup_codes')`,
     [userId],
     (err, settings) => {
       if (err) {
@@ -138,9 +163,9 @@ router.get('/:id/2fa-status', authenticateToken, (req, res) => {
 
       if (settings) {
         settings.forEach(setting => {
-          if (setting.key === 'twoFactorEnabled') {
+          if (setting.key === 'two_factor_enabled') {
             twoFactorEnabled = setting.value === 'true';
-          } else if (setting.key === 'twoFactorBackupCodes') {
+          } else if (setting.key === 'two_factor_backup_codes') {
             try {
               backupCodes = JSON.parse(setting.value);
             } catch (e) {
@@ -240,11 +265,9 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
 
           const newUserId = this.lastID;
 
-          // Log activity
-          global.db.run(
-            'INSERT INTO activity_log (user_id, action, details, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)',
-            [req.user.id, 'create_user', `Created user: ${name} (${email})`, req.ip, req.get('User-Agent')]
-          );
+          // Log activity via datalayer
+          db.activityLog.create(req.user.id, 'create_user', `Created user: ${name} (${email})`, req.ip, req.get('User-Agent'))
+            .catch(err => console.error('Error writing audit log:', err));
 
           // Return created user (without password)
           global.db.get('SELECT id, username, name, display_name, email, role, avatar, groups, permissions, created_at FROM users WHERE id = ?',
@@ -331,7 +354,8 @@ router.put('/:id', authenticateToken, async (req, res) => {
         };
 
         // Check if password policy is enabled
-        await new Promise((resolve, reject) => {
+        let passwordPolicyFailed = false;
+        await new Promise((resolve) => {
           getSecuritySetting('password-policy', true, (policyEnabled) => {
             if (!policyEnabled) {
               resolve();
@@ -347,14 +371,18 @@ router.put('/:id', authenticateToken, async (req, res) => {
             if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(updates.password)) issues.push('Must contain special characters');
 
             if (issues.length > 0) {
-              return reject(new Error(`Password does not meet policy requirements: ${issues.join(', ')}`));
+              passwordPolicyFailed = true;
+              resolve();
+              return;
             }
 
             resolve();
           });
-        }).catch(err => {
-          return res.status(400).json({ error: err.message });
         });
+
+        if (passwordPolicyFailed) {
+          return res.status(400).json({ error: 'Password policy validation failed' });
+        }
 
         updateData.password_hash = await bcrypt.hash(updates.password, 10);
         updateFields.push('password_hash = ?');
@@ -400,11 +428,9 @@ router.put('/:id', authenticateToken, async (req, res) => {
           return res.status(500).json({ error: 'Failed to update user' });
         }
 
-        // Log activity
-        global.db.run(
-          'INSERT INTO activity_log (user_id, action, details, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)',
-          [req.user.id, 'update_user', `Updated user ID: ${userId}`, req.ip, req.get('User-Agent')]
-        );
+        // Log activity via datalayer
+        db.activityLog.create(req.user.id, 'update_user', `Updated user ID: ${userId}`, req.ip, req.get('User-Agent'))
+          .catch(err => console.error('Error writing audit log:', err));
 
         // Return updated user
         global.db.get(`
@@ -437,6 +463,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // Delete user (admin only)
+// Includes "last admin" guard — prevents deleting the only admin account
 router.delete('/:id', authenticateToken, requireAdmin, (req, res) => {
   const userId = req.params.id;
 
@@ -445,8 +472,8 @@ router.delete('/:id', authenticateToken, requireAdmin, (req, res) => {
     return res.status(400).json({ error: 'Cannot delete your own account' });
   }
 
-  // Check if user exists
-  global.db.get('SELECT name, email FROM users WHERE id = ?', [userId], (err, user) => {
+  // Check if user exists and get their role
+  global.db.get('SELECT name, email, role FROM users WHERE id = ?', [userId], (err, user) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).json({ error: 'Database error' });
@@ -456,30 +483,52 @@ router.delete('/:id', authenticateToken, requireAdmin, (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Delete user
-    global.db.run('DELETE FROM users WHERE id = ?', [userId], function(err) {
-      if (err) {
-        console.error('Database error:', err);
-        return res.status(500).json({ error: 'Failed to delete user' });
-      }
+    // Last admin guard: if target user is an admin, check they aren't the last one
+    if (user.role === 'admin') {
+      global.db.get('SELECT COUNT(*) as count FROM users WHERE role = ?', ['admin'], (err, row) => {
+        if (err) {
+          console.error('Database error counting admins:', err);
+          return res.status(500).json({ error: 'Database error' });
+        }
 
-      // Log activity
-      global.db.run(
-        'INSERT INTO activity_log (user_id, action, details, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)',
-        [req.user.id, 'delete_user', `Deleted user: ${user.name} (${user.email})`, req.ip, req.get('User-Agent')]
-      );
+        if (row.count <= 1) {
+          return res.status(400).json({ error: 'Cannot delete the last admin account' });
+        }
 
-      // Send user-activity notification
-      sendNotification('user-activity', {
-        username: req.user.name,
-        activity: `Deleted user: ${user.name} (${user.email})`,
-        performedBy: req.user.email
-      }).catch(err => console.error('User-activity notification error:', err));
-      
-      res.json({ message: 'User deleted successfully' });
-    });
+        // Proceed with delete
+        deleteUser(user, req, res);
+      });
+    } else {
+      // Not an admin, proceed directly
+      deleteUser(user, req, res);
+    }
   });
 });
+
+// Helper: delete user and log activity
+function deleteUser(user, req, res) {
+  const userId = req.params.id;
+
+  global.db.run('DELETE FROM users WHERE id = ?', [userId], function(err) {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Failed to delete user' });
+    }
+
+    // Log activity via datalayer
+    db.activityLog.create(req.user.id, 'delete_user', `Deleted user: ${user.name} (${user.email})`, req.ip, req.get('User-Agent'))
+      .catch(err => console.error('Error writing audit log:', err));
+
+    // Send user-activity notification
+    sendNotification('user-activity', {
+      username: req.user.name,
+      activity: `Deleted user: ${user.name} (${user.email})`,
+      performedBy: req.user.email
+    }).catch(err => console.error('User-activity notification error:', err));
+    
+    res.json({ message: 'User deleted successfully' });
+  });
+}
 
 // Get user activity log (admin only)
 router.get('/:id/activity', authenticateToken, requireAdmin, (req, res) => {
@@ -539,64 +588,6 @@ router.post('/onboarding/complete', authenticateToken, (req, res) => {
       res.json({ success: true, message: 'Onboarding marked as completed' });
     }
   );
-});
-
-// Reset user's 2FA (admin only)
-router.post('/:id/reset-2fa', authenticateToken, requireAdmin, (req, res) => {
-  const userId = req.params.id;
-  
-  console.log('POST /api/users/:id/reset-2fa - Admin:', req.user.email, 'resetting 2FA for user ID:', userId);
-  
-  // First check if user exists
-  global.db.get('SELECT id, name, email FROM users WHERE id = ?', [userId], (err, user) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).json({ error: 'Database error' });
-    }
-    
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
-    // Delete all 2FA-related settings for this user
-    global.db.run(
-      `DELETE FROM settings 
-       WHERE user_id = ? AND key IN ('twoFactorEnabled', 'twoFactorSecret', 'twoFactorBackupCodes', '2faEnrollmentRequired')`,
-      [userId],
-      function(err) {
-        if (err) {
-          console.error('Database error:', err);
-          return res.status(500).json({ error: 'Failed to reset 2FA' });
-        }
-        
-        // Log activity
-        global.db.run(
-          'INSERT INTO activity_log (user_id, action, details, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)',
-          [req.user.id, 'reset_user_2fa', `Reset 2FA for user: ${user.name} (${user.email})`, req.ip, req.get('User-Agent')]
-        );
-        
-        // Send security notification for 2FA reset
-        sendNotification('security', {
-          securityEvent: '2FA Reset',
-          username: user.name,
-          email: user.email,
-          performedBy: req.user.email,
-          severity: 'High'
-        }).catch(err => console.error('Security notification error:', err));
-        
-        console.log('Successfully reset 2FA for user:', user.email);
-        res.json({ 
-          success: true, 
-          message: `2FA has been reset for ${user.name}`,
-          user: {
-            id: user.id,
-            name: user.name,
-            email: user.email
-          }
-        });
-      }
-    );
-  });
 });
 
 module.exports = router;

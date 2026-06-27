@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const { Issuer, generators } = require('openid-client');
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-jwt-secret-change-in-production';
+const { JWT_SECRET } = require('../middleware/auth');
+const db = require('../lib/datalayer');
 
 // SSO Configuration (will be loaded from settings)
 let ssoConfig = {
@@ -70,10 +70,9 @@ router.post('/config', async (req, res) => {
                 });
             } catch (err) {
                 console.error('Failed to initialize OIDC client:', err);
-                return res.status(400).json({ 
-                    success: false, 
-                    message: 'Invalid OIDC configuration',
-                    error: err.message 
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid OIDC configuration'
                 });
             }
         }
@@ -89,10 +88,9 @@ router.post('/config', async (req, res) => {
         });
     } catch (error) {
         console.error('Error updating SSO config:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Failed to update SSO configuration',
-            error: error.message 
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update SSO configuration'
         });
     }
 });
@@ -167,10 +165,9 @@ router.get('/login', async (req, res) => {
         });
     } catch (error) {
         console.error('Error initiating SSO login:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Failed to initiate SSO login',
-            error: error.message 
+        res.status(500).json({
+            success: false,
+            message: 'Failed to initiate SSO login'
         });
     }
 });
@@ -276,11 +273,9 @@ router.get('/callback', async (req, res) => {
                                 return res.redirect(`/login.html?error=db_error`);
                             }
                             
-                            // Log activity
-                            global.db.run(
-                                'INSERT INTO activity_log (user_id, action, details) VALUES (?, ?, ?)',
-                                [existingUser.id, 'sso_login', `SSO login via ${ssoConfig.issuerUrl}`]
-                            );
+                            // Log activity via datalayer
+                            db.activityLog.create(existingUser.id, 'sso_login', `SSO login via ${ssoConfig.issuerUrl}`)
+                                .catch(err => console.error('Error writing audit log:', err));
 
                             // Generate JWT with database user ID
                             const token = jwt.sign(
@@ -362,11 +357,9 @@ router.get('/callback', async (req, res) => {
 
                                             const newUserId = this.lastID;
 
-                                            // Log activity
-                                            global.db.run(
-                                                'INSERT INTO activity_log (user_id, action, details) VALUES (?, ?, ?)',
-                                                [newUserId, 'sso_signup', `New SSO user via ${ssoConfig.issuerUrl}`]
-                                            );
+                                            // Log activity via datalayer
+                                            db.activityLog.create(newUserId, 'sso_signup', `New SSO user via ${ssoConfig.issuerUrl}`)
+                                                .catch(err => console.error('Error writing audit log:', err));
 
                                             // Generate JWT with new database user ID
                                             const token = jwt.sign(
@@ -430,9 +423,9 @@ router.post('/logout', async (req, res) => {
         res.json({ success: true });
     } catch (error) {
         console.error('SSO logout error:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: error.message 
+        res.status(500).json({
+            success: false,
+            message: 'SSO logout failed'
         });
     }
 });
@@ -526,7 +519,8 @@ router.get('/logout', async (req, res) => {
     }
 
     // Redirect to root domain immediately
-    const redirectUri = `${process.env.BASE_URL || 'https://up-down.xyz'}/`;
+    const baseUrl = process.env.BASE_URL;
+    const redirectUri = baseUrl ? `${baseUrl}/` : '/';
     console.log('Redirecting to:', redirectUri);
     res.redirect(redirectUri);
 });

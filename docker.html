@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker Containers - Landio</title>
+    <link rel="stylesheet" href="assets/fontawesome/all.min.css">
+    <link rel="stylesheet" href="styles/base.css">
+    <!-- Load theme manager early to apply preferences before page renders -->
+    <script src="theme.js"></script>
+    <link rel="stylesheet" href="styles/nav.css">
+    <link rel="stylesheet" href="styles/pages/docker.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div id="nav-container"></div>
+            <div class="header-actions"></div>
+        </header>
+
+        <main>
+            <div class="page-header">
+                <h1><i class="fab fa-docker"></i> Docker Containers</h1>
+                <div class="docker-info-bar" id="docker-info-bar">
+                    <span class="docker-status" id="docker-status">
+                        <i class="fas fa-circle"></i> Checking connection...
+                    </span>
+                    <span class="docker-stats-badge" id="running-count">0 running</span>
+                    <span class="docker-stats-badge stopped" id="stopped-count">0 stopped</span>
+                    <button class="btn btn-sm" onclick="refreshContainers()" title="Refresh">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Docker Not Available -->
+            <div class="docker-unavailable" id="docker-unavailable" style="display: none;">
+                <div class="empty-state">
+                    <i class="fab fa-docker" style="font-size: 4rem; color: #666; margin-bottom: 15px;"></i>
+                    <h2>Docker Not Available</h2>
+                    <p id="docker-error-message">Docker daemon is not accessible from this server.</p>
+                    <p class="text-muted">Ensure the Docker socket is mounted and accessible. <br>
+                    If running in a container, add <code>-v /var/run/docker.sock:/var/run/docker.sock</code> to your docker run command.</p>
+                </div>
+            </div>
+
+            <!-- Container List -->
+            <div class="docker-content" id="docker-content">
+                <div class="docker-toolbar">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="container-search" placeholder="Search containers..." oninput="filterContainers()">
+                    </div>
+                    <div class="filter-group">
+                        <select id="status-filter" onchange="filterContainers()">
+                            <option value="all">All Containers</option>
+                            <option value="running">Running</option>
+                            <option value="exited">Stopped</option>
+                            <option value="paused">Paused</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="docker-table-container" id="docker-table-container">
+                    <table class="docker-table">
+                        <thead>
+                            <tr>
+                                <th class="col-status">Status</th>
+                                <th class="col-name">Name</th>
+                                <th class="col-image">Image</th>
+                                <th class="col-ports">Ports</th>
+                                <th class="col-uptime">Uptime / Created</th>
+                                <th class="col-actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="container-list">
+                            <tr>
+                                <td colspan="6" class="text-center">Loading containers...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Container Detail Modal -->
+    <div id="detail-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2><i class="fab fa-docker"></i> <span id="detail-name">Container Details</span></h2>
+                <button class="close-btn" onclick="closeDetailModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="detail-body">
+                <!-- Loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Log Viewer Modal -->
+    <div id="log-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2><i class="fas fa-terminal"></i> Logs: <span id="log-container-name">container</span></h2>
+                <div class="log-controls">
+                    <label>
+                        <input type="checkbox" id="log-timestamps" onchange="loadContainerLogs()"> Timestamps
+                    </label>
+                    <select id="log-tail" onchange="loadContainerLogs()">
+                        <option value="50">50 lines</option>
+                        <option value="100" selected>100 lines</option>
+                        <option value="500">500 lines</option>
+                        <option value="1000">1000 lines</option>
+                    </select>
+                    <button class="close-btn" onclick="closeLogModal()">&times;</button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <pre class="log-viewer" id="log-viewer">Loading logs...</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Action Modal -->
+    <div id="confirm-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h2 id="confirm-title">Confirm Action</h2>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-message">Are you sure?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeConfirmModal()">Cancel</button>
+                <button class="btn btn-danger" id="confirm-btn" onclick="executeConfirmedAction()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exec Modal -->
+    <div id="exec-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2><i class="fas fa-terminal"></i> Execute Command: <span id="exec-container-name">container</span></h2>
+                <button class="close-btn" onclick="closeExecModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="exec-command">Command</label>
+                    <input type="text" id="exec-command" value="sh -c 'echo Hello from container'" class="form-input" placeholder="Enter command...">
+                </div>
+                <button class="btn btn-primary" onclick="executeCommand()"><i class="fas fa-play"></i> Execute</button>
+                <pre class="log-viewer" id="exec-output" style="margin-top: 15px; display: none;">Output will appear here...</pre>
+            </div>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script src="auth.js"></script>
+    <script src="nav.js"></script>
+    <script>
+    // ─── State ──────────────────────────────────────────────────────────────
+    let containers = [];
+    let pendingAction = null;
+    let currentLogContainerId = null;
+
+    // ─── Page Init (called by base.js after auth & nav setup) ──────────────
+    window.pageInit = async function(user) {
+        // Verify role access (admin/poweruser only)
+        if (!requireRole(['admin', 'poweruser'])) return;
+
+        // Set page title with user info
+        const userName = user.displayName || user.name;
+        document.title = `Docker Containers - Landio (${userName})`;
+
+        try {
+            const status = await window.Api.request('GET', '/docker/status');
+            if (status.available) {
+                document.getElementById('docker-status').innerHTML = '<i class="fas fa-circle" style="color: #4CAF50;"></i> Connected v' + (status.version || '');
+                document.getElementById('docker-unavailable').style.display = 'none';
+                document.getElementById('docker-content').style.display = 'block';
+                await refreshContainers();
+            } else {
+                showDockerUnavailable(status.error || 'Docker daemon not reachable');
+            }
+        } catch (err) {
+            showDockerUnavailable(err.message);
+        }
+    };
+
+    function showDockerUnavailable(message) {
+        document.getElementById('docker-status').innerHTML = '<i class="fas fa-circle" style="color: #e74c3c;"></i> Unavailable';
+        document.getElementById('docker-unavailable').style.display = 'block';
+        document.getElementById('docker-error-message').textContent = message;
+        document.getElementById('docker-content').style.display = 'none';
+    }
+
+    // ─── Container Listing ──────────────────────────────────────────────────
+    async function refreshContainers() {
+        try {
+            const data = await window.Api.request('GET', '/docker/containers');
+            containers = data.containers || [];
+            renderContainers();
+            updateStats();
+        } catch (err) {
+            console.error('Failed to load containers:', err);
+            document.getElementById('container-list').innerHTML =
+                `<tr><td colspan="6" class="text-center error">Failed to load containers: ${err.message}</td></tr>`;
+        }
+    }
+
+    function renderContainers() {
+        const list = document.getElementById('container-list');
+        const filter = document.getElementById('status-filter').value;
+        const search = document.getElementById('container-search').value.toLowerCase();
+
+        const filtered = containers.filter(c => {
+            if (filter !== 'all' && c.state !== filter) return false;
+            if (search && !c.name.toLowerCase().includes(search) && !c.image.toLowerCase().includes(search)) return false;
+            return true;
+        });
+
+        if (filtered.length === 0) {
+            list.innerHTML = `<tr><td colspan="6" class="text-center">No containers found.</td></tr>`;
+            return;
+        }
+
+        list.innerHTML = filtered.map(c => {
+            const isRunning = c.state === 'running';
+            const isPaused = c.state === 'paused';
+            const statusDot = isRunning ? '#4CAF50' : isPaused ? '#FFA726' : '#e74c3c';
+            const statusIcon = isRunning ? 'fa-play-circle' : isPaused ? 'fa-pause-circle' : 'fa-stop-circle';
+
+            const ports = c.ports && c.ports.length > 0
+                ? c.ports.map(p => `${p.publicPort || '?'}:${p.privatePort || '?'}`).join(', ')
+                : '-';
+
+            const created = new Date(c.created * 1000).toLocaleDateString();
+            const statusText = c.status || c.state;
+
+            return `
+                <tr class="container-row" onclick="showContainerDetail('${c.shortId}')">
+                    <td class="col-status">
+                        <i class="fas ${statusIcon}" style="color: ${statusDot}; font-size: 1.2rem;" title="${c.state}"></i>
+                    </td>
+                    <td class="col-name"><strong>${c.name}</strong></td>
+                    <td class="col-image"><span class="image-tag">${c.image}</span></td>
+                    <td class="col-ports"><small>${ports}</small></td>
+                    <td class="col-uptime"><small>${statusText}<br>${created}</small></td>
+                    <td class="col-actions" onclick="event.stopPropagation();">
+                        <button class="btn btn-sm btn-success" onclick="containerAction('${c.shortId}', 'start')" ${isRunning ? 'disabled' : ''} title="Start">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button class="btn btn-sm btn-warning" onclick="containerAction('${c.shortId}', 'stop')" ${!isRunning || isPaused ? 'disabled' : ''} title="Stop">
+                            <i class="fas fa-stop"></i>
+                        </button>
+                        <button class="btn btn-sm btn-info" onclick="containerAction('${c.shortId}', 'restart')" ${!isRunning || isPaused ? 'disabled' : ''} title="Restart">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button class="btn btn-sm" onclick="containerAction('${c.shortId}', 'pause')" ${!isRunning || isPaused ? 'disabled' : ''} title="Pause">
+                            <i class="fas fa-pause"></i>
+                        </button>
+                        <button class="btn btn-sm" onclick="containerAction('${c.shortId}', 'unpause')" ${!isPaused ? 'disabled' : ''} title="Unpause">
+                            <i class="fas fa-play-circle"></i>
+                        </button>
+                        <button class="btn btn-sm" onclick="openLogModal('${c.shortId}', '${c.name}')" title="View Logs">
+                            <i class="fas fa-terminal"></i>
+                        </button>
+                        ${window.Auth.getCurrentUser()?.role === 'admin' ? `
+                        <button class="btn btn-sm" onclick="openExecModal('${c.shortId}', '${c.name}')" title="Execute Command">
+                            <i class="fas fa-cog"></i>
+                        </button>` : ''}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function updateStats() {
+        const running = containers.filter(c => c.state === 'running').length;
+        const stopped = containers.filter(c => c.state === 'exited' || c.state === 'created').length;
+        document.getElementById('running-count').textContent = `${running} running`;
+        document.getElementById('running-count').className = 'docker-stats-badge' + (running > 0 ? ' running' : '');
+        document.getElementById('stopped-count').textContent = `${stopped} stopped`;
+        document.getElementById('stopped-count').className = 'docker-stats-badge stopped';
+    }
+
+    function filterContainers() {
+        renderContainers();
+    }
+
+    // ─── Container Actions ──────────────────────────────────────────────────
+    function containerAction(containerId, action) {
+        const displayActions = {
+            start: 'Start',
+            stop: 'Stop',
+            restart: 'Restart',
+            pause: 'Pause',
+            unpause: 'Unpause'
+        };
+        const label = displayActions[action] || action;
+        pendingAction = { containerId, action };
+        document.getElementById('confirm-title').textContent = `${label} Container`;
+        document.getElementById('confirm-message').textContent = `Are you sure you want to ${action.toLowerCase()} container "${containerId}"?`;
+        document.getElementById('confirm-btn').textContent = label;
+        document.getElementById('confirm-modal').style.display = 'flex';
+    }
+
+    async function executeConfirmedAction() {
+        if (!pendingAction) return;
+        const { containerId, action } = pendingAction;
+        closeConfirmModal();
+
+        try {
+            const btn = document.querySelector(`button[onclick*="'${containerId}'"][onclick*="'${action}'"]`);
+            if (btn) btn.disabled = true;
+
+            await window.Api.request('POST', `/docker/containers/${containerId}/${action}`);
+            await refreshContainers();
+        } catch (err) {
+            alert(`Failed to ${action} container: ${err.message}`);
+        }
+        pendingAction = null;
+    }
+
+    function closeConfirmModal() {
+        document.getElementById('confirm-modal').style.display = 'none';
+        pendingAction = null;
+    }
+
+    // ─── Container Detail ───────────────────────────────────────────────────
+    async function showContainerDetail(containerId) {
+        try {
+            const info = await window.Api.request('GET', `/docker/containers/${containerId}`);
+            document.getElementById('detail-name').textContent = info.name || containerId;
+            const body = document.getElementById('detail-body');
+
+            let envHtml = '';
+            if (info.config && info.config.env && info.config.env.length > 0) {
+                envHtml = info.config.env.map(e => `<div class="env-var"><code>${escapeHtml(e)}</code></div>`).join('');
+            }
+
+            let portHtml = '-';
+            if (info.config && info.config.exposedPorts && info.config.exposedPorts.length > 0) {
+                portHtml = info.config.exposedPorts.join(', ');
+            }
+
+            let mountsHtml = '';
+            if (info.mounts && info.mounts.length > 0) {
+                mountsHtml = info.mounts.map(m =>
+                    `<div class="mount-item"><code>${escapeHtml(m.source || '?')} → ${escapeHtml(m.destination || '?')}</code> ${m.rw ? '(rw)' : '(ro)'}</div>`
+                ).join('');
+            }
+
+            let networkHtml = '';
+            if (info.networkSettings && info.networkSettings.networks) {
+                networkHtml = info.networkSettings.networks.map(n =>
+                    `<div><strong>${n.name}</strong>: ${n.ipAddress || 'N/A'}</div>`
+                ).join('');
+            }
+
+            body.innerHTML = `
+                <div class="detail-grid">
+                    <div class="detail-section">
+                        <h3>Status</h3>
+                        <div class="detail-item"><label>State:</label> <span class="status-badge status-${info.state?.status || 'unknown'}">${info.state?.status || 'Unknown'}</span></div>
+                        <div class="detail-item"><label>Running:</label> ${info.state?.running ? '<i class="fas fa-check-circle" style="color:#4CAF50"></i> Yes' : '<i class="fas fa-times-circle" style="color:#e74c3c"></i> No'}</div>
+                        <div class="detail-item"><label>Exit Code:</label> ${info.state?.exitCode ?? 'N/A'}</div>
+                        <div class="detail-item"><label>Started:</label> ${info.state?.startedAt ? new Date(info.state.startedAt).toLocaleString() : 'N/A'}</div>
+                        <div class="detail-item"><label>Restart Count:</label> ${info.restartCount || 0}</div>
+                    </div>
+                    <div class="detail-section">
+                        <h3>Configuration</h3>
+                        <div class="detail-item"><label>Image:</label> ${info.image || 'N/A'}</div>
+                        <div class="detail-item"><label>Hostname:</label> ${info.config?.hostname || 'N/A'}</div>
+                        <div class="detail-item"><label>Working Dir:</label> ${info.config?.workingDir || 'N/A'}</div>
+                        <div class="detail-item"><label>Ports:</label> ${portHtml}</div>
+                        <div class="detail-item"><label>Restart Policy:</label> ${info.hostConfig?.restartPolicy || 'none'}</div>
+                        <div class="detail-item"><label>Privileged:</label> ${info.hostConfig?.privileged ? '<i class="fas fa-exclamation-triangle" style="color:#FFA726"></i> Yes' : 'No'}</div>
+                        <div class="detail-item"><label>Memory Limit:</label> ${info.hostConfig?.memoryLimit ? formatBytes(info.hostConfig.memoryLimit) : 'Unlimited'}</div>
+                        <div class="detail-item"><label>CPU Shares:</label> ${info.hostConfig?.cpuShares || 'Default'}</div>
+                    </div>
+                    <div class="detail-section">
+                        <h3>Networks</h3>
+                        ${networkHtml || '<p class="text-muted">No network information</p>'}
+                    </div>
+                    <div class="detail-section">
+                        <h3>Mounts / Volumes</h3>
+                        ${mountsHtml || '<p class="text-muted">No mounts</p>'}
+                    </div>
+                    <div class="detail-section full-width">
+                        <h3>Environment Variables</h3>
+                        <div class="env-list">
+                            ${envHtml || '<p class="text-muted">No environment variables</p>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('detail-modal').style.display = 'flex';
+        } catch (err) {
+            alert('Failed to load container details: ' + err.message);
+        }
+    }
+
+    function closeDetailModal() {
+        document.getElementById('detail-modal').style.display = 'none';
+    }
+
+    // ─── Log Viewer ─────────────────────────────────────────────────────────
+    function openLogModal(containerId, name) {
+        currentLogContainerId = containerId;
+        document.getElementById('log-container-name').textContent = name || containerId;
+        document.getElementById('log-modal').style.display = 'flex';
+        loadContainerLogs();
+    }
+
+    async function loadContainerLogs() {
+        if (!currentLogContainerId) return;
+        try {
+            const tail = document.getElementById('log-tail').value;
+            const timestamps = document.getElementById('log-timestamps').checked ? 'true' : 'false';
+            const data = await window.Api.request('GET', `/docker/containers/${currentLogContainerId}/logs?tail=${tail}&timestamps=${timestamps}`);
+            document.getElementById('log-viewer').textContent = data.logs || '(No logs)';
+        } catch (err) {
+            document.getElementById('log-viewer').textContent = 'Failed to load logs: ' + err.message;
+        }
+    }
+
+    function closeLogModal() {
+        document.getElementById('log-modal').style.display = 'none';
+        currentLogContainerId = null;
+    }
+
+    // ─── Exec ───────────────────────────────────────────────────────────────
+    function openExecModal(containerId, name) {
+        document.getElementById('exec-container-name').textContent = name || containerId;
+        document.getElementById('exec-command').value = 'sh -c \'echo "Hello from $(hostname)"\'';
+        document.getElementById('exec-output').style.display = 'none';
+        document.getElementById('exec-modal').style.display = 'flex';
+        // Store for use
+        document.getElementById('exec-modal').dataset.containerId = containerId;
+    }
+
+    async function executeCommand() {
+        const containerId = document.getElementById('exec-modal').dataset.containerId;
+        const cmd = document.getElementById('exec-command').value;
+        if (!cmd) return;
+
+        const output = document.getElementById('exec-output');
+        output.style.display = 'block';
+        output.textContent = 'Executing...';
+
+        try {
+            const result = await window.Api.request('POST', `/docker/containers/${containerId}/exec`, { cmd });
+            output.textContent = result.output || '(No output)';
+        } catch (err) {
+            output.textContent = 'Error: ' + err.message;
+        }
+    }
+
+    function closeExecModal() {
+        document.getElementById('exec-modal').style.display = 'none';
+    }
+
+    // ─── Helpers ────────────────────────────────────────────────────────────
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    function formatBytes(bytes) {
+        if (bytes === 0 || !bytes) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // ─── Init ───────────────────────────────────────────────────────────────
+    // Initialization is handled by base.js via window.pageInit on DOMContentLoaded
+    </script>
+    <script src="base.js"></script>
+</body>
+</html>

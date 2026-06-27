@@ -1,20 +1,207 @@
 const express = require('express');
 const router = express.Router();
+const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
 // Get db from global scope instead of requiring server
 const getDb = () => global.db;
 
-// Import authenticateToken from auth routes
-const authRoutes = require('./auth');
-const authenticateToken = authRoutes.authenticateToken;
+// ─── SMTP Password encoding / decoding ─────────────────────────────────────────
+// Encodes at rest using base64 with a `b64:` prefix for unambiguous detection.
+// Existing plaintext passwords are decoded as-is (backward compatible).
 
-// Middleware to check if user is admin
-const requireAdmin = (req, res, next) => {
-  if (!req.user || req.user.role !== 'admin') {
-    return res.status(403).json({ error: 'Admin access required' });
+const SMTP_PWD_PREFIX = 'b64:';
+
+function smtpPasswordEncode(plaintext) {
+  if (!plaintext) return plaintext;
+  return SMTP_PWD_PREFIX + Buffer.from(plaintext, 'utf8').toString('base64');
+}
+
+function smtpPasswordDecode(stored) {
+  if (!stored) return stored;
+  if (stored.startsWith(SMTP_PWD_PREFIX)) {
+    try {
+      return Buffer.from(stored.slice(SMTP_PWD_PREFIX.length), 'base64').toString('utf8');
+    } catch {
+      // If decoding fails, return the stored value as-is for backward compat
+      return stored;
+    }
   }
-  next();
+  // No prefix — legacy plaintext, return as-is
+  return stored;
+}
+
+// ─── SMTP auto-validation helper ──────────────────────────────────────────────
+// After settings are saved, if all 4 required SMTP settings are present,
+// attempt a connection test and log a warning on failure.
+
+async function autoValidateSmtp(targetUserId) {
+  const db = getDb();
+  const settings = await new Promise((resolve, reject) => {
+    db.all(
+      `SELECT key, value FROM settings
+       WHERE (user_id = ? OR user_id IS NULL)
+         AND key IN ('smtp-server','smtp-port','smtp-username','smtp-password')`,
+      [targetUserId],
+      (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      }
+    );
+  });
+
+  const map = {};
+  for (const s of settings) map[s.key] = s.value;
+
+  const server  = map['smtp-server'];
+  const port    = map['smtp-port'];
+  const username = map['smtp-username'];
+  const password = map['smtp-password'];
+
+  if (!server || !port || !username || !password) return; // not all set yet
+
+  try {
+    const nodemailer = require('nodemailer');
+    const transporter = nodemailer.createTransport({
+      host: server,
+      port: parseInt(port),
+      secure: parseInt(port) === 465,
+      auth: { user: username, pass: smtpPasswordDecode(password) },
+      tls: {
+        rejectUnauthorized: process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0',
+      },
+      requireTLS: map['smtp-use-tls'] === 'true',
+    });
+    await transporter.verify();
+    console.log('SMTP auto-validation: connection successful');
+  } catch (err) {
+    console.warn('SMTP auto-validation: connection failed — settings saved but server unreachable:', err.message);
+  }
+}
+
+// ─── Settings schema / input validation ────────────────────────────────────────
+// Defines expected types for known settings keys. Unknown keys are allowed
+// through (for extensibility) but type-checked if they match a known key.
+
+const SETTINGS_SCHEMA = {
+  // Security & 2FA enforcement
+  'enforce-2fa-all-users':         { type: 'boolean' },
+  'enforce-2fa-admins-only':       { type: 'boolean' },
+  'two-factor-grace-period':       { type: 'number', min: 0, max: 365 },
+  'session-timeout':               { type: 'number', min: 60, max: 86400 },
+  'max-login-attempts':            { type: 'number', min: 1, max: 100 },
+  'lockout-duration':              { type: 'number', min: 1, max: 1440 },
+  'password-policy':               { type: 'boolean' },
+  'audit-logging':                 { type: 'boolean' },
+
+  // Password reset settings
+  'password-reset-enabled':        { type: 'boolean' },
+  'password-reset-token-expiry':   { type: 'number', min: 15, max: 1440 },
+
+  // Notification settings
+  'discord-enabled':               { type: 'boolean' },
+  'discord-webhook':               { type: 'string' },
+  'discord-username':              { type: 'string' },
+  'smtp-enabled':                  { type: 'boolean' },
+  'smtp-server':                   { type: 'string' },
+  'smtp-port':                     { type: 'number', min: 1, max: 65535 },
+  'smtp-username':                 { type: 'string' },
+  'smtp-password':                 { type: 'string' },
+  'smtp-use-tls':                  { type: 'boolean' },
+  'alert-cc-email':                { type: 'string' },
+  'enable-app-notifications':      { type: 'boolean' },
+  'enable-user-notifications':     { type: 'boolean' },
+  'notify-login':                  { type: 'boolean' },
+  'notify-logout':                 { type: 'boolean' },
+  'notify-app-start':              { type: 'boolean' },
+  'notify-app-stop':               { type: 'boolean' },
+  'notify-app-restart':            { type: 'boolean' },
+  'notify-errors':                 { type: 'boolean' },
+  'notify-security':               { type: 'boolean' },
+  'notify-user-activity':          { type: 'boolean' },
+
+  // User preferences (per-user settings)
+  'theme':                         { type: 'string' },
+  'font-size':                     { type: 'string' },
+  'date-format':                   { type: 'string' },
+  'chart-theme':                   { type: 'string' },
+  'border-radius':                 { type: 'string' },
+  'color-scheme':                  { type: 'string' },
+  'layout-style':                  { type: 'string' },
+  'notification-style':            { type: 'string' },
+  'compact-mode':                  { type: 'boolean' },
+  'high-contrast':                 { type: 'boolean' },
+  'enable-charts':                 { type: 'boolean' },
+  'default-language':              { type: 'string' },
+  'cloud-provider':                { type: 'string' },
+  'cloud-sync-enabled':            { type: 'boolean' },
+
+  // SSO settings
+  'sso-enabled':                   { type: 'boolean' },
+  'sso-issuer-url':                { type: 'string' },
+  'sso-client-id':                 { type: 'string' },
+  'sso-client-secret':             { type: 'string' },
+  'sso-redirect-uri':              { type: 'string' },
+  'sso-scopes':                    { type: 'string' },
+
+  // 2FA user-level settings
+  'two_factor_enabled':            { type: 'boolean' },
+
+  // Docker settings
+  'docker-auto-detect':            { type: 'boolean' },
+  'docker-connection-type':        { type: 'string' },
+  'docker-socket-path':            { type: 'string' },
+  'docker-tcp-host':               { type: 'string' },
+  'docker-tcp-port':               { type: 'number', min: 1, max: 65535 },
+  'docker-tls-enabled':            { type: 'boolean' },
+
+  // System control settings
+  'system-reboot-enabled':         { type: 'boolean' },
+  'system-shutdown-enabled':       { type: 'boolean' },
+  'system-reboot-delay':           { type: 'number', min: 10, max: 600 },
+  'system-reboot-require-reason':  { type: 'boolean' },
+  'system-reboot-allow-poweruser': { type: 'boolean' },
+  'system-ssh-host':               { type: 'string' },
+  'system-ssh-key-path':           { type: 'string' },
 };
+
+/**
+ * Validates a single setting value against the schema.
+ * Logs a warning for type mismatches but does NOT block the save
+ * (to avoid breaking existing functionality).
+ * Returns the coerced value if applicable.
+ */
+function validateSettingValue(key, value) {
+  const rule = SETTINGS_SCHEMA[key];
+  if (!rule) return value; // Unknown key — pass through
+
+  const strVal = String(value);
+
+  switch (rule.type) {
+    case 'boolean': {
+      const normalized = strVal.toLowerCase();
+      if (['true', 'false', '1', '0'].includes(normalized)) return normalized === 'true' || normalized === '1' ? 'true' : 'false';
+      console.warn(`[settings] Invalid boolean value for "${key}": "${value}" — coercing to "false"`);
+      return 'false';
+    }
+    case 'number': {
+      const num = Number(strVal);
+      if (isNaN(num)) {
+        console.warn(`[settings] Invalid number value for "${key}": "${value}" — using default fallback`);
+        return String(rule.min ?? 0);
+      }
+      const clamped = Math.max(rule.min ?? -Infinity, Math.min(rule.max ?? Infinity, num));
+      if (clamped !== num) {
+        console.warn(`[settings] Clamped "${key}" from ${num} to ${clamped} (range: ${rule.min ?? '−∞'}–${rule.max ?? '∞'})`);
+      }
+      return String(clamped);
+    }
+    case 'string':
+    default:
+      return strVal;
+  }
+}
+
+// ─── Settings handlers ─────────────────────────────────────────────────────────
 
 // GET /api/settings - Get all settings (system + user-specific)
 router.get('/', authenticateToken, async (req, res) => {
@@ -49,7 +236,7 @@ router.get('/', authenticateToken, async (req, res) => {
     
     systemSettings.forEach(setting => {
       settingsMap[setting.key] = {
-        value: setting.value,
+        value: setting.key === 'smtp-password' ? smtpPasswordDecode(setting.value) : setting.value,
         category: setting.category,
         scope: 'system'
       };
@@ -57,7 +244,7 @@ router.get('/', authenticateToken, async (req, res) => {
 
     userSettings.forEach(setting => {
       settingsMap[setting.key] = {
-        value: setting.value,
+        value: setting.key === 'smtp-password' ? smtpPasswordDecode(setting.value) : setting.value,
         category: setting.category,
         scope: 'user'
       };
@@ -67,6 +254,238 @@ router.get('/', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Error fetching settings:', error);
     res.status(500).json({ error: 'Failed to fetch settings' });
+  }
+});
+
+// GET /api/settings/system-preferences - Get system-level preferences (admin only)
+router.get('/system-preferences', authenticateToken, async (req, res) => {
+  try {
+    // Only admins can view system preferences
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const db = getDb();
+
+    // Get system-level settings
+    const settings = await new Promise((resolve, reject) => {
+      db.all(
+        'SELECT key, value FROM settings WHERE user_id IS NULL',
+        (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows);
+        }
+      );
+    });
+
+    // Build preferences object
+    const preferences = {};
+    settings.forEach(setting => {
+      preferences[setting.key] = setting.value;
+    });
+
+    // Set defaults for preferences that have no value yet
+    const defaults = {
+      'smtp-server': '',
+      'smtp-port': '587',
+      'smtp-username': '',
+      'smtp-password': '',
+      'smtp-use-tls': 'true',
+      'smtp-enabled': 'false',
+      'discord-webhook': '',
+      'discord-username': '',
+      'discord-enabled': 'false',
+      'alert-cc-email': '',
+      'enable-app-notifications': 'true',
+      'enable-user-notifications': 'true',
+      'notify-login': 'true',
+      'notify-logout': 'true',
+      'notify-app-start': 'true',
+      'notify-app-stop': 'true',
+      'notify-app-restart': 'true',
+      'notify-errors': 'true',
+      'notify-security': 'true',
+      'notify-user-activity': 'true',
+      'session-timeout': '30',
+      'max-login-attempts': '5',
+      'lockout-duration': '15',
+      'password-min-length': '8',
+      'password-require-uppercase': 'true',
+      'password-require-lowercase': 'true',
+      'password-require-numbers': 'true',
+      'password-require-special': 'false',
+      'enforce-2fa-all-users': 'false',
+      'enforce-2fa-admins-only': 'false',
+      'two-factor-grace-period': '7',
+
+      // Docker defaults
+      'docker-auto-detect': 'true',
+      'docker-connection-type': 'socket',
+      'docker-socket-path': '/var/run/docker.sock',
+      'docker-tcp-host': '',
+      'docker-tcp-port': '2375',
+      'docker-tls-enabled': 'false',
+
+      // System control defaults
+      'system-reboot-enabled': 'true',
+      'system-shutdown-enabled': 'true',
+      'system-reboot-delay': '60',
+      'system-reboot-require-reason': 'true',
+      'system-reboot-allow-poweruser': 'false',
+      'system-ssh-host': '',
+      'system-ssh-key-path': ''
+    };
+
+    // Apply defaults and decode SMTP password
+    for (const [key, defaultValue] of Object.entries(defaults)) {
+      if (preferences[key] === undefined) {
+        preferences[key] = defaultValue;
+      } else if (key === 'smtp-password') {
+        preferences[key] = smtpPasswordDecode(preferences[key]);
+      }
+    }
+
+    res.json({ preferences });
+  } catch (error) {
+    console.error('Error fetching system preferences:', error);
+    res.status(500).json({ error: 'Failed to fetch system preferences' });
+  }
+});
+
+// ─── Theme Preferences (per-user) ──────────────────────────────────────────
+// These endpoints serve the ThemeManager class in theme.js, translating
+// between the structured client format and individual key-value settings rows.
+
+// GET /api/settings/theme/preferences - Get user's theme preferences
+router.get('/theme/preferences', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const db = getDb();
+
+    // Keys used to store theme preferences (camelCase to match settings.html convention)
+    const themeKeys = ['darkMode', 'theme', 'fontSize', 'highContrast', 'reduceMotion', 'animations'];
+
+    // Try user-specific settings first
+    const userSettings = await new Promise((resolve, reject) => {
+      const placeholders = themeKeys.map(() => '?').join(',');
+      db.all(
+        `SELECT key, value FROM settings WHERE user_id = ? AND key IN (${placeholders})`,
+        [userId, ...themeKeys],
+        (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows);
+        }
+      );
+    });
+
+    // Build a map from stored keys
+    const stored = {};
+    userSettings.forEach(s => { stored[s.key] = s.value; });
+
+    // For any missing keys, fall back to system-level settings
+    const missingKeys = themeKeys.filter(k => stored[k] === undefined);
+    if (missingKeys.length > 0) {
+      const systemSettings = await new Promise((resolve, reject) => {
+        const placeholders = missingKeys.map(() => '?').join(',');
+        db.all(
+          `SELECT key, value FROM settings WHERE user_id IS NULL AND key IN (${placeholders})`,
+          missingKeys,
+          (err, rows) => {
+            if (err) reject(err);
+            else resolve(rows);
+          }
+        );
+      });
+      systemSettings.forEach(s => {
+        if (stored[s.key] === undefined) stored[s.key] = s.value;
+      });
+    }
+
+    // Default values for any still-missing keys
+    const defaults = {
+      darkMode: 'false',
+      theme: 'pastel',
+      fontSize: 'medium',
+      highContrast: 'false',
+      reduceMotion: 'false',
+      animations: 'true'
+    };
+    for (const key of themeKeys) {
+      if (stored[key] === undefined) {
+        stored[key] = defaults[key];
+      }
+    }
+
+    // Map stored keys to the client-expected format (camelCase with isDarkMode)
+    const preferences = {
+      isDarkMode: stored.darkMode === 'true',
+      theme: stored.theme,
+      fontSize: stored.fontSize,
+      highContrast: stored.highContrast === 'true',
+      reduceMotion: stored.reduceMotion === 'true',
+      animations: stored.animations === 'true'
+    };
+
+    res.json({ preferences });
+  } catch (error) {
+    console.error('Error fetching theme preferences:', error);
+    res.status(500).json({ error: 'Failed to fetch theme preferences' });
+  }
+});
+
+// POST /api/settings/theme/preferences - Save user's theme preferences
+router.post('/theme/preferences', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const db = getDb();
+    const prefs = req.body;
+
+    if (!prefs || typeof prefs !== 'object') {
+      return res.status(400).json({ error: 'Invalid theme preferences data' });
+    }
+
+    // Map client properties to stored keys with value conversion
+    const mappings = [
+      { clientKey: 'isDarkMode',    dbKey: 'darkMode',      transform: v => String(v === true || v === 'true') },
+      { clientKey: 'theme',         dbKey: 'theme',         transform: v => String(v) },
+      { clientKey: 'fontSize',      dbKey: 'fontSize',      transform: v => String(v) },
+      { clientKey: 'highContrast',  dbKey: 'highContrast',  transform: v => String(v === true || v === 'true') },
+      { clientKey: 'reduceMotion',  dbKey: 'reduceMotion',  transform: v => String(v === true || v === 'true') },
+      { clientKey: 'animations',    dbKey: 'animations',    transform: v => String(v === true || v === 'true') }
+    ];
+
+    const stmt = db.prepare(`
+      INSERT INTO settings (user_id, key, value, category, updated_at)
+      VALUES (?, ?, ?, 'appearance', datetime('now'))
+      ON CONFLICT(user_id, key) DO UPDATE SET
+        value = excluded.value,
+        updated_at = datetime('now')
+    `);
+
+    let count = 0;
+    for (const mapping of mappings) {
+      if (prefs[mapping.clientKey] !== undefined) {
+        const value = mapping.transform(prefs[mapping.clientKey]);
+        await new Promise((resolve, reject) => {
+          stmt.run(userId, mapping.dbKey, value, (err) => {
+            if (err) reject(err);
+            else resolve();
+          });
+        });
+        count++;
+      }
+    }
+
+    stmt.finalize();
+
+    res.json({
+      success: true,
+      message: 'Theme preferences saved successfully',
+      updated: count
+    });
+  } catch (error) {
+    console.error('Error saving theme preferences:', error);
+    res.status(500).json({ error: 'Failed to save theme preferences' });
   }
 });
 
@@ -91,7 +510,7 @@ router.get('/:key', authenticateToken, async (req, res) => {
     if (userSetting) {
       return res.json({ 
         key, 
-        value: userSetting.value, 
+        value: key === 'smtp-password' ? smtpPasswordDecode(userSetting.value) : userSetting.value, 
         category: userSetting.category,
         scope: 'user'
       });
@@ -112,7 +531,7 @@ router.get('/:key', authenticateToken, async (req, res) => {
     if (systemSetting) {
       return res.json({ 
         key, 
-        value: systemSetting.value, 
+        value: key === 'smtp-password' ? smtpPasswordDecode(systemSetting.value) : systemSetting.value, 
         category: systemSetting.category,
         scope: 'system'
       });
@@ -152,9 +571,14 @@ router.put('/', authenticateToken, async (req, res) => {
     `);
 
     for (const [key, data] of Object.entries(settings)) {
-      const value = typeof data === 'object' ? data.value : data;
+      let value = typeof data === 'object' ? data.value : data;
       const category = typeof data === 'object' ? data.category : null;
       
+      // Encode SMTP password at rest
+      if (key === 'smtp-password' && value) {
+        value = smtpPasswordEncode(value);
+      }
+
       await new Promise((resolve, reject) => {
         stmt.run(targetUserId, key, String(value), category, (err) => {
           if (err) reject(err);
@@ -164,6 +588,9 @@ router.put('/', authenticateToken, async (req, res) => {
     }
 
     stmt.finalize();
+
+    // Auto-validate SMTP if all required settings are present
+    autoValidateSmtp(targetUserId).catch(() => {});
 
     res.json({ 
       success: true, 
@@ -194,6 +621,12 @@ router.put('/:key', authenticateToken, async (req, res) => {
 
     const targetUserId = scope === 'system' ? null : userId;
 
+    // Encode SMTP password at rest
+    let finalValue = String(value);
+    if (key === 'smtp-password' && finalValue) {
+      finalValue = smtpPasswordEncode(finalValue);
+    }
+
     await new Promise((resolve, reject) => {
       getDb().run(`
         INSERT INTO settings (user_id, key, value, category, updated_at)
@@ -202,11 +635,14 @@ router.put('/:key', authenticateToken, async (req, res) => {
           value = excluded.value,
           category = excluded.category,
           updated_at = datetime('now')
-      `, [targetUserId, key, String(value), category], (err) => {
+      `, [targetUserId, key, finalValue, category], (err) => {
         if (err) reject(err);
         else resolve();
       });
     });
+
+    // Auto-validate SMTP if all required settings are present
+    autoValidateSmtp(targetUserId).catch(() => {});
 
     res.json({ 
       success: true, 
@@ -237,6 +673,12 @@ router.post('/', authenticateToken, async (req, res) => {
 
     const targetUserId = scope === 'system' ? null : userId;
 
+    // Encode SMTP password at rest
+    let finalValue = String(value);
+    if (key === 'smtp-password' && finalValue) {
+      finalValue = smtpPasswordEncode(finalValue);
+    }
+
     await new Promise((resolve, reject) => {
       getDb().run(`
         INSERT INTO settings (user_id, key, value, category, updated_at)
@@ -245,11 +687,14 @@ router.post('/', authenticateToken, async (req, res) => {
           value = excluded.value,
           category = excluded.category,
           updated_at = datetime('now')
-      `, [targetUserId, key, String(value), category], (err) => {
+      `, [targetUserId, key, finalValue, category], (err) => {
         if (err) reject(err);
         else resolve();
       });
     });
+
+    // Auto-validate SMTP if all required settings are present
+    autoValidateSmtp(targetUserId).catch(() => {});
 
     res.json({ 
       success: true, 
@@ -327,8 +772,11 @@ router.post('/test-smtp', authenticateToken, async (req, res) => {
     const smtpServer = await getSmtpSetting('smtp-server');
     const smtpPort = await getSmtpSetting('smtp-port');
     const smtpUsername = await getSmtpSetting('smtp-username');
-    const smtpPassword = await getSmtpSetting('smtp-password');
+    const smtpPasswordRaw = await getSmtpSetting('smtp-password');
     const smtpUseTls = await getSmtpSetting('smtp-use-tls');
+
+    // Decode SMTP password (may be base64-encoded)
+    const smtpPassword = smtpPasswordDecode(smtpPasswordRaw);
 
     console.log('SMTP Settings retrieved:', { smtpServer, smtpPort, smtpUsername: smtpUsername ? '***' : 'missing', smtpPassword: smtpPassword ? '***' : 'missing', smtpUseTls });
 
@@ -360,8 +808,7 @@ router.post('/test-smtp', authenticateToken, async (req, res) => {
           pass: smtpPassword
         },
         tls: {
-          rejectUnauthorized: false, // Allow self-signed certificates
-          ciphers: 'SSLv3' // Some servers need this
+          rejectUnauthorized: process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0',
         },
         requireTLS: smtpUseTls === 'true' // Force STARTTLS for port 587
       });
@@ -453,96 +900,65 @@ router.post('/test-discord', authenticateToken, async (req, res) => {
       return res.status(403).json({ error: 'Admin access required' });
     }
 
-    // Get webhook URL and username from request body or database
-    let discordWebhook = req.body.webhookUrl;
-    let discordUsername = req.body.botUsername;
-
-    console.log('Webhook from request:', discordWebhook);
-    console.log('Username from request:', discordUsername);
-
-    // If not provided in request, try to get from database
-    if (!discordWebhook) {
-      discordWebhook = await new Promise((resolve, reject) => {
-        global.db.get(
-          'SELECT value FROM settings WHERE key = ? AND user_id IS NULL LIMIT 1',
-          ['discord-webhook'],
+    // Get Discord settings
+    const db = getDb();
+    const getDiscordSetting = (key) => {
+      return new Promise((resolve, reject) => {
+        db.get(
+          'SELECT value FROM settings WHERE key = ? AND (user_id = ? OR user_id IS NULL) ORDER BY user_id DESC LIMIT 1',
+          [key, req.user.id],
           (err, row) => {
             if (err) reject(err);
             else resolve(row?.value || null);
           }
         );
       });
-    }
+    };
 
-    if (!discordUsername) {
-      discordUsername = await new Promise((resolve, reject) => {
-        global.db.get(
-          'SELECT value FROM settings WHERE key = ? AND user_id IS NULL LIMIT 1',
-          ['discord-username'],
-          (err, row) => {
-            if (err) reject(err);
-            else resolve(row?.value || 'Landio Bot');
-          }
-        );
-      });
-    }
+    const webhookUrl = await getDiscordSetting('discord-webhook');
+    const botUsername = await getDiscordSetting('discord-username');
 
-    console.log('Final webhook:', discordWebhook);
-    console.log('Final username:', discordUsername);
+    console.log('Discord settings:', { webhookUrl: webhookUrl ? 'configured' : 'missing', botUsername });
 
-    if (!discordWebhook) {
-      return res.status(400).json({ 
-        error: 'Discord webhook URL is required',
-        details: {
-          webhook: 'Please enter a webhook URL'
-        }
-      });
+    if (!webhookUrl) {
+      return res.status(400).json({ error: 'Discord webhook URL not configured' });
     }
 
     try {
       const axios = require('axios');
       
+      const timestamp = new Date().toLocaleString();
       const testMessage = {
-        username: discordUsername || 'Landio Bot',
-        content: '🧪 Discord Webhook Test',
+        username: botUsername || 'Landio Bot',
         embeds: [
           {
-            title: '✅ Discord Integration Test',
-            description: 'Your Discord webhook is configured correctly!',
+            title: '🧪 Discord Test - Landio Dashboard',
+            description: 'If you see this message, your Discord webhook is configured correctly!',
             color: 65280, // Green
             fields: [
               {
-                name: 'Test Status',
-                value: 'Success',
+                name: 'Test Time',
+                value: timestamp,
                 inline: true
               },
               {
-                name: 'Timestamp',
-                value: new Date().toLocaleString(),
+                name: 'Status',
+                value: '✅ Success',
                 inline: true
-              },
-              {
-                name: 'Bot Name',
-                value: discordUsername || 'Landio Bot',
-                inline: false
               }
             ],
-            footer: {
-              text: 'Landio Dashboard'
-            },
             timestamp: new Date().toISOString()
           }
         ]
       };
 
-      const result = await axios.post(discordWebhook, testMessage);
+      await axios.post(webhookUrl, testMessage);
 
       res.json({ 
         success: true,
-        message: 'Discord test successful - message sent to webhook',
+        message: 'Discord test successful - message sent',
         details: {
-          webhook: discordWebhook.substring(0, 50) + '...',
-          botName: discordUsername || 'Landio Bot',
+          webhook: webhookUrl ? 'configured' : 'not set',
           timestamp: new Date().toISOString()
         }
       });
@@ -550,9 +966,9 @@ router.post('/test-discord', authenticateToken, async (req, res) => {
     } catch (discordError) {
       console.error('Discord test failed:', discordError.message);
       res.status(400).json({ 
-        error: 'Discord webhook error',
+        error: 'Discord error',
         message: discordError.message,
-        details: discordError.response?.status || 'Unknown error'
+        details: discordError.response?.data
       });
     }
 
@@ -562,129 +978,59 @@ router.post('/test-discord', authenticateToken, async (req, res) => {
   }
 });
 
-// GET /api/settings/theme/preferences - Get user's theme preferences
-router.get('/theme/preferences', authenticateToken, async (req, res) => {
+// POST /api/settings/system-preferences - Update system-level preferences
+router.post('/system-preferences', authenticateToken, async (req, res) => {
   try {
-    const userId = req.user.id;
+    // Only admins can update system preferences
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
 
-    const themePreferences = await new Promise((resolve, reject) => {
-      getDb().all(
-        `SELECT key, value FROM settings 
-         WHERE user_id = ? AND key IN (
-           'theme-preference', 'selected-theme', 'font-size', 
-           'high-contrast', 'reduce-motion', 'animations-enabled'
-         )`,
-        [userId],
-        (err, rows) => {
-          if (err) reject(err);
-          else resolve(rows);
-        }
-      );
-    });
+    const db = getDb();
+    const { preferences } = req.body;
 
-    // Convert to object format
-    const preferences = {};
-    themePreferences.forEach(pref => {
-      if (pref.key === 'high-contrast' || pref.key === 'reduce-motion' || pref.key === 'animations-enabled') {
-        preferences[pref.key] = pref.value === 'true';
-      } else {
-        preferences[pref.key] = pref.value;
+    if (!preferences || typeof preferences !== 'object') {
+      return res.status(400).json({ error: 'Invalid preferences data' });
+    }
+
+    console.log('Updating system preferences:', Object.keys(preferences));
+
+    // Update each preference
+    for (const [key, value] of Object.entries(preferences)) {
+      // Encode SMTP password at rest
+      let finalValue = String(value);
+      if (key === 'smtp-password' && finalValue) {
+        finalValue = smtpPasswordEncode(finalValue);
       }
-    });
 
-    res.json({ 
-      preferences: {
-        isDarkMode: preferences['theme-preference'] === 'dark',
-        theme: preferences['selected-theme'] || 'pastel',
-        fontSize: preferences['font-size'] || 'medium',
-        highContrast: preferences['high-contrast'] || false,
-        reduceMotion: preferences['reduce-motion'] || false,
-        animations: preferences['animations-enabled'] !== false
-      }
-    });
-  } catch (error) {
-    console.error('Error fetching theme preferences:', error);
-    res.status(500).json({ error: 'Failed to fetch theme preferences' });
-  }
-});
-
-// POST /api/settings/theme/preferences - Save user's theme preferences
-router.post('/theme/preferences', authenticateToken, async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { isDarkMode, theme, fontSize, highContrast, reduceMotion, animations } = req.body;
-
-    // Validate inputs
-    if (isDarkMode === undefined && !theme && !fontSize && highContrast === undefined && reduceMotion === undefined && animations === undefined) {
-      return res.status(400).json({ error: 'At least one preference must be provided' });
-    }
-
-    // Valid theme options
-    const validThemes = ['pastel', 'cyber', 'mocha', 'ice', 'nature', 'sunset'];
-    const validFontSizes = ['small', 'medium', 'large', 'extra-large'];
-
-    if (theme && !validThemes.includes(theme)) {
-      return res.status(400).json({ error: `Invalid theme. Must be one of: ${validThemes.join(', ')}` });
-    }
-
-    if (fontSize && !validFontSizes.includes(fontSize)) {
-      return res.status(400).json({ error: `Invalid font size. Must be one of: ${validFontSizes.join(', ')}` });
-    }
-
-    const updates = [];
-
-    if (isDarkMode !== undefined) {
-      updates.push(['theme-preference', isDarkMode ? 'dark' : 'light']);
-    }
-    if (theme) {
-      updates.push(['selected-theme', theme]);
-    }
-    if (fontSize) {
-      updates.push(['font-size', fontSize]);
-    }
-    if (highContrast !== undefined) {
-      updates.push(['high-contrast', highContrast.toString()]);
-    }
-    if (reduceMotion !== undefined) {
-      updates.push(['reduce-motion', reduceMotion.toString()]);
-    }
-    if (animations !== undefined) {
-      updates.push(['animations-enabled', animations.toString()]);
-    }
-
-    // Save all preferences
-    for (const [key, value] of updates) {
       await new Promise((resolve, reject) => {
-        getDb().run(`
-          INSERT INTO settings (user_id, key, value, category, updated_at)
-          VALUES (?, ?, ?, ?, datetime('now'))
-          ON CONFLICT(user_id, key) DO UPDATE SET
-            value = excluded.value,
-            updated_at = datetime('now')
-        `, [userId, key, value, 'appearance'], (err) => {
-          if (err) reject(err);
-          else resolve();
-        });
+        db.run(
+          `INSERT INTO settings (user_id, key, value, category, updated_at)
+           VALUES (NULL, ?, ?, 'system', datetime('now'))
+           ON CONFLICT(user_id, key) DO UPDATE SET
+             value = excluded.value,
+             category = excluded.category,
+             updated_at = datetime('now')`,
+          [key, finalValue],
+          (err) => {
+            if (err) reject(err);
+            else resolve();
+          }
+        );
       });
     }
 
+    // Auto-validate SMTP after saving system preferences
+    autoValidateSmtp(null).catch(() => {});
+
     res.json({ 
       success: true, 
-      message: 'Theme preferences saved successfully',
-      preferences: {
-        isDarkMode,
-        theme,
-        fontSize,
-        highContrast,
-        reduceMotion,
-        animations
-      }
+      message: 'System preferences updated successfully'
     });
   } catch (error) {
-    console.error('Error saving theme preferences:', error);
-    res.status(500).json({ error: 'Failed to save theme preferences' });
+    console.error('Error updating system preferences:', error);
+    res.status(500).json({ error: 'Failed to update system preferences' });
   }
 });
 
 module.exports = router;
-

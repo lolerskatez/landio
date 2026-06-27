@@ -4,29 +4,10 @@ const path = require('path');
 const fs = require('fs').promises;
 const https = require('https');
 const http = require('http');
+const { authenticateToken, requireAdmin, requireAdminOrPowerUser } = require('../middleware/auth');
 
 // Get db from global scope
 const getDb = () => global.db;
-
-// Import authenticateToken from auth routes
-const authRoutes = require('./auth');
-const authenticateToken = authRoutes.authenticateToken;
-
-// Middleware to check if user is admin
-const requireAdmin = (req, res, next) => {
-  if (!req.user || req.user.role !== 'admin') {
-    return res.status(403).json({ error: 'Admin access required' });
-  }
-  next();
-};
-
-// Middleware to check if user is admin or power user
-const requireAdminOrPowerUser = (req, res, next) => {
-  if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'poweruser')) {
-    return res.status(403).json({ error: 'Admin or Power User access required' });
-  }
-  next();
-};
 
 // Initialize database table for services
 const initializeServicesTable = () => {

@@ -1,0 +1,1076 @@
+/* ─── Docker Management Page Styles ───────────────────────────────────────── */
+
+/* Page Header */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.page-header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.page-header h1 .fa-docker {
+    color: #0db7ed;
+}
+
+/* Docker Info Bar */
+.docker-info-bar {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.docker-status {
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.docker-stats-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    background: var(--bg-secondary, #f5f5f5);
+    color: var(--text-muted, #666);
+}
+
+.docker-stats-badge.running {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.docker-stats-badge.stopped {
+    background: #fbe9e7;
+    color: #c62828;
+}
+
+/* Docker Unavailable State */
+.docker-unavailable {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.docker-unavailable .empty-state {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.docker-unavailable .empty-state h2 {
+    margin-bottom: 10px;
+}
+
+.docker-unavailable .empty-state p {
+    color: var(--text-muted, #666);
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+.docker-unavailable .empty-state code {
+    background: var(--bg-secondary, #f0f0f0);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+/* Docker Toolbar */
+.docker-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    background: var(--bg-secondary, #f5f5f5);
+    border-radius: 8px;
+    padding: 0 12px;
+    flex: 1;
+    max-width: 350px;
+}
+
+.search-box .fa-search {
+    color: var(--text-muted, #999);
+    margin-right: 8px;
+}
+
+.search-box input {
+    border: none;
+    background: transparent;
+    padding: 10px 0;
+    width: 100%;
+    outline: none;
+    font-size: 0.9rem;
+    color: var(--text-color, #333);
+}
+
+.filter-group select {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 6px;
+    background: var(--bg-color, #fff);
+    font-size: 0.9rem;
+    color: var(--text-color, #333);
+    cursor: pointer;
+}
+
+/* Docker Table */
+.docker-table-container {
+    overflow-x: auto;
+    background: var(--bg-secondary, #f9f9f9);
+    border-radius: 8px;
+    border: 1px solid var(--border-color, #e0e0e0);
+}
+
+.docker-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.docker-table th {
+    text-align: left;
+    padding: 12px 15px;
+    font-weight: 600;
+    color: var(--text-muted, #666);
+    border-bottom: 2px solid var(--border-color, #e0e0e0);
+    background: var(--bg-tertiary, #f0f0f0);
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+}
+
+.docker-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-color, #eee);
+    vertical-align: middle;
+}
+
+.docker-table tr:hover {
+    background: var(--bg-hover, rgba(0,0,0,0.02));
+}
+
+.docker-table tr:last-child td {
+    border-bottom: none;
+}
+
+.col-status { width: 40px; text-align: center; }
+.col-name { min-width: 150px; }
+.col-image { min-width: 120px; }
+.col-ports { min-width: 120px; }
+.col-uptime { min-width: 100px; }
+.col-actions { min-width: 200px; white-space: nowrap; }
+
+/* Container row cursor */
+.container-row {
+    cursor: pointer;
+}
+
+.container-row:hover {
+    background: var(--bg-hover, rgba(0,0,0,0.03)) !important;
+}
+
+/* Image tag badge */
+.image-tag {
+    background: var(--bg-tertiary, #e8e8e8);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-family: monospace;
+}
+
+/* Status badges */
+.status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-running { background: #e8f5e9; color: #2e7d32; }
+.status-exited { background: #fbe9e7; color: #c62828; }
+.status-paused { background: #fff3e0; color: #e65100; }
+.status-created { background: #e3f2fd; color: #1565c0; }
+.status-restarting { background: #f3e5f5; color: #7b1fa2; }
+.status-unknown { background: #f5f5f5; color: #666; }
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--bg-color, #fff);
+    color: var(--text-color, #333);
+}
+
+.btn:hover:not(:disabled) {
+    opacity: 0.85;
+}
+
+.btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+}
+
+.btn-primary { background: #667eea; color: white; border-color: #667eea; }
+.btn-success { background: #4CAF50; color: white; border-color: #4CAF50; }
+.btn-warning { background: #FFA726; color: white; border-color: #FFA726; }
+.btn-danger { background: #e74c3c; color: white; border-color: #e74c3c; }
+.btn-info { background: #42A5F5; color: white; border-color: #42A5F5; }
+.btn-secondary { background: #78909C; color: white; border-color: #78909C; }
+
+/* Detail Grid (modal) */
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.detail-section {
+    background: var(--bg-secondary, #f9f9f9);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color, #e0e0e0);
+}
+
+.detail-section.full-width {
+    grid-column: 1 / -1;
+}
+
+.detail-section h3 {
+    margin: 0 0 12px 0;
+    font-size: 1rem;
+    color: var(--text-muted, #666);
+    border-bottom: 1px solid var(--border-color, #e0e0e0);
+    padding-bottom: 8px;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 4px 0;
+    font-size: 0.9rem;
+}
+
+.detail-item label {
+    font-weight: 500;
+    color: var(--text-muted, #666);
+    min-width: 100px;
+}
+
+.env-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.env-var {
+    padding: 3px 0;
+}
+
+.env-var code {
+    font-size: 0.8rem;
+    word-break: break-all;
+}
+
+.mount-item {
+    padding: 3px 0;
+}
+
+.mount-item code {
+    font-size: 0.8rem;
+    word-break: break-all;
+}
+
+/* Log Viewer */
+.log-viewer {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 15px;
+    border-radius: 6px;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 500px;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.log-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.log-controls label {
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+}
+
+.log-controls select {
+    padding: 4px 8px;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+/* Form Inputs */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.form-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    background: var(--bg-color, #fff);
+    color: var(--text-color, #333);
+    box-sizing: border-box;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102,126,234,0.2);
+}
+
+/* Text utilities */
+.text-center { text-align: center; }
+.text-muted { color: var(--text-muted, #999); }
+.error { color: #e74c3c; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+    }
+
+    .docker-toolbar {
+        flex-direction: column;
+    }
+
+    .search-box {
+        max-width: 100%;
+    }
+
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .docker-table td, .docker-table th {
+        padding: 8px 10px;
+    }
+
+    .col-actions .btn {
+        padding: 3px 6px;
+        font-size: 0.75rem;
+    }
+}
+
+/* ============================================ */
+/* THEME-AWARE STYLING */
+/* ============================================ */
+
+/* THEME 0: Original Pastel (Default) */
+body.theme-pastel {
+    --primary: #ff6b93;
+    --secondary: #a6d8ff;
+    --accent: #ffccd5;
+    --text: #5a5a5a;
+    --light-bg: #fff9fb;
+    --dark: #4a4a4a;
+    background: linear-gradient(135deg, #ffd1dc, #c9e9ff);
+    font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+body.theme-pastel header {
+    background-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* THEME 1: Cyber Sakura */
+body.theme-cyber {
+    --primary: #FF5FA2;
+    --primary-glow: #FF9BD4;
+    --neon-blue: #00E0FF;
+    --neon-purple: #C77DFF;
+    --bg-main: #0E0A1F;
+    --bg-card: #1C1433;
+    --bg-surface: #241A40;
+    --text-primary: #FFFFFF;
+    --text-secondary: #C9BEEA;
+    --success: #00FFA3;
+    --warning: #FFC93C;
+    --error: #FF4F70;
+    background: linear-gradient(135deg, #0E0A1F, #1A0F2E);
+    font-family: 'Poppins', sans-serif;
+    color: #FFFFFF;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+body.theme-cyber header {
+    background: rgba(28, 20, 51, 0.95) !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 0 20px rgba(255, 95, 162, 0.3) !important;
+}
+
+body.theme-cyber h1,
+body.theme-cyber h2,
+body.theme-cyber h3 {
+    color: #FF9BD4 !important;
+}
+
+body.theme-cyber .page-header h1 .fa-docker {
+    color: #00E0FF !important;
+}
+
+body.theme-cyber .docker-table-container {
+    background: rgba(28, 20, 51, 0.95) !important;
+    border-color: rgba(255, 95, 162, 0.2) !important;
+}
+
+body.theme-cyber .docker-table th {
+    background: rgba(14, 10, 31, 0.8) !important;
+    color: #C9BEEA !important;
+    border-bottom-color: rgba(255, 95, 162, 0.2) !important;
+}
+
+body.theme-cyber .docker-table td {
+    border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+    color: #FFFFFF !important;
+}
+
+body.theme-cyber .docker-table tr:hover {
+    background: rgba(255, 95, 162, 0.08) !important;
+}
+
+body.theme-cyber .container-row:hover {
+    background: rgba(255, 95, 162, 0.08) !important;
+}
+
+body.theme-cyber .search-box {
+    background: rgba(20, 20, 30, 0.8) !important;
+}
+
+body.theme-cyber .search-box .fa-search {
+    color: #C9BEEA !important;
+}
+
+body.theme-cyber .search-box input {
+    color: #FFFFFF !important;
+}
+
+body.theme-cyber .search-box input::placeholder {
+    color: rgba(201, 190, 234, 0.5) !important;
+}
+
+body.theme-cyber .filter-group select {
+    background: rgba(20, 20, 30, 0.8) !important;
+    border-color: rgba(255, 95, 162, 0.2) !important;
+    color: #C9BEEA !important;
+}
+
+body.theme-cyber .docker-stats-badge {
+    background: rgba(36, 26, 64, 0.8) !important;
+    color: #C9BEEA !important;
+}
+
+body.theme-cyber .docker-stats-badge.running {
+    background: rgba(0, 255, 163, 0.15) !important;
+    color: #00FFA3 !important;
+}
+
+body.theme-cyber .docker-stats-badge.stopped {
+    background: rgba(255, 79, 112, 0.15) !important;
+    color: #FF4F70 !important;
+}
+
+body.theme-cyber .status-running { background: rgba(0, 255, 163, 0.15) !important; color: #00FFA3 !important; }
+body.theme-cyber .status-exited { background: rgba(255, 79, 112, 0.15) !important; color: #FF4F70 !important; }
+body.theme-cyber .status-paused { background: rgba(255, 201, 60, 0.15) !important; color: #FFC93C !important; }
+body.theme-cyber .status-created { background: rgba(0, 224, 255, 0.15) !important; color: #00E0FF !important; }
+body.theme-cyber .status-restarting { background: rgba(199, 125, 255, 0.15) !important; color: #C77DFF !important; }
+body.theme-cyber .status-unknown { background: rgba(201, 190, 234, 0.1) !important; color: #C9BEEA !important; }
+
+body.theme-cyber .btn {
+    background: rgba(255, 95, 162, 0.1) !important;
+    border-color: rgba(255, 95, 162, 0.2) !important;
+    color: #FF9BD4 !important;
+}
+
+body.theme-cyber .btn:hover:not(:disabled) {
+    background: rgba(255, 95, 162, 0.2) !important;
+}
+
+body.theme-cyber .btn-primary {
+    background: rgba(255, 95, 162, 0.2) !important;
+    border-color: rgba(255, 95, 162, 0.4) !important;
+    color: #FF9BD4 !important;
+}
+
+body.theme-cyber .btn-primary:hover:not(:disabled) {
+    background: #FF5FA2 !important;
+    color: #FFFFFF !important;
+}
+
+body.theme-cyber .btn-success {
+    background: rgba(0, 255, 163, 0.15) !important;
+    border-color: rgba(0, 255, 163, 0.3) !important;
+    color: #00FFA3 !important;
+}
+
+body.theme-cyber .btn-warning {
+    background: rgba(255, 201, 60, 0.15) !important;
+    border-color: rgba(255, 201, 60, 0.3) !important;
+    color: #FFC93C !important;
+}
+
+body.theme-cyber .btn-danger {
+    background: rgba(255, 79, 112, 0.15) !important;
+    border-color: rgba(255, 79, 112, 0.3) !important;
+    color: #FF4F70 !important;
+}
+
+body.theme-cyber .btn-info {
+    background: rgba(0, 224, 255, 0.15) !important;
+    border-color: rgba(0, 224, 255, 0.3) !important;
+    color: #00E0FF !important;
+}
+
+body.theme-cyber .btn-secondary {
+    background: rgba(201, 190, 234, 0.1) !important;
+    border-color: rgba(201, 190, 234, 0.2) !important;
+    color: #C9BEEA !important;
+}
+
+body.theme-cyber .detail-section {
+    background: rgba(36, 26, 64, 0.8) !important;
+    border-color: rgba(255, 95, 162, 0.2) !important;
+}
+
+body.theme-cyber .detail-section h3 {
+    color: #FF9BD4 !important;
+    border-bottom-color: rgba(255, 95, 162, 0.2) !important;
+}
+
+body.theme-cyber .detail-item label {
+    color: #C9BEEA !important;
+}
+
+body.theme-cyber .form-input {
+    background: rgba(14, 10, 31, 0.6) !important;
+    border-color: rgba(255, 95, 162, 0.2) !important;
+    color: #FFFFFF !important;
+}
+
+body.theme-cyber .form-input:focus {
+    border-color: #00E0FF !important;
+    box-shadow: 0 0 0 2px rgba(0, 224, 255, 0.2) !important;
+}
+
+body.theme-cyber .form-input::placeholder {
+    color: rgba(201, 190, 234, 0.5) !important;
+}
+
+body.theme-cyber .image-tag {
+    background: rgba(36, 26, 64, 0.8) !important;
+    color: #C9BEEA !important;
+}
+
+body.theme-cyber .env-var code,
+body.theme-cyber .mount-item code {
+    color: #C9BEEA !important;
+}
+
+body.theme-cyber .docker-unavailable .empty-state p {
+    color: #C9BEEA !important;
+}
+
+body.theme-cyber .docker-unavailable .empty-state code {
+    background: rgba(36, 26, 64, 0.8) !important;
+    color: #C9BEEA !important;
+}
+
+body.theme-cyber .log-controls select {
+    background: rgba(14, 10, 31, 0.6) !important;
+    border-color: rgba(255, 95, 162, 0.2) !important;
+    color: #C9BEEA !important;
+}
+
+body.theme-cyber .log-controls label {
+    color: #C9BEEA !important;
+}
+
+body.theme-cyber .text-muted {
+    color: #C9BEEA !important;
+}
+
+/* THEME 2: Sunset Gradient */
+body.theme-sunset {
+    --primary: #FF6A3D;
+    --primary-dark: #D44A20;
+    --gradient-start: #FF6A3D;
+    --gradient-end: #A14BFF;
+    --bg-main: #FFF7F3;
+    --bg-card: #FFFFFF;
+    --bg-surface: #F7EEE9;
+    --text-primary: #2F2F2F;
+    --text-secondary: #5A5A5A;
+    --success: #46C371;
+    --warning: #F7C14E;
+    --error: #E44A57;
+    background: linear-gradient(135deg, #FF6A3D, #A14BFF);
+    font-family: 'Poppins', sans-serif;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+body.theme-sunset header {
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 10px 28px rgba(255, 106, 61, 0.15) !important;
+}
+
+body.theme-sunset h1,
+body.theme-sunset h2,
+body.theme-sunset h3 {
+    color: #FF6A3D !important;
+}
+
+body.theme-sunset .page-header h1 .fa-docker {
+    color: #FF6A3D !important;
+}
+
+body.theme-sunset .docker-table-container {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-color: rgba(255, 106, 61, 0.15) !important;
+}
+
+body.theme-sunset .docker-table th {
+    background: rgba(247, 238, 233, 0.8) !important;
+    color: #5A5A5A !important;
+    border-bottom-color: rgba(255, 106, 61, 0.15) !important;
+}
+
+body.theme-sunset .docker-table td {
+    border-bottom-color: rgba(0, 0, 0, 0.06) !important;
+    color: #2F2F2F !important;
+}
+
+body.theme-sunset .docker-table tr:hover {
+    background: rgba(255, 106, 61, 0.05) !important;
+}
+
+body.theme-sunset .container-row:hover {
+    background: rgba(255, 106, 61, 0.05) !important;
+}
+
+body.theme-sunset .search-box {
+    background: rgba(255, 255, 255, 0.9) !important;
+}
+
+body.theme-sunset .search-box .fa-search {
+    color: #5A5A5A !important;
+}
+
+body.theme-sunset .search-box input {
+    color: #2F2F2F !important;
+}
+
+body.theme-sunset .search-box input::placeholder {
+    color: rgba(90, 90, 90, 0.5) !important;
+}
+
+body.theme-sunset .filter-group select {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(255, 106, 61, 0.2) !important;
+    color: #2F2F2F !important;
+}
+
+body.theme-sunset .docker-stats-badge {
+    background: rgba(247, 238, 233, 0.8) !important;
+    color: #5A5A5A !important;
+}
+
+body.theme-sunset .docker-stats-badge.running {
+    background: rgba(70, 195, 113, 0.1) !important;
+    color: #46C371 !important;
+}
+
+body.theme-sunset .docker-stats-badge.stopped {
+    background: rgba(228, 74, 87, 0.1) !important;
+    color: #E44A57 !important;
+}
+
+body.theme-sunset .status-running { background: rgba(70, 195, 113, 0.1) !important; color: #46C371 !important; }
+body.theme-sunset .status-exited { background: rgba(228, 74, 87, 0.1) !important; color: #E44A57 !important; }
+body.theme-sunset .status-paused { background: rgba(247, 193, 78, 0.15) !important; color: #D4952E !important; }
+body.theme-sunset .status-created { background: rgba(52, 152, 219, 0.1) !important; color: #2980B9 !important; }
+body.theme-sunset .status-restarting { background: rgba(161, 75, 255, 0.1) !important; color: #8B2FD6 !important; }
+body.theme-sunset .status-unknown { background: rgba(0, 0, 0, 0.03) !important; color: #999 !important; }
+
+body.theme-sunset .btn {
+    background: rgba(255, 255, 255, 0.8) !important;
+    border-color: rgba(255, 106, 61, 0.2) !important;
+    color: #2F2F2F !important;
+}
+
+body.theme-sunset .btn:hover:not(:disabled) {
+    background: #FF6A3D !important;
+    color: #FFFFFF !important;
+}
+
+body.theme-sunset .btn-primary {
+    background: #FF6A3D !important;
+    border-color: #FF6A3D !important;
+    color: #FFFFFF !important;
+}
+
+body.theme-sunset .btn-primary:hover:not(:disabled) {
+    background: #D44A20 !important;
+}
+
+body.theme-sunset .btn-success {
+    background: rgba(70, 195, 113, 0.15) !important;
+    border-color: rgba(70, 195, 113, 0.3) !important;
+    color: #46C371 !important;
+}
+
+body.theme-sunset .btn-warning {
+    background: rgba(247, 193, 78, 0.15) !important;
+    border-color: rgba(247, 193, 78, 0.3) !important;
+    color: #C4942E !important;
+}
+
+body.theme-sunset .btn-danger {
+    background: rgba(228, 74, 87, 0.15) !important;
+    border-color: rgba(228, 74, 87, 0.3) !important;
+    color: #E44A57 !important;
+}
+
+body.theme-sunset .btn-info {
+    background: rgba(52, 152, 219, 0.15) !important;
+    border-color: rgba(52, 152, 219, 0.3) !important;
+    color: #2980B9 !important;
+}
+
+body.theme-sunset .btn-secondary {
+    background: rgba(0, 0, 0, 0.05) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+    color: #5A5A5A !important;
+}
+
+body.theme-sunset .detail-section {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-color: rgba(255, 106, 61, 0.15) !important;
+}
+
+body.theme-sunset .detail-section h3 {
+    color: #FF6A3D !important;
+    border-bottom-color: rgba(255, 106, 61, 0.15) !important;
+}
+
+body.theme-sunset .detail-item label {
+    color: #5A5A5A !important;
+}
+
+body.theme-sunset .form-input {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(255, 106, 61, 0.2) !important;
+    color: #2F2F2F !important;
+}
+
+body.theme-sunset .form-input:focus {
+    border-color: #FF6A3D !important;
+    box-shadow: 0 0 0 2px rgba(255, 106, 61, 0.2) !important;
+}
+
+body.theme-sunset .image-tag {
+    background: rgba(247, 238, 233, 0.8) !important;
+    color: #5A5A5A !important;
+}
+
+body.theme-sunset .env-var code,
+body.theme-sunset .mount-item code {
+    color: #5A5A5A !important;
+}
+
+body.theme-sunset .docker-unavailable .empty-state p {
+    color: #5A5A5A !important;
+}
+
+body.theme-sunset .docker-unavailable .empty-state code {
+    background: rgba(255, 255, 255, 0.9) !important;
+    color: #5A5A5A !important;
+}
+
+body.theme-sunset .log-controls select {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(255, 106, 61, 0.2) !important;
+    color: #2F2F2F !important;
+}
+
+body.theme-sunset .log-controls label {
+    color: #5A5A5A !important;
+}
+
+body.theme-sunset .text-muted {
+    color: #5A5A5A !important;
+}
+
+/* Dark Mode */
+.dark-mode {
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2d2d2d;
+    --bg-tertiary: #3d3d3d;
+    --text-primary: #ffffff;
+    --text-secondary: #cccccc;
+    --text-muted: #888888;
+    --border-color: #444444;
+    --primary: #ff6b9d;
+    --primary-hover: #ff8bb3;
+    --secondary: #4ecdc4;
+    --secondary-hover: #6fd5cc;
+    --success: #51cf66;
+    --warning: #ffd43b;
+    --error: #ff6b6b;
+    --card-bg: #2d2d2d;
+    --input-bg: #3d3d3d;
+    --shadow: rgba(0, 0, 0, 0.3);
+}
+
+.dark-mode header {
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+}
+
+.dark-mode h1,
+.dark-mode h2,
+.dark-mode h3 {
+    color: var(--primary) !important;
+}
+
+.dark-mode .page-header h1 .fa-docker {
+    color: #0db7ed !important;
+}
+
+.dark-mode .docker-table-container {
+    background: var(--bg-secondary) !important;
+    border-color: var(--border-color) !important;
+}
+
+.dark-mode .docker-table th {
+    background: var(--bg-tertiary) !important;
+    color: var(--text-muted) !important;
+    border-bottom-color: var(--border-color) !important;
+}
+
+.dark-mode .docker-table td {
+    border-bottom-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+.dark-mode .docker-table tr:hover {
+    background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.dark-mode .container-row:hover {
+    background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.dark-mode .search-box {
+    background: var(--input-bg) !important;
+}
+
+.dark-mode .search-box .fa-search {
+    color: var(--text-muted) !important;
+}
+
+.dark-mode .search-box input {
+    color: var(--text-primary) !important;
+}
+
+.dark-mode .search-box input::placeholder {
+    color: var(--text-muted) !important;
+}
+
+.dark-mode .filter-group select {
+    background: var(--input-bg) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+.dark-mode .docker-stats-badge {
+    background: var(--bg-tertiary) !important;
+    color: var(--text-muted) !important;
+}
+
+.dark-mode .docker-stats-badge.running {
+    background: rgba(81, 207, 102, 0.15) !important;
+    color: var(--success) !important;
+}
+
+.dark-mode .docker-stats-badge.stopped {
+    background: rgba(255, 107, 107, 0.15) !important;
+    color: var(--error) !important;
+}
+
+.dark-mode .status-running { background: rgba(81, 207, 102, 0.15) !important; color: var(--success) !important; }
+.dark-mode .status-exited { background: rgba(255, 107, 107, 0.15) !important; color: var(--error) !important; }
+.dark-mode .status-paused { background: rgba(255, 212, 59, 0.15) !important; color: var(--warning) !important; }
+.dark-mode .status-created { background: rgba(78, 205, 196, 0.15) !important; color: var(--secondary) !important; }
+.dark-mode .status-restarting { background: rgba(255, 107, 157, 0.15) !important; color: var(--primary) !important; }
+.dark-mode .status-unknown { background: var(--bg-tertiary) !important; color: var(--text-muted) !important; }
+
+.dark-mode .btn {
+    background: var(--bg-secondary) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+.dark-mode .btn:hover:not(:disabled) {
+    background: var(--bg-tertiary) !important;
+}
+
+.dark-mode .btn-primary {
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+    color: white !important;
+}
+
+.dark-mode .btn-primary:hover:not(:disabled) {
+    background: var(--primary-hover) !important;
+}
+
+.dark-mode .btn-success {
+    background: rgba(81, 207, 102, 0.2) !important;
+    border-color: rgba(81, 207, 102, 0.4) !important;
+    color: var(--success) !important;
+}
+
+.dark-mode .btn-warning {
+    background: rgba(255, 212, 59, 0.2) !important;
+    border-color: rgba(255, 212, 59, 0.4) !important;
+    color: var(--warning) !important;
+}
+
+.dark-mode .btn-danger {
+    background: rgba(255, 107, 107, 0.2) !important;
+    border-color: rgba(255, 107, 107, 0.4) !important;
+    color: var(--error) !important;
+}
+
+.dark-mode .btn-info {
+    background: rgba(78, 205, 196, 0.2) !important;
+    border-color: rgba(78, 205, 196, 0.4) !important;
+    color: var(--secondary) !important;
+}
+
+.dark-mode .btn-secondary {
+    background: var(--bg-tertiary) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-muted) !important;
+}
+
+.dark-mode .detail-section {
+    background: var(--bg-tertiary) !important;
+    border-color: var(--border-color) !important;
+}
+
+.dark-mode .detail-section h3 {
+    color: var(--primary) !important;
+    border-bottom-color: var(--border-color) !important;
+}
+
+.dark-mode .detail-item label {
+    color: var(--text-muted) !important;
+}
+
+.dark-mode .form-input {
+    background: var(--input-bg) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+.dark-mode .form-input:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 2px rgba(255, 107, 157, 0.2) !important;
+}
+
+.dark-mode .image-tag {
+    background: var(--bg-tertiary) !important;
+    color: var(--text-muted) !important;
+}
+
+.dark-mode .env-var code,
+.dark-mode .mount-item code {
+    color: var(--text-secondary) !important;
+}
+
+.dark-mode .docker-unavailable .empty-state p {
+    color: var(--text-muted) !important;
+}
+
+.dark-mode .docker-unavailable .empty-state code {
+    background: var(--bg-tertiary) !important;
+    color: var(--text-secondary) !important;
+}
+
+.dark-mode .log-controls select {
+    background: var(--input-bg) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+.dark-mode .log-controls label {
+    color: var(--text-muted) !important;
+}
+
+.dark-mode .text-muted {
+    color: var(--text-muted) !important;
+}

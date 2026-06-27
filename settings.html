@@ -5,1887 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings</title>
     <link rel="stylesheet" href="/assets/fontawesome/all.min.css">
+    <link rel="stylesheet" href="/styles/base.css">
     <!-- Load theme manager early to apply preferences before page renders -->
     <script src="theme.js"></script>
     <!-- QRCode library for 2FA setup -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-    <style>
-        /* Base styles - Matching original theme */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
-        }
-        
-        :root {
-            --primary: #ff6b93;
-            --secondary: #a6d8ff;
-            --accent: #ffccd5;
-            --text: #5a5a5a;
-            --light-bg: #fff9fb;
-            --dark: #4a4a4a;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #ffd1dc, #c9e9ff);
-            min-height: 100vh;
-            color: var(--text);
-            padding: 20px;
-        }
-        
-        /* ============================================ */
-        /* THEME SYSTEM - 3 Themes */
-        /* ============================================ */
-
-        /* THEME 0: Original Pastel (Default) */
-        body.theme-pastel {
-            --primary: #ff6b93;
-            --secondary: #a6d8ff;
-            --accent: #ffccd5;
-            --text: #5a5a5a;
-            --light-bg: #fff9fb;
-            --dark: #4a4a4a;
-            background: linear-gradient(135deg, #ffd1dc, #c9e9ff);
-            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
-            color: var(--text);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        /* THEME 1: Cyber Sakura */
-        body.theme-cyber {
-            --primary: #FF5FA2;
-            --primary-glow: #FF9BD4;
-            --neon-blue: #00E0FF;
-            --neon-purple: #C77DFF;
-            --bg-main: #0E0A1F;
-            --bg-card: #1C1433;
-            --bg-surface: #241A40;
-            --text-primary: #FFFFFF;
-            --text-secondary: #C9BEEA;
-            --success: #00FFA3;
-            --warning: #FFC93C;
-            --error: #FF4F70;
-            background: linear-gradient(135deg, #0E0A1F, #1A0F2E);
-            font-family: 'Poppins', sans-serif;
-            color: #FFFFFF;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        /* THEME 2: Sunset Gradient */
-        body.theme-sunset {
-            --primary: #FF6A3D;
-            --primary-dark: #D44A20;
-            --gradient-start: #FF6A3D;
-            --gradient-end: #A14BFF;
-            --bg-main: #FFF7F3;
-            --bg-card: #FFFFFF;
-            --bg-surface: #F7EEE9;
-            --text-primary: #2F2F2F;
-            --text-secondary: #5A5A5A;
-            --success: #46C371;
-            --warning: #F7C14E;
-            --error: #E44A57;
-            background: linear-gradient(135deg, #FF6A3D, #A14BFF);
-            font-family: 'Poppins', sans-serif;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        /* ============================================ */
-        /* THEME-AWARE COMPONENT STYLING */
-        /* ============================================ */
-
-        /* Applied to active themes */
-        body.theme-pastel,
-        body.theme-cyber,
-        body.theme-sunset {
-            color: var(--text-primary);
-        }
-
-        /* Navigation Bar - All Themes */
-        body.theme-cyber header,
-        body.theme-cyber nav {
-            background: rgba(28, 20, 51, 0.95) !important;
-            color: #FFFFFF !important;
-        }
-
-        body.theme-cyber header button,
-        body.theme-cyber nav button {
-            background: rgba(255, 95, 162, 0.15) !important;
-            color: #FF9BD4 !important;
-            border: 1px solid rgba(255, 95, 162, 0.3) !important;
-        }
-
-        body.theme-cyber header button:hover,
-        body.theme-cyber nav button:hover {
-            background: rgba(255, 95, 162, 0.25) !important;
-            box-shadow: 0 0 10px rgba(255, 95, 162, 0.3) !important;
-        }
-
-        body.theme-sunset header,
-        body.theme-sunset nav {
-            background: rgba(255, 255, 255, 0.95) !important;
-            color: var(--text-primary) !important;
-        }
-
-        /* Settings Tabs - All Themes */
-        body.theme-cyber .settings-tabs {
-            background: rgba(36, 26, 64, 0.9) !important;
-            border: 1px solid rgba(255, 95, 162, 0.2) !important;
-        }
-
-        body.theme-cyber .settings-tab {
-            color: var(--text-secondary) !important;
-        }
-
-        body.theme-cyber .settings-tab:hover,
-        body.theme-cyber .settings-tab.active {
-            color: var(--primary-glow) !important;
-        }
-
-        body.theme-sunset .settings-tabs {
-            background: rgba(255, 255, 255, 0.95) !important;
-        }
-
-        body.theme-sunset .settings-tab {
-            color: var(--text-secondary) !important;
-        }
-
-        body.theme-sunset .settings-tab.active,
-        body.theme-sunset .settings-tab:hover {
-            color: var(--primary) !important;
-        }
-
-        /* Cards & Containers - All Themes */
-        body.theme-cyber .settings-section,
-        body.theme-cyber .card {
-            background: rgba(36, 26, 64, 0.8) !important;
-            color: var(--text-primary) !important;
-            border: 1px solid rgba(255, 95, 162, 0.2) !important;
-        }
-
-        body.theme-cyber .form-group {
-            background: transparent !important;
-            border: none !important;
-            padding: 15px 0 !important;
-            margin-top: 20px !important;
-        }
-
-        body.theme-sunset .settings-section,
-        body.theme-sunset .form-group,
-        body.theme-sunset .card {
-            background: rgba(255, 255, 255, 0.95) !important;
-            color: var(--text-primary) !important;
-        }
-
-        /* User Cards - Cyber Theme */
-        body.theme-cyber .user-card {
-            background: rgba(28, 20, 51, 0.95) !important;
-            border: 2px solid rgba(0, 224, 255, 0.3) !important;
-            box-shadow: 0 5px 20px rgba(0, 224, 255, 0.2) !important;
-        }
-
-        body.theme-cyber .user-card:hover {
-            border-color: rgba(0, 224, 255, 0.6) !important;
-            box-shadow: 0 10px 30px rgba(0, 224, 255, 0.3), 0 0 20px rgba(255, 95, 162, 0.2) !important;
-        }
-
-        body.theme-cyber .user-name {
-            color: #00E0FF !important;
-        }
-
-        body.theme-cyber .user-email {
-            color: #C9BEEA !important;
-        }
-
-        /* User Cards - Sunset Theme */
-        body.theme-sunset .user-card {
-            background: rgba(255, 255, 255, 0.95) !important;
-        }
-
-        /* Inputs - All Themes */
-        body.theme-cyber input,
-        body.theme-cyber select,
-        body.theme-cyber textarea {
-            background: rgba(20, 20, 30, 0.8) !important;
-            color: #FFFFFF !important;
-            border: 1px solid rgba(0, 224, 255, 0.3) !important;
-        }
-
-        body.theme-cyber input:focus,
-        body.theme-cyber select:focus,
-        body.theme-cyber textarea:focus {
-            border-color: rgba(0, 224, 255, 0.6) !important;
-            box-shadow: 0 0 10px rgba(0, 224, 255, 0.2) !important;
-        }
-
-        body.theme-cyber .setting-card input,
-        body.theme-cyber .setting-card select,
-        body.theme-cyber .setting-card textarea {
-            background: rgba(14, 10, 31, 0.6) !important;
-            border: 1px solid rgba(0, 224, 255, 0.25) !important;
-            outline: none !important;
-        }
-
-        body.theme-cyber .setting-card input:focus,
-        body.theme-cyber .setting-card select:focus,
-        body.theme-cyber .setting-card textarea:focus {
-            background: rgba(14, 10, 31, 0.8) !important;
-            border-color: rgba(0, 224, 255, 0.5) !important;
-            box-shadow: 0 0 15px rgba(0, 224, 255, 0.15) !important;
-        }
-
-        body.theme-cyber input::placeholder,
-        body.theme-cyber select::placeholder,
-        body.theme-cyber textarea::placeholder {
-            color: rgba(201, 190, 234, 0.5) !important;
-        }
-
-        /* Cyber Theme - Toggle Switches */
-        body.theme-cyber .slider {
-            background-color: rgba(20, 20, 30, 0.8) !important;
-            border: 1px solid rgba(0, 224, 255, 0.3) !important;
-        }
-
-        body.theme-cyber input:checked + .slider {
-            background: linear-gradient(135deg, rgba(255, 95, 162, 0.8), rgba(199, 125, 255, 0.8)) !important;
-            border-color: rgba(255, 95, 162, 0.5) !important;
-            box-shadow: 0 0 15px rgba(255, 95, 162, 0.3) !important;
-        }
-
-        body.theme-cyber .slider:before {
-            background-color: #FFFFFF !important;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3) !important;
-        }
-
-        /* Cyber Theme - Remove all outlines and borders from form elements */
-        body.theme-cyber .form-group input,
-        body.theme-cyber .form-group select,
-        body.theme-cyber .form-group textarea {
-            outline: none !important;
-            box-shadow: none !important;
-        }
-
-        body.theme-cyber .form-group input[type="number"],
-        body.theme-cyber .form-group input[type="text"],
-        body.theme-cyber .form-group input[type="email"],
-        body.theme-cyber .form-group input[type="password"] {
-            background: rgba(14, 10, 31, 0.6) !important;
-            border: 1px solid rgba(0, 224, 255, 0.25) !important;
-            color: #FFFFFF !important;
-            outline: none !important;
-        }
-
-        body.theme-cyber .form-group input[type="number"]:focus,
-        body.theme-cyber .form-group input[type="text"]:focus,
-        body.theme-cyber .form-group input[type="email"]:focus,
-        body.theme-cyber .form-group input[type="password"]:focus {
-            background: rgba(14, 10, 31, 0.8) !important;
-            border-color: rgba(0, 224, 255, 0.5) !important;
-            box-shadow: 0 0 15px rgba(0, 224, 255, 0.15) !important;
-        }
-
-        body.theme-cyber .setting-card .form-group {
-            background: transparent !important;
-            border: none !important;
-        }
-
-        body.theme-cyber .toggle-label {
-            color: #C9BEEA !important;
-        }
-
-        body.theme-cyber label {
-            color: #00E0FF !important;
-        }
-
-        body.theme-cyber .input-addon {
-            color: #C9BEEA !important;
-        }
-
-        body.theme-sunset input,
-        body.theme-sunset select,
-        body.theme-sunset textarea {
-            background: rgba(255, 255, 255, 0.9) !important;
-            color: var(--text-primary) !important;
-        }
-
-        /* Buttons - All Themes */
-        body.theme-cyber .btn {
-            background: rgba(255, 95, 162, 0.1) !important;
-            color: var(--primary-glow) !important;
-            border: 1px solid rgba(255, 95, 162, 0.3) !important;
-        }
-
-        body.theme-cyber .btn:hover {
-            background: rgba(255, 95, 162, 0.2) !important;
-            box-shadow: 0 0 10px rgba(255, 95, 162, 0.3) !important;
-        }
-
-        body.theme-cyber .btn-primary {
-            background: rgba(255, 95, 162, 0.2) !important;
-            color: var(--primary-glow) !important;
-            border: 2px solid var(--primary) !important;
-        }
-
-        body.theme-cyber .btn-primary:hover {
-            background: var(--primary) !important;
-            color: #FFFFFF !important;
-            box-shadow: 0 0 15px rgba(255, 95, 162, 0.5) !important;
-        }
-
-        /* Light Theme Buttons */
-        body.theme-sunset .btn {
-            background: rgba(255, 255, 255, 0.8) !important;
-            border: 1px solid var(--primary) !important;
-            color: var(--primary) !important;
-        }
-
-        body.theme-sunset .btn:hover {
-            background: var(--primary) !important;
-            color: #FFFFFF !important;
-        }
-
-        body.theme-sunset .btn-primary {
-            background: var(--primary) !important;
-            color: #FFFFFF !important;
-            border: 1px solid var(--primary) !important;
-        }
-
-        body.theme-sunset .btn-primary:hover {
-            background: var(--primary-dark) !important;
-            border-color: var(--primary-dark) !important;
-        }
-
-        /* Navigation Button Styling - Sunset Theme */
-        body.theme-sunset .nav-btn {
-            background: rgba(255, 255, 255, 0.9) !important;
-            color: #2F2F2F !important;
-            border: 1px solid rgba(255, 106, 61, 0.2) !important;
-        }
-
-        body.theme-sunset .nav-btn:hover {
-            background: rgba(255, 106, 61, 0.1) !important;
-            color: #2F2F2F !important;
-        }
-
-        body.theme-sunset .nav-btn.active {
-            background: var(--primary) !important;
-            color: #FFFFFF !important;
-        }
-
-        /* Headings - All Themes */
-        body.theme-cyber h1,
-        body.theme-cyber h2,
-        body.theme-cyber h3 {
-            color: var(--primary-glow) !important;
-            text-shadow: 0 0 10px rgba(255, 95, 162, 0.4) !important;
-        }
-
-        body.theme-sunset h1,
-        body.theme-sunset h2,
-        body.theme-sunset h3 {
-            color: var(--primary) !important;
-        }
-
-        /* Labels & Text - All Themes */
-        body.theme-sunset label {
-            color: var(--text-primary) !important;
-        }
-
-        /* Toggle Switches - All Themes */
-        body.theme-sunset input[type="checkbox"],
-        body.theme-sunset input[type="radio"] {
-            accent-color: var(--primary) !important;
-        }
-
-        /* Setting Cards - Theme Specific */
-        body.theme-cyber .setting-card {
-            background: rgba(36, 26, 64, 0.8) !important;
-            border-left: 5px solid var(--primary) !important;
-            color: #FFFFFF !important;
-        }
-
-        body.theme-cyber .setting-card .setting-name {
-            color: var(--primary-glow) !important;
-        }
-
-        body.theme-cyber .setting-card .setting-description {
-            color: rgba(255, 255, 255, 0.7) !important;
-        }
-
-        body.theme-sunset .setting-card {
-            background: rgba(255, 255, 255, 0.95) !important;
-            border-left: 5px solid var(--primary) !important;
-        }
-
-        .container {
-            margin: 0;
-            padding: 0 20px;
-        }
-
-        /* Notification animations */
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(400px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes slideOut {
-            from {
-                opacity: 1;
-                transform: translateX(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateX(400px);
-            }
-        }
-        
-        /* Header styles */
-        header {
-            background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            padding: 20px 30px;
-            margin-bottom: 20px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        h1 {
-            color: var(--primary);
-            font-size: 2rem;
-            margin-bottom: 5px;
-            text-shadow: 2px 2px 0px rgba(255, 182, 193, 0.3);
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        header h1 i {
-            font-size: 1.2rem;
-            margin-right: 6px;
-            vertical-align: middle;
-            color: var(--primary);
-        }
-        
-        .subtitle {
-            color: #7a7a7a;
-            font-size: 1rem;
-            margin-bottom: 0;
-        }
-
-        /* Decorative elements */
-        .decoration {
-            position: absolute;
-            z-index: -1;
-        }
-
-        .decoration-1 {
-            top: -50px;
-            left: -50px;
-            width: 150px;
-            height: 150px;
-            background: rgba(255, 182, 193, 0.2);
-            border-radius: 50%;
-        }
-
-        .decoration-2 {
-            bottom: -30px;
-            right: -30px;
-            width: 120px;
-            height: 120px;
-            background: rgba(166, 216, 255, 0.2);
-            border-radius: 50%;
-        }
-
-        /* Character container */
-        .character-container {
-            position: relative;
-            height: 200px;
-            margin: 30px 0;
-        }
-        
-        .character {
-            position: absolute;
-            bottom: 0;
-            width: 150px;
-            height: 180px;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 180"><circle cx="75" cy="45" r="35" fill="%23ffccd5"/><path d="M75,80 Q75,120 45,140 Q75,160 105,140 Q75,120 75,80" fill="%23ffccd5"/><circle cx="60" cy="40" r="5" fill="%23333"/><circle cx="90" cy="40" r="5" fill="%23333"/><path d="M65,55 Q75,65 85,55" stroke="%23333" stroke-width="2" fill="none"/><path d="M50,100 Q75,130 100,100" stroke="%23ff6b93" stroke-width="3" fill="none"/></svg>');
-            background-repeat: no-repeat;
-            background-position: center bottom;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        
-        .bubble {
-            position: absolute;
-            top: 20px;
-            right: 30px;
-            background: white;
-            padding: 15px;
-            border-radius: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            max-width: 250px;
-            text-align: left;
-            font-size: 0.9rem;
-            color: var(--text);
-            border: 2px solid var(--accent);
-        }
-        
-        .bubble:after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 20px;
-            border-width: 10px 10px 0;
-            border-style: solid;
-            border-color: white transparent;
-        }
-        
-        /* Main content area */
-        .admin-content {
-            display: block;
-            width: 100%;
-        }
-        
-        @media (max-width: 900px) {
-            .admin-content {
-                display: block;
-            }
-        }
-        
-        /* Settings subnavigation tabs */
-        .settings-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 15px 20px;
-            border-radius: 15px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-            overflow-x: auto;
-            flex-wrap: wrap;
-        }
-
-        .settings-tab {
-            padding: 10px 20px;
-            background: transparent;
-            border: none;
-            border-bottom: 3px solid transparent;
-            color: #7a7a7a;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .settings-tab:hover {
-            color: var(--primary);
-        }
-
-        .settings-tab.active {
-            color: var(--primary);
-            border-bottom-color: var(--primary);
-        }
-
-        /* Settings sections - hide by default */
-        .settings-section {
-            display: none;
-            background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            margin-bottom: 30px;
-        }
-
-        /* Show only active tab content - with !important to ensure it overrides */
-        .settings-section.active-tab {
-            display: block !important;
-        }
-        
-        .section-title {
-            color: var(--primary);
-            font-size: 1.8rem;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--accent);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .settings-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
-        
-        .setting-card {
-            background: var(--light-bg);
-            border-radius: 15px;
-            padding: 20px;
-            border-left: 5px solid var(--primary);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .setting-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-        
-        .setting-name {
-            font-size: 1.2rem;
-            color: var(--primary);
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .setting-description {
-            font-size: 0.9rem;
-            line-height: 1.5;
-            margin-bottom: 15px;
-            color: #7a7a7a;
-        }
-        
-        /* Form elements */
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: var(--primary);
-        }
-        
-        input, textarea, select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid var(--accent);
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-        
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-        
-        textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-        
-        .input-addon {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--primary);
-            font-weight: bold;
-            pointer-events: none;
-        }
-        
-        .form-group {
-            position: relative;
-        }
-        
-        .toggle-label {
-            margin-left: 10px;
-            font-weight: bold;
-            color: var(--primary);
-        }
-        .toggle {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 30px;
-        }
-        
-        .toggle input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-        
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 22px;
-            width: 22px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        
-        input:checked + .slider {
-            background-color: var(--primary);
-        }
-        
-        input:checked + .slider:before {
-            transform: translateX(30px);
-        }
-        
-        /* Button styles */
-        .buttons {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-top: 30px;
-        }
-        
-        .btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 50px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            font-weight: bold;
-            flex: 1;
-            text-align: center;
-        }
-        
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 5px 15px rgba(255, 107, 147, 0.3);
-        }
-        
-        .btn-primary:hover {
-            background: #ff4d7d;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(255, 107, 147, 0.4);
-        }
-        
-        .btn-secondary {
-            background: var(--secondary);
-            color: #3a7bb8;
-            box-shadow: 0 5px 15px rgba(166, 216, 255, 0.3);
-        }
-        
-        .btn-secondary:hover {
-            background: #8bcaff;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(166, 216, 255, 0.4);
-        }
-        
-        .btn-danger {
-            background: #ff8a8a;
-            color: white;
-            box-shadow: 0 5px 15px rgba(255, 138, 138, 0.3);
-        }
-        
-        .btn-danger:hover {
-            background: #ff6b6b;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(255, 138, 138, 0.4);
-        }
-        
-        /* Footer styles */
-        footer {
-            margin-top: 40px;
-            text-align: center;
-            color: #999;
-            font-size: 0.9rem;
-            padding: 20px;
-        }
-        
-        /* Decorative elements */
-        .decoration {
-            position: absolute;
-            z-index: -1;
-        }
-        
-        .decoration-1 {
-            top: -50px;
-            left: -50px;
-            width: 150px;
-            height: 150px;
-            background: rgba(255, 182, 193, 0.2);
-            border-radius: 50%;
-        }
-        
-        .decoration-2 {
-            bottom: -30px;
-            right: -30px;
-            width: 120px;
-            height: 120px;
-            background: rgba(166, 216, 255, 0.2);
-            border-radius: 50%;
-        }
-        
-        /* User info bar */
-        .user-info {
-            background: var(--light-bg);
-            border-radius: 15px;
-            padding: 15px 20px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-left: 5px solid var(--primary);
-        }
-
-        .user-details {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--primary);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-
-        .user-name {
-            font-weight: bold;
-            color: var(--primary);
-        }
-
-        .user-role {
-            font-size: 0.8rem;
-            color: #7a7a7a;
-            background: var(--accent);
-            padding: 2px 8px;
-            border-radius: 10px;
-        }
-
-        .user-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .status-online {
-            background: #e8f7e8;
-            color: #2e7d32;
-        }
-        
-        .status-offline {
-            background: #ffe8e8;
-            color: #c62828;
-        }
-        
-        /* System info */
-        .system-info {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .info-card {
-            background: white;
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-        }
-        
-        .info-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--primary);
-            margin: 10px 0;
-        }
-        
-        .info-label {
-            font-size: 0.8rem;
-            color: #7a7a7a;
-        }
-        
-        /* Responsive adjustments */
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            body {
-                padding: 15px;
-            }
-            
-            .container {
-                padding: 0;
-            }
-            
-            header, .settings-section {
-                padding: 20px;
-                margin-bottom: 20px;
-            }
-            
-            .character-container {
-                height: 160px;
-                margin: 20px 0;
-            }
-            
-            .character {
-                width: 100px;
-                height: 130px;
-            }
-            
-            .bubble {
-                top: 5px;
-                right: 5px;
-                left: auto;
-                max-width: 200px;
-                font-size: 0.8rem;
-                padding: 12px;
-            }
-            
-            .user-info {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-                padding: 15px;
-                margin-bottom: 20px;
-            }
-            
-            .user-details {
-                flex-direction: column;
-                gap: 8px;
-            }
-            
-            .user-actions .btn {
-                min-height: 44px;
-                padding: 12px 20px;
-                font-size: 1rem;
-            }
-            
-            .nav {
-                flex-direction: column;
-                gap: 10px;
-                margin-top: 15px;
-            }
-            
-            .nav-btn {
-                width: 100%;
-                min-height: 48px;
-                padding: 14px 20px;
-                font-size: 1rem;
-                justify-content: center;
-            }
-            
-            .admin-content {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-            
-            .settings-grid {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-            
-            .setting-card {
-                padding: 15px;
-            }
-            
-            .form-group input, 
-            .form-group textarea, 
-            .form-group select {
-                font-size: 16px; /* Prevents zoom on iOS */
-                padding: 14px 15px;
-                min-height: 48px;
-            }
-            
-            .buttons {
-                flex-direction: column;
-                gap: 12px;
-            }
-            
-            .buttons .btn {
-                min-height: 48px;
-                padding: 14px 20px;
-                font-size: 1rem;
-            }
-            
-            .system-info {
-                grid-template-columns: 1fr 1fr;
-                gap: 15px;
-            }
-            
-            .info-card {
-                padding: 15px;
-                text-align: center;
-            }
-            
-            .section-title {
-                font-size: 1.4rem;
-                flex-direction: column;
-                gap: 10px;
-                align-items: flex-start;
-            }
-        }
-
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 1.8rem;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            body {
-                padding: 10px;
-            }
-            
-            header, .settings-section {
-                padding: 15px;
-            }
-            
-            .subtitle {
-                font-size: 1rem;
-            }
-            
-            .character-container {
-                height: 140px;
-            }
-            
-            .character {
-                width: 80px;
-                height: 110px;
-            }
-            
-            .bubble {
-                max-width: 160px;
-                font-size: 0.75rem;
-                padding: 10px;
-            }
-            
-            .user-info {
-                padding: 12px;
-            }
-            
-            .user-avatar {
-                width: 40px;
-                height: 40px;
-                font-size: 1.2rem;
-            }
-            
-            .user-name {
-                font-size: 1.1rem;
-            }
-            
-            .user-role {
-                font-size: 0.9rem;
-            }
-            
-            .nav-btn {
-                padding: 12px 16px;
-                font-size: 0.95rem;
-            }
-            
-            .setting-card h3 {
-                font-size: 1.2rem;
-            }
-            
-            .setting-description {
-                font-size: 0.9rem;
-            }
-            
-            .system-info {
-                grid-template-columns: 1fr;
-            }
-            
-            .info-value {
-                font-size: 1.5rem;
-            }
-            
-            .info-label {
-                font-size: 0.9rem;
-            }
-        }
-        
-        /* Dark Mode Styles */
-        .dark-mode {
-            --bg-primary: #1a1a1a;
-            --bg-secondary: #2d2d2d;
-            --bg-tertiary: #3d3d3d;
-            --text-primary: #ffffff;
-            --text-secondary: #cccccc;
-            --text-muted: #888888;
-            --border-color: #444444;
-            --primary: #ff6b9d;
-            --primary-hover: #ff8bb3;
-            --secondary: #4ecdc4;
-            --secondary-hover: #6fd5cc;
-            --success: #51cf66;
-            --warning: #ffd43b;
-            --error: #ff6b6b;
-            --card-bg: #2d2d2d;
-            --input-bg: #3d3d3d;
-            --shadow: rgba(0, 0, 0, 0.3);
-        }
-        
-        .dark-mode .container {
-            background: var(--bg-primary);
-            color: var(--text-primary);
-        }
-        
-        .dark-mode .setting-card,
-        .dark-mode .info-card {
-            background: var(--card-bg);
-            border-color: var(--border-color);
-            color: var(--text-primary);
-        }
-        
-        .dark-mode .form-control,
-        .dark-mode .form-group select,
-        .dark-mode .form-group textarea {
-            background: var(--input-bg);
-            border-color: var(--border-color);
-            color: var(--text-primary);
-        }
-        
-        .dark-mode .form-control:focus,
-        .dark-mode .form-group select:focus,
-        .dark-mode .form-group textarea:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(255, 107, 157, 0.2);
-        }
-        
-        .dark-mode .btn {
-            background: var(--bg-secondary);
-            border-color: var(--border-color);
-            color: var(--text-primary);
-        }
-        
-        .dark-mode .btn:hover {
-            background: var(--bg-tertiary);
-        }
-        
-        .dark-mode .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-        
-        .dark-mode .btn-primary:hover {
-            background: var(--primary-hover);
-        }
-        
-        .dark-mode .character {
-            background: var(--bg-secondary);
-            border-color: var(--border-color);
-        }
-        
-        .dark-mode .bubble {
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            border-color: var(--border-color);
-        }
-        
-        .dark-mode .bubble::after {
-            border-color: transparent transparent transparent var(--bg-secondary);
-        }
-        
-        /* Accessibility Styles */
-        .font-small {
-            font-size: 14px;
-        }
-        
-        .font-small * {
-            font-size: inherit;
-        }
-        
-        .font-medium {
-            font-size: 16px;
-        }
-        
-        .font-medium * {
-            font-size: inherit;
-        }
-        
-        .font-large {
-            font-size: 18px;
-        }
-        
-        .font-large * {
-            font-size: inherit;
-        }
-        
-        .font-extra-large {
-            font-size: 20px;
-        }
-        
-        .font-extra-large * {
-            font-size: inherit;
-        }
-        
-        .high-contrast {
-            --text-primary: #ffffff;
-            --text-secondary: #ffffff;
-            --bg-primary: #000000;
-            --bg-secondary: #000000;
-            --border-color: #ffffff;
-            --primary: #ffff00;
-            --secondary: #00ffff;
-        }
-        
-        .high-contrast .setting-card,
-        .high-contrast .info-card {
-            border: 2px solid var(--border-color);
-        }
-        
-        .reduce-motion * {
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
-        }
-        
-        .animations-enabled .character {
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        .animations-enabled .bubble {
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        /* Focus and accessibility improvements */
-        .setting-card:focus-within,
-        .btn:focus,
-        .form-control:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: 2px solid var(--primary);
-            outline-offset: 2px;
-        }
-        
-        /* Screen reader only text */
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border: 0;
-        }
-
-        /* User Management Styles */
-        #add-user-btn {
-            padding: 6px 12px !important;
-            font-size: 0.85rem;
-            white-space: nowrap;
-            max-width: 120px;
-        }
-
-        .user-controls {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .search-box {
-            flex: 1;
-            min-width: 250px;
-            position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 12px 45px 12px 15px;
-            border: 2px solid var(--secondary);
-            border-radius: 25px;
-            font-size: 1rem;
-            background: white;
-            transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 15px rgba(255, 107, 147, 0.2);
-        }
-
-        .search-btn {
-            position: absolute;
-            right: 5px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 35px;
-            height: 35px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .search-btn:hover {
-            background: var(--secondary);
-            transform: translateY(-50%) scale(1.1);
-        }
-
-        .filter-select {
-            padding: 12px 20px;
-            border: 2px solid var(--secondary);
-            border-radius: 25px;
-            font-size: 1rem;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 150px;
-        }
-
-        .filter-select:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .users-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 25px;
-            margin-top: 30px;
-        }
-
-        .user-card {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s ease;
-            border: 3px solid transparent;
-        }
-
-        .user-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            border-color: var(--primary);
-        }
-
-        .user-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 2.5rem;
-            color: white;
-        }
-
-        .user-name {
-            font-size: 1.4rem;
-            color: var(--dark);
-            margin-bottom: 8px;
-            text-align: center;
-        }
-
-        .user-email {
-            color: #7a7a7a;
-            font-size: 0.95rem;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .user-username {
-            color: #999;
-            font-size: 0.85rem;
-            margin-bottom: 8px;
-            text-align: center;
-        }
-
-        .user-role {
-            display: inline-block;
-            padding: 6px 15px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin: 10px auto;
-            display: block;
-            text-align: center;
-            width: fit-content;
-        }
-
-        .role-admin {
-            background: rgba(255, 107, 147, 0.2);
-            color: var(--primary);
-        }
-
-        .role-poweruser {
-            background: rgba(166, 216, 255, 0.2);
-            color: var(--secondary);
-        }
-
-        .role-user {
-            background: rgba(46, 213, 115, 0.2);
-            color: #2ed573;
-        }
-
-        .user-status {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            margin: 15px 0;
-            font-size: 0.9rem;
-        }
-
-        .status-active {
-            color: #2ed573;
-        }
-
-        .status-inactive {
-            color: #ff4757;
-        }
-
-        .user-2fa-status {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin: 10px 0;
-        }
-
-        .user-2fa-status.tfa-enabled {
-            background: rgba(46, 213, 115, 0.15);
-            color: #2ed573;
-            border: 1px solid rgba(46, 213, 115, 0.3);
-        }
-
-        .user-2fa-status.tfa-disabled {
-            background: rgba(255, 107, 107, 0.15);
-            color: #ff6b6b;
-            border: 1px solid rgba(255, 107, 107, 0.3);
-        }
-
-        .user-2fa-status i {
-            font-size: 1rem;
-        }
-
-        .user-activity {
-            background: rgba(166, 216, 255, 0.1);
-            border-radius: 10px;
-            padding: 15px;
-            margin: 15px 0;
-            font-size: 0.85rem;
-        }
-
-        .activity-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-            color: #666;
-        }
-
-        .activity-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .activity-item i {
-            width: 20px;
-            text-align: center;
-            color: var(--primary);
-        }
-
-        .activity-item .online {
-            color: #2ed573;
-        }
-
-        .activity-item .offline {
-            color: #999;
-        }
-
-        .activity-label {
-            font-weight: 600;
-            min-width: 90px;
-        }
-
-        .activity-value {
-            color: var(--dark);
-        }
-
-        .user-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .user-actions button {
-            flex: 1;
-        }
-
-        #users-empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-        }
-
-        #users-empty-state svg {
-            margin-bottom: 20px;
-            color: var(--secondary);
-        }
-
-        #users-empty-state h3 {
-            color: var(--dark);
-            margin-bottom: 10px;
-        }
-
-        /* Modal Styles */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            backdrop-filter: blur(5px);
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 20px;
-            padding: 0;
-            max-width: 600px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            animation: modalSlideIn 0.3s ease;
-        }
-
-        @keyframes modalSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .modal-header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 25px 30px;
-            border-radius: 20px 20px 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-header h2 {
-            margin: 0;
-            font-size: 1.5rem;
-        }
-
-        .modal-close {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .modal-close:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: rotate(90deg);
-        }
-
-        .modal-form {
-            padding: 30px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--dark);
-            font-weight: 600;
-        }
-
-        .password-input-group {
-            display: flex;
-            gap: 10px;
-        }
-
-        .password-input-group input {
-            flex: 1;
-        }
-
-        .password-input-group button {
-            white-space: nowrap;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        .modal-buttons button {
-            flex: 1;
-        }
-
-        .modal-footer {
-            background: rgba(166, 216, 255, 0.1);
-            padding: 20px 30px;
-            border-radius: 0 0 20px 20px;
-        }
-
-        .modal-footer h3 {
-            color: var(--primary);
-            margin-bottom: 15px;
-            font-size: 1.1rem;
-        }
-
-        .modal-footer p {
-            margin: 8px 0;
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        @media (max-width: 768px) {
-            .users-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .user-controls {
-                flex-direction: column;
-            }
-            
-            .search-box {
-                width: 100%;
-            }
-            
-            .filter-select {
-                width: 100%;
-            }
-        }
-
-        /* Service Management Styles */
-        .service-card-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 15px;
-            background: var(--bg-card, white);
-            border: 1px solid var(--primary, #ff6b93);
-            border-radius: 8px;
-            margin-bottom: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .service-card-item:hover {
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .service-icon-display {
-            font-size: 32px;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255, 107, 147, 0.1);
-            border-radius: 8px;
-            flex-shrink: 0;
-        }
-
-        .service-info {
-            flex: 1;
-        }
-
-        .service-name-display {
-            font-weight: bold;
-            color: var(--text-primary, #333);
-            margin: 0;
-        }
-
-        .service-url-display {
-            font-size: 12px;
-            color: var(--text-secondary, #666);
-            margin: 5px 0 0 0;
-            word-break: break-all;
-        }
-
-        .service-status-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: bold;
-            margin-top: 5px;
-        }
-
-        .service-status-badge.online {
-            background: #4CAF50;
-            color: white;
-        }
-
-        .service-status-badge.offline {
-            background: #f44336;
-            color: white;
-        }
-
-        .service-status-badge.maintenance {
-            background: #ff9800;
-            color: white;
-        }
-
-        .service-actions {
-            display: flex;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-
-        .service-actions button {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.2s ease;
-        }
-
-        .service-actions .btn-edit {
-            background: #2196F3;
-            color: white;
-        }
-
-        .service-actions .btn-edit:hover {
-            background: #1976D2;
-        }
-
-        .service-actions .btn-delete {
-            background: #f44336;
-            color: white;
-        }
-
-        .service-actions .btn-delete:hover {
-            background: #d32f2f;
-        }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .modal-overlay.show,
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: var(--bg-card, white);
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            padding: 20px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-header h2 {
-            margin: 0;
-            color: var(--text-primary, #333);
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: var(--text-secondary, #666);
-            transition: color 0.2s ease;
-        }
-
-        .modal-close:hover {
-            color: var(--text-primary, #333);
-        }
-
-        .modal-form {
-            padding: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="/styles/pages/settings.css">
+    <link rel="stylesheet" href="/styles/pages/system-control.css">
+<link rel="stylesheet" href="/styles/nav.css">
 </head>
 <body>
     <div class="container">
@@ -1917,6 +44,9 @@
                     </button>
                     <button class="settings-tab" data-tab="sso">
                         <i class="fas fa-sign-in-alt"></i> SSO
+                    </button>
+                    <button class="settings-tab" data-tab="docker">
+                        <i class="fab fa-docker"></i> Docker
                     </button>
                     <button class="settings-tab" data-tab="users">
                         <i class="fas fa-users"></i> User Management
@@ -2440,7 +570,7 @@
                                 Days before 2FA enforcement is mandatory (0 = immediate)
                             </p>
                             <div class="form-group">
-                                <input type="number" id="twofa-grace-period" min="0" max="365" value="7" style="max-width: 150px;">
+                                <input type="number" id="two-factor-grace-period" min="0" max="365" value="7" style="max-width: 150px;">
                             </div>
                         </div>
                     </div>
@@ -2607,6 +737,22 @@
                                 </label>
                             </div>
                         </div>
+
+                        <div class="setting-card">
+                            <h3 class="setting-name">
+                                <i class="fas fa-key"></i> Password Reset
+                            </h3>
+                            <p class="setting-description">
+                                Allow users to reset their own passwords via email
+                            </p>
+                            <div class="form-group">
+                                <label class="toggle">
+                                    <input type="checkbox" id="password-reset-enabled" checked>
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="toggle-label">Enable Password Reset</span>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- IP Whitelist Configuration (shown when IP Whitelist is enabled in Advanced Security) -->
@@ -2692,6 +838,169 @@
                         <button class="btn btn-primary" id="save-sso">
                             <i class="fas fa-save"></i> Save SSO Settings
                         </button>
+                    </div>
+                </section>
+
+                <!-- Docker Configuration -->
+                <section class="settings-section" id="docker-tab" data-tab="docker">
+                    <h2 class="section-title">
+                        <i class="fab fa-docker"></i> Docker Configuration
+                    </h2>
+                    
+                    <div class="settings-grid">
+                        <div class="setting-card" style="grid-column: 1 / -1;">
+                            <h3 class="setting-name">
+                                <i class="fas fa-plug"></i> Connection Settings
+                            </h3>
+                            <p class="setting-description">
+                                Configure how Landio connects to the Docker daemon for container management.
+                            </p>
+                            
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label class="toggle">
+                                    <input type="checkbox" id="docker-auto-detect">
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="toggle-label">Auto-detect Docker socket</span>
+                            </div>
+                            
+                            <div id="docker-manual-config" style="display: none;">
+                                <div class="form-group" style="margin-bottom: 15px;">
+                                    <label for="docker-connection-type">Connection Type</label>
+                                    <select id="docker-connection-type">
+                                        <option value="socket">Unix Socket</option>
+                                        <option value="tcp">TCP</option>
+                                        <option value="named-pipe">Named Pipe (Windows)</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group" id="docker-socket-group" style="margin-bottom: 15px;">
+                                    <label for="docker-socket-path">Socket Path</label>
+                                    <input type="text" id="docker-socket-path" placeholder="/var/run/docker.sock" value="/var/run/docker.sock">
+                                </div>
+                                
+                                <div id="docker-tcp-group" style="display: none;">
+                                    <div class="form-group" style="margin-bottom: 15px;">
+                                        <label for="docker-tcp-host">TCP Host</label>
+                                        <input type="text" id="docker-tcp-host" placeholder="192.168.1.100" value="192.168.1.100">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 15px;">
+                                        <label for="docker-tcp-port">TCP Port</label>
+                                        <input type="number" id="docker-tcp-port" placeholder="2375" value="2375">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 15px;">
+                                        <label class="toggle">
+                                            <input type="checkbox" id="docker-tls-enabled">
+                                            <span class="slider"></span>
+                                        </label>
+                                        <span class="toggle-label">Use TLS</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
+                                <button class="btn btn-primary" id="test-docker-connection">
+                                    <i class="fas fa-plug"></i> Test Connection
+                                </button>
+                                <button class="btn btn-success" id="save-docker-settings">
+                                    <i class="fas fa-save"></i> Save Docker Settings
+                                </button>
+                            </div>
+                            
+                            <div id="docker-test-result" style="display: none; margin-top: 15px; padding: 12px; border-radius: 8px; font-size: 0.95rem;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-grid" style="margin-top: 30px;">
+                        <div class="setting-card" style="grid-column: 1 / -1;">
+                            <h3 class="setting-name">
+                                <i class="fas fa-info-circle"></i> Docker Status
+                            </h3>
+                            <p class="setting-description">
+                                Current Docker daemon connection status and system information.
+                            </p>
+                            <div id="docker-status-display" style="padding: 15px; background: rgba(0,0,0,0.03); border-radius: 8px; margin-top: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                    <span id="docker-status-indicator" style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #ccc;"></span>
+                                    <span id="docker-status-text" style="font-weight: 600;">Not checked</span>
+                                </div>
+                                <div id="docker-info-details" style="display: none; font-size: 0.9rem; color: #666; line-height: 1.8;">
+                                    <div><strong>Version:</strong> <span id="docker-info-version">-</span></div>
+                                    <div><strong>API Version:</strong> <span id="docker-info-api-version">-</span></div>
+                                    <div><strong>Containers:</strong> <span id="docker-info-containers">-</span></div>
+                                    <div><strong>Running:</strong> <span id="docker-info-running">-</span></div>
+                                    <div><strong>Images:</strong> <span id="docker-info-images">-</span></div>
+                                    <div><strong>OS/Type:</strong> <span id="docker-info-os">-</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-grid" style="margin-top: 30px;">
+                        <div class="setting-card" style="grid-column: 1 / -1;">
+                            <h3 class="setting-name">
+                                <i class="fas fa-server"></i> System Control
+                            </h3>
+                            <p class="setting-description">
+                                Configure and execute system reboot and shutdown operations. These actions affect the host system, not just the Landio container.
+                            </p>
+                            
+                            <div class="settings-grid" style="margin-top: 15px;">
+                                <div class="setting-card">
+                                    <h3 class="setting-name">
+                                        <i class="fas fa-redo-alt"></i> Reboot Settings
+                                    </h3>
+                                    <div class="form-group" style="margin-bottom: 12px;">
+                                        <label class="toggle">
+                                            <input type="checkbox" id="system-reboot-enabled" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                        <span class="toggle-label">Enable reboot</span>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 12px;">
+                                        <label for="system-reboot-delay">Delay (seconds)</label>
+                                        <input type="number" id="system-reboot-delay" min="10" max="600" value="30">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 12px;">
+                                        <label class="toggle">
+                                            <input type="checkbox" id="system-reboot-require-reason" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                        <span class="toggle-label">Require reason</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="setting-card">
+                                    <h3 class="setting-name">
+                                        <i class="fas fa-power-off"></i> Shutdown Settings
+                                    </h3>
+                                    <div class="form-group" style="margin-bottom: 12px;">
+                                        <label class="toggle">
+                                            <input type="checkbox" id="system-shutdown-enabled" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                        <span class="toggle-label">Enable shutdown</span>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 12px;">
+                                        <label for="system-shutdown-delay">Delay (seconds)</label>
+                                        <input type="number" id="system-shutdown-delay" min="10" max="600" value="60">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 12px;">
+                                        <label class="toggle">
+                                            <input type="checkbox" id="system-shutdown-require-reason" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                        <span class="toggle-label">Require reason</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
+                                <button class="btn btn-primary" id="save-system-control-settings">
+                                    <i class="fas fa-save"></i> Save System Control Settings
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </section>
                 
@@ -3056,6 +1365,44 @@
                                 <i class="fas fa-eye"></i> Preview Message
                             </button>
                         </div>
+
+                        <div class="setting-card">
+                            <h3 class="setting-name">
+                                <i class="fas fa-redo-alt"></i> System Reboot
+                            </h3>
+                            <p class="setting-description">
+                                Notify when a system reboot is initiated
+                            </p>
+                            <div class="form-group">
+                                <label class="toggle">
+                                    <input type="checkbox" id="notify-system-reboot">
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="toggle-label">Enable</span>
+                            </div>
+                            <button class="btn btn-secondary preview-message-btn" data-event="system-reboot" style="width: 100%; margin-top: 10px; font-size: 0.9rem;">
+                                <i class="fas fa-eye"></i> Preview Message
+                            </button>
+                        </div>
+
+                        <div class="setting-card">
+                            <h3 class="setting-name">
+                                <i class="fas fa-power-off"></i> System Shutdown
+                            </h3>
+                            <p class="setting-description">
+                                Notify when a system shutdown is initiated
+                            </p>
+                            <div class="form-group">
+                                <label class="toggle">
+                                    <input type="checkbox" id="notify-system-shutdown">
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="toggle-label">Enable</span>
+                            </div>
+                            <button class="btn btn-secondary preview-message-btn" data-event="system-shutdown" style="width: 100%; margin-top: 10px; font-size: 0.9rem;">
+                                <i class="fas fa-eye"></i> Preview Message
+                            </button>
+                        </div>
                     </div>
                     </div>
                     
@@ -3107,6 +1454,25 @@
                                 <i class="fas fa-eye"></i> Preview Message
                             </button>
                         </div>
+                        
+                        <div class="setting-card">
+                            <h3 class="setting-name">
+                                <i class="fas fa-key"></i> Password Reset
+                            </h3>
+                            <p class="setting-description">
+                                Notify when a user requests a password reset
+                            </p>
+                            <div class="form-group">
+                                <label class="toggle">
+                                    <input type="checkbox" id="notify-password-reset">
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="toggle-label">Enable</span>
+                            </div>
+                            <button class="btn btn-secondary preview-message-btn" data-event="password-reset" style="width: 100%; margin-top: 10px; font-size: 0.9rem;">
+                                <i class="fas fa-eye"></i> Preview Message
+                            </button>
+                        </div>
                     </div>
                     </div>
                     
@@ -3130,47 +1496,82 @@
                     <div class="system-info">
                         <div class="info-card">
                             <i class="fas fa-microchip" style="color: var(--primary); font-size: 1.5rem;"></i>
-                            <div class="info-value" id="cpu-usage">12%</div>
+                            <div class="info-value" id="cpu-usage">-</div>
                             <div class="info-label">CPU Usage</div>
                         </div>
                         
                         <div class="info-card">
                             <i class="fas fa-memory" style="color: var(--primary); font-size: 1.5rem;"></i>
-                            <div class="info-value" id="memory-usage">64%</div>
+                            <div class="info-value" id="memory-usage">-</div>
                             <div class="info-label">Memory Usage</div>
                         </div>
                         
                         <div class="info-card">
                             <i class="fas fa-hdd" style="color: var(--primary); font-size: 1.5rem;"></i>
-                            <div class="info-value" id="disk-usage">42%</div>
+                            <div class="info-value" id="disk-usage">-</div>
                             <div class="info-label">Disk Usage</div>
                         </div>
                         
                         <div class="info-card">
                             <i class="fas fa-network-wired" style="color: var(--primary); font-size: 1.5rem;"></i>
-                            <div class="info-value" id="uptime">15d</div>
+                            <div class="info-value" id="uptime">-</div>
                             <div class="info-label">Uptime</div>
                         </div>
                     </div>
                     
+                    <div id="system-detail-info" style="margin-top: 15px; padding: 12px; background: rgba(0,0,0,0.03); border-radius: 8px; font-size: 0.85rem; line-height: 1.8; display: none;">
+                        <div><strong>Hostname:</strong> <span id="sys-hostname">-</span></div>
+                        <div><strong>OS:</strong> <span id="sys-os">-</span></div>
+                        <div><strong>Kernel:</strong> <span id="sys-kernel">-</span></div>
+                        <div><strong>CPU Model:</strong> <span id="sys-cpu-model">-</span></div>
+                        <div><strong>Docker:</strong> <span id="sys-docker-status">-</span></div>
+                    </div>
+                    
                     <div style="margin-top: 20px;">
-                        <div class="status status-online">
-                            <i class="fas fa-circle"></i> All Systems Operational
+                        <div class="status status-online" id="system-status-badge">
+                            <i class="fas fa-circle"></i> <span id="system-status-text">Loading...</span>
                         </div>
                     </div>
                 </section>
                 
                 <section class="settings-section">
                     <h2 class="section-title">
-                        <i class="fas fa-tools"></i> Maintenance
+                        <i class="fas fa-power-off"></i> System Control
                     </h2>
+                    <p style="margin-bottom: 15px; color: var(--text); font-size: 0.9rem;">
+                        <i class="fas fa-exclamation-triangle" style="color: #ff6b6b;"></i>
+                        These actions affect the <strong>host system</strong>, not just the Landio container.
+                    </p>
                     
-                    <div class="buttons">
-                        <button class="btn btn-secondary" id="clear-cache">
-                            <i class="fas fa-broom"></i> Clear Cache
+                    <div id="pending-operation-display" style="display: none; margin-bottom: 15px; padding: 15px; background: rgba(255, 193, 7, 0.15); border-radius: 10px; border-left: 4px solid #ffc107;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <i class="fas fa-clock" style="font-size: 1.5rem; color: #ffc107;"></i>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 4px;">
+                                    Pending <span id="pending-action-type">Operation</span>
+                                </div>
+                                <div style="font-size: 0.85rem; color: #666;">
+                                    Executing in <strong id="pending-countdown">-</strong> seconds
+                                </div>
+                                <div style="font-size: 0.8rem; color: #999; margin-top: 2px;">
+                                    Reason: <span id="pending-reason">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <div id="pending-progress-bar" style="height: 4px; background: #ffc107; border-radius: 2px; width: 100%; transition: width 1s linear;"></div>
+                        </div>
+                        <button class="btn btn-warning" id="cancel-pending-operation" style="margin-top: 10px; width: 100%;">
+                            <i class="fas fa-times"></i> Cancel Operation
                         </button>
-                        <button class="btn btn-danger" id="restart-services">
-                            <i class="fas fa-redo"></i> Restart Services
+                    </div>
+                    
+                    <div class="buttons" style="display: flex; flex-direction: column; gap: 10px;">
+                        <button class="btn btn-danger" id="reboot-system-btn" style="width: 100%;">
+                            <i class="fas fa-redo-alt"></i> Reboot System
+                        </button>
+                        <button class="btn btn-danger" id="shutdown-system-btn" style="width: 100%;">
+                            <i class="fas fa-power-off"></i> Shutdown System
                         </button>
                     </div>
                     
@@ -3180,6 +1581,43 @@
                         </button>
                     </div>
                 </section>
+
+                <!-- System Action Confirmation Modal -->
+                <div class="modal-overlay" id="system-action-modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2 id="system-action-modal-title">Confirm Action</h2>
+                            <button class="modal-close" onclick="closeSystemActionModal()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div style="text-align: center; margin-bottom: 20px;">
+                                <i id="system-action-icon" class="fas fa-redo-alt" style="font-size: 3rem; color: #ff6b6b;"></i>
+                            </div>
+                            <p id="system-action-description" style="text-align: center; margin-bottom: 20px; line-height: 1.6;">
+                                Are you sure you want to reboot the system?
+                            </p>
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label for="system-action-reason">Reason for this action:</label>
+                                <textarea id="system-action-reason" rows="3" placeholder="Please provide a reason for this system action..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; resize: vertical;"></textarea>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label for="system-action-delay">Delay (seconds):</label>
+                                <input type="number" id="system-action-delay" min="10" max="600" value="30" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                                <small style="color: #999;">The action will execute after this delay. You can cancel during the countdown.</small>
+                            </div>
+                        </div>
+                        <div class="modal-buttons">
+                            <button class="btn btn-secondary" onclick="closeSystemActionModal()">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                            <button class="btn btn-danger" id="confirm-system-action">
+                                <i class="fas fa-check"></i> Execute
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- User Management Section -->
                 <section class="settings-section" id="users-tab" data-tab="users">
@@ -3841,7 +2279,7 @@
             
             if (user && confirm(`Are you sure you want to reset 2FA for ${user.name}? They will need to re-enroll in 2FA.`)) {
                 try {
-                    const response = await fetch(`/api/users/${id}/reset-2fa`, {
+                    const response = await fetch(`/api/2fa/admin/reset/${id}`, {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -4583,7 +3021,7 @@
             // 2FA Enforcement settings listeners
             const enforce2faAllUsers = document.getElementById('enforce-2fa-all-users');
             const enforce2faAdminsOnly = document.getElementById('enforce-2fa-admins-only');
-            const twoFAGracePeriod = document.getElementById('twofa-grace-period');
+            const twoFAGracePeriod = document.getElementById('two-factor-grace-period');
             
             if (enforce2faAllUsers) {
                 enforce2faAllUsers.addEventListener('change', function() {
@@ -4626,68 +3064,137 @@
             });
             
             // Clear cache button
-            document.getElementById('clear-cache').addEventListener('click', function() {
-                if (confirm('Are you sure you want to clear the cache?')) {
-                    const btn = this;
-                    const originalText = btn.innerHTML;
-                    
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Clearing...';
-                    btn.disabled = true;
-                    
-                    setTimeout(() => {
-                        alert('Cache cleared successfully!');
-                        btn.innerHTML = originalText;
-                        btn.disabled = false;
-                    }, 1000);
-                }
-            });
+            const clearCacheBtn = document.getElementById('clear-cache');
+            if (clearCacheBtn) {
+                clearCacheBtn.addEventListener('click', function() {
+                    if (confirm('Are you sure you want to clear the cache?')) {
+                        const btn = this;
+                        const originalText = btn.innerHTML;
+                        
+                        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Clearing...';
+                        btn.disabled = true;
+                        
+                        setTimeout(() => {
+                            alert('Cache cleared successfully!');
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                        }, 1000);
+                    }
+                });
+            }
             
             // Restart services button
-            document.getElementById('restart-services').addEventListener('click', function() {
-                if (confirm('Are you sure you want to restart all services? This may cause temporary downtime.')) {
-                    const btn = this;
-                    const originalText = btn.innerHTML;
-                    
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restarting...';
-                    btn.disabled = true;
-                    
-                    setTimeout(() => {
-                        alert('Services restarted successfully!');
-                        btn.innerHTML = originalText;
-                        btn.disabled = false;
-                    }, 2000);
-                }
-            });
+            const restartServicesBtn = document.getElementById('restart-services');
+            if (restartServicesBtn) {
+                restartServicesBtn.addEventListener('click', function() {
+                    if (confirm('Are you sure you want to restart all services? This may cause temporary downtime.')) {
+                        const btn = this;
+                        const originalText = btn.innerHTML;
+                        
+                        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restarting...';
+                        btn.disabled = true;
+                        
+                        setTimeout(() => {
+                            alert('Services restarted successfully!');
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                        }, 2000);
+                    }
+                });
+            }
             
-            // Simulate system metrics updates
+            // ==========================================
+            // DOCKER SETTINGS EVENT LISTENERS
+            // ==========================================
+            
+            // Docker auto-detect toggle
+            const dockerAutoDetect = document.getElementById('docker-auto-detect');
+            if (dockerAutoDetect) {
+                dockerAutoDetect.addEventListener('change', function() {
+                    const manualConfig = document.getElementById('docker-manual-config');
+                    if (manualConfig) {
+                        manualConfig.style.display = this.checked ? 'none' : 'block';
+                    }
+                    playSound('click');
+                });
+            }
+            
+            // Docker connection type selector
+            const dockerConnType = document.getElementById('docker-connection-type');
+            if (dockerConnType) {
+                dockerConnType.addEventListener('change', function() {
+                    const socketGroup = document.getElementById('docker-socket-group');
+                    const tcpGroup = document.getElementById('docker-tcp-group');
+                    if (socketGroup) socketGroup.style.display = this.value === 'socket' ? 'block' : 'none';
+                    if (tcpGroup) tcpGroup.style.display = this.value === 'tcp' ? 'block' : 'none';
+                });
+            }
+            
+            // Test Docker connection button
+            const testDockerBtn = document.getElementById('test-docker-connection');
+            if (testDockerBtn) {
+                testDockerBtn.addEventListener('click', testDockerConnection);
+            }
+            
+            // Save Docker settings button
+            const saveDockerBtn = document.getElementById('save-docker-settings');
+            if (saveDockerBtn) {
+                saveDockerBtn.addEventListener('click', saveDockerSettings);
+            }
+            
+            // Save system control settings button
+            const saveSystemCtrlBtn = document.getElementById('save-system-control-settings');
+            if (saveSystemCtrlBtn) {
+                saveSystemCtrlBtn.addEventListener('click', saveSystemControlSettings);
+            }
+            
+            // ==========================================
+            // SYSTEM CONTROL EVENT LISTENERS
+            // ==========================================
+            
+            // Reboot system button
+            const rebootBtn = document.getElementById('reboot-system-btn');
+            if (rebootBtn) {
+                rebootBtn.addEventListener('click', function() {
+                    openSystemActionModal('reboot');
+                });
+            }
+            
+            // Shutdown system button
+            const shutdownBtn = document.getElementById('shutdown-system-btn');
+            if (shutdownBtn) {
+                shutdownBtn.addEventListener('click', function() {
+                    openSystemActionModal('shutdown');
+                });
+            }
+            
+            // Cancel pending operation
+            const cancelOpBtn = document.getElementById('cancel-pending-operation');
+            if (cancelOpBtn) {
+                cancelOpBtn.addEventListener('click', cancelPendingOperation);
+            }
+            
+            // Confirm system action in modal
+            const confirmActionBtn = document.getElementById('confirm-system-action');
+            if (confirmActionBtn) {
+                confirmActionBtn.addEventListener('click', executeSystemAction);
+            }
+            
+            // ==========================================
+            // SYSTEM INFO LOADING
+            // ==========================================
+            
+            // Load system info from API instead of simulating
+            loadSystemInfo();
+            
+            // Check for pending operations on load
+            checkPendingOperation();
+            
+            // Periodic system info refresh (every 30s)
             setInterval(() => {
-                const cpuValue = Math.floor(Math.random() * 30 + 5) + '%';
-                const memoryValue = Math.floor(Math.random() * 30 + 50) + '%';
-                const diskValue = Math.floor(Math.random() * 10 + 40) + '%';
-                const uptimeValue = Math.floor(Math.random() * 30 + 5) + 'd';
-                
-                // Update System Info sidebar metrics
-                const cpuEl = document.getElementById('cpu-usage');
-                const memEl = document.getElementById('memory-usage');
-                const diskEl = document.getElementById('disk-usage');
-                const uptimeEl = document.getElementById('uptime');
-                
-                if (cpuEl) cpuEl.textContent = cpuValue;
-                if (memEl) memEl.textContent = memoryValue;
-                if (diskEl) diskEl.textContent = diskValue;
-                if (uptimeEl) uptimeEl.textContent = uptimeValue;
-                
-                // Update General tab metrics
-                const genCpuEl = document.getElementById('general-cpu-usage');
-                const genMemEl = document.getElementById('general-memory-usage');
-                const genDiskEl = document.getElementById('general-disk-usage');
-                const genUptimeEl = document.getElementById('general-uptime');
-                
-                if (genCpuEl) genCpuEl.textContent = cpuValue;
-                if (genMemEl) genMemEl.textContent = memoryValue;
-                if (genDiskEl) genDiskEl.textContent = diskValue;
-                if (genUptimeEl) genUptimeEl.textContent = uptimeValue;
-            }, 5000);
+                loadSystemInfo();
+                checkPendingOperation();
+            }, 30000);
         }
 
         // Legacy updateNavigation function - kept for compatibility
@@ -4801,14 +3308,30 @@
                     'max-login-attempts': 'maxLoginAttempts',
                     'lockout-duration': 'lockoutDuration',
                     'enforce-2fa-all-users': 'enforce2faAllUsers',
-                    'twofa-grace-period': 'twoFAGracePeriod',
+                    'two-factor-grace-period': 'twoFAGracePeriod',
                     'enforce-2fa-admins-only': 'enforce2faAdminsOnly',
                     'sso-enabled': 'ssoEnabled',
                     'sso-issuer-url': 'ssoIssuerUrl',
                     'sso-client-id': 'ssoClientId',
                     'sso-client-secret': 'ssoClientSecret',
                     'sso-redirect-uri': 'ssoRedirectUri',
-                    'sso-scopes': 'ssoScopes'
+                    'sso-scopes': 'ssoScopes',
+                    'docker-auto-detect': 'dockerAutoDetect',
+                    'docker-connection-type': 'dockerConnectionType',
+                    'docker-socket-path': 'dockerSocketPath',
+                    'docker-tcp-host': 'dockerTcpHost',
+                    'docker-tcp-port': 'dockerTcpPort',
+                    'docker-tls-enabled': 'dockerTlsEnabled',
+                    'system-reboot-enabled': 'systemRebootEnabled',
+                    'system-shutdown-enabled': 'systemShutdownEnabled',
+                    'system-reboot-delay': 'systemRebootDelay',
+                    'system-shutdown-delay': 'systemShutdownDelay',
+                    'system-reboot-require-reason': 'systemRebootRequireReason',
+                    'system-shutdown-require-reason': 'systemShutdownRequireReason',
+                    'notify-system-reboot': 'notifySystemReboot',
+                    'notify-system-shutdown': 'notifySystemShutdown',
+                    'password-reset-enabled': 'passwordResetEnabled',
+                    'notify-password-reset': 'notifyPasswordReset'
                 };
                 
                 for (const [fieldId, settingKey] of Object.entries(fieldMappings)) {
@@ -5186,7 +3709,10 @@
                     'notify-app-restart': { value: safeGetValue('notify-app-restart', 'false'), category: 'notifications' },
                     'notify-errors': { value: safeGetValue('notify-errors', 'false'), category: 'notifications' },
                     'notify-security': { value: safeGetValue('notify-security', 'false'), category: 'notifications' },
-                    'notify-user-activity': { value: safeGetValue('notify-user-activity', 'false'), category: 'notifications' }
+                    'notify-user-activity': { value: safeGetValue('notify-user-activity', 'false'), category: 'notifications' },
+                    'notify-system-reboot': { value: safeGetValue('notify-system-reboot', 'false'), category: 'notifications' },
+                    'notify-system-shutdown': { value: safeGetValue('notify-system-shutdown', 'false'), category: 'notifications' },
+                    'notify-password-reset': { value: safeGetValue('notify-password-reset', 'false'), category: 'notifications' }
                 };
                 
                 console.log('Saving notification settings:', notificationsSettings);
@@ -5421,6 +3947,24 @@
                         emailSubject: 'User Activity Notification',
                         emailBody: '<strong>User Activity Notification</strong><br><br>User account activity has been detected.<br><br><strong>Details:</strong><ul><li>User: [USERNAME]</li><li>Activity: [ACTIVITY_TYPE]</li><li>Timestamp: [TIMESTAMP]</li></ul>',
                         discordMessage: 'User Activity Notification\n\nUser account activity has been detected.\n\n**Details:**\n• User: [USERNAME]\n• Activity: [ACTIVITY_TYPE]\n• Timestamp: [TIMESTAMP]'
+                    },
+                    'system-reboot': {
+                        title: 'System Reboot',
+                        emailSubject: 'System Reboot Alert',
+                        emailBody: '<strong>System Reboot Initiated</strong><br><br>A system reboot has been scheduled.<br><br><strong>Details:</strong><ul><li>Triggered by: [TRIGGERED_BY]</li><li>Reason: [REASON]</li><li>Delay: [DELAY] seconds</li><li>Scheduled at: [SCHEDULED_AT]</li></ul><br><p style="color: #ff6b6b;"><strong>Warning:</strong> The system will reboot after the specified delay. All running services will be affected.</p>',
+                        discordMessage: 'System Reboot Initiated\n\nA system reboot has been scheduled.\n\n**Details:**\n• Triggered by: [TRIGGERED_BY]\n• Reason: [REASON]\n• Delay: [DELAY] seconds\n• Scheduled at: [SCHEDULED_AT]\n\n⚠️ **Warning:** The system will reboot after the specified delay. All running services will be affected.'
+                    },
+                    'system-shutdown': {
+                        title: 'System Shutdown',
+                        emailSubject: 'System Shutdown Alert',
+                        emailBody: '<strong>System Shutdown Initiated</strong><br><br>A system shutdown has been scheduled.<br><br><strong>Details:</strong><ul><li>Triggered by: [TRIGGERED_BY]</li><li>Reason: [REASON]</li><li>Delay: [DELAY] seconds</li><li>Scheduled at: [SCHEDULED_AT]</li></ul><br><p style="color: #ff6b6b;"><strong>Warning:</strong> The system will shut down after the specified delay. All running services will be affected.</p>',
+                        discordMessage: 'System Shutdown Initiated\n\nA system shutdown has been scheduled.\n\n**Details:**\n• Triggered by: [TRIGGERED_BY]\n• Reason: [REASON]\n• Delay: [DELAY] seconds\n• Scheduled at: [SCHEDULED_AT]\n\n⚠️ **Warning:** The system will shut down after the specified delay. All running services will be affected.'
+                    },
+                    'password-reset': {
+                        title: 'Password Reset',
+                        emailSubject: 'Password Reset Requested',
+                        emailBody: '<strong>Password Reset Requested</strong><br><br>A user has requested a password reset.<br><br><strong>Details:</strong><ul><li>User: [USERNAME]</li><li>Email: [EMAIL]</li><li>IP Address: [IP_ADDRESS]</li><li>Time: [TIMESTAMP]</li></ul><p style="color: #ff6b6b;">If this was not initiated by the user, please investigate immediately.</p>',
+                        discordMessage: 'Password Reset Requested\n\nA user has requested a password reset.\n\n**Details:**\n• User: [USERNAME]\n• Email: [EMAIL]\n• IP Address: [IP_ADDRESS]\n• Time: [TIMESTAMP]\n\n⚠️ If this was not initiated by the user, please investigate immediately.'
                     }
                 };
                 
@@ -6011,7 +4555,7 @@
                 // Collect system-level 2FA enforcement settings
                 const twoFAEnforcementSettings = {
                     'enforce-2fa-all-users': { value: String(document.getElementById('enforce-2fa-all-users').checked), category: 'security' },
-                    'twofa-grace-period': { value: String(document.getElementById('twofa-grace-period').value), category: 'security' },
+                    'two-factor-grace-period': { value: String(document.getElementById('two-factor-grace-period').value), category: 'security' },
                     'enforce-2fa-admins-only': { value: String(document.getElementById('enforce-2fa-admins-only').checked), category: 'security' }
                 };
                 
@@ -6167,6 +4711,460 @@
         
         // Initialize tabs on page load
         document.addEventListener('DOMContentLoaded', initializeSettingsTabs);
+
+        // ==========================================
+        // DOCKER MANAGEMENT FUNCTIONS
+        // ==========================================
+
+        // Save Docker settings
+        async function saveDockerSettings() {
+            try {
+                const btn = document.getElementById('save-docker-settings');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                btn.disabled = true;
+
+                const dockerSettings = {
+                    'docker-auto-detect': { value: String(document.getElementById('docker-auto-detect').checked), category: 'docker' },
+                    'docker-connection-type': { value: document.getElementById('docker-connection-type').value, category: 'docker' },
+                    'docker-socket-path': { value: document.getElementById('docker-socket-path').value, category: 'docker' },
+                    'docker-tcp-host': { value: document.getElementById('docker-tcp-host').value, category: 'docker' },
+                    'docker-tcp-port': { value: document.getElementById('docker-tcp-port').value, category: 'docker' },
+                    'docker-tls-enabled': { value: String(document.getElementById('docker-tls-enabled').checked), category: 'docker' }
+                };
+
+                await window.Api.updateSettings(dockerSettings, 'system');
+
+                for (const [key, data] of Object.entries(dockerSettings)) {
+                    let value = data.value;
+                    if (value === 'true') value = true;
+                    else if (value === 'false') value = false;
+                    settings[key] = value;
+                }
+
+                btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                showNotification('Docker settings saved successfully!', 'success');
+                playSound('success');
+
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 2000);
+            } catch (error) {
+                console.error('Failed to save Docker settings:', error);
+                showNotification('Failed to save Docker settings: ' + error.message, 'error');
+                const btn = document.getElementById('save-docker-settings');
+                btn.innerHTML = '<i class="fas fa-save"></i> Save Docker Settings';
+                btn.disabled = false;
+            }
+        }
+
+        // Test Docker connection
+        async function testDockerConnection() {
+            try {
+                const btn = document.getElementById('test-docker-connection');
+                const resultDiv = document.getElementById('docker-test-result');
+                const originalText = btn.innerHTML;
+
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+                btn.disabled = true;
+                resultDiv.style.display = 'none';
+
+                const response = await window.Api.request('POST', '/docker/test', {
+                    autoDetect: document.getElementById('docker-auto-detect').checked,
+                    connectionType: document.getElementById('docker-connection-type').value,
+                    socketPath: document.getElementById('docker-socket-path').value,
+                    tcpHost: document.getElementById('docker-tcp-host').value,
+                    tcpPort: parseInt(document.getElementById('docker-tcp-port').value),
+                    tlsEnabled: document.getElementById('docker-tls-enabled').checked
+                });
+
+                if (response.connected) {
+                    resultDiv.style.background = 'rgba(76, 175, 80, 0.1)';
+                    resultDiv.style.borderLeft = '4px solid #4CAF50';
+                    resultDiv.style.color = '#2E7D32';
+                    resultDiv.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-check-circle" style="font-size: 1.2rem;"></i>
+                            <div>
+                                <strong>✓ Connected!</strong><br>
+                                <small>Docker ${response.version || ''} | API ${response.apiVersion || ''}</small>
+                            </div>
+                        </div>
+                    `;
+                    updateDockerStatusDisplay(response);
+                    showNotification('Docker connection successful!', 'success');
+                    playSound('success');
+                } else {
+                    resultDiv.style.background = 'rgba(244, 67, 54, 0.1)';
+                    resultDiv.style.borderLeft = '4px solid #F44336';
+                    resultDiv.style.color = '#C62828';
+                    resultDiv.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-exclamation-circle" style="font-size: 1.2rem;"></i>
+                            <div>
+                                <strong>✗ Connection Failed</strong><br>
+                                <small>${response.error || 'Could not connect to Docker daemon'}</small>
+                            </div>
+                        </div>
+                    `;
+                    showNotification('Docker connection failed', 'error');
+                    playSound('error');
+                }
+
+                resultDiv.style.display = 'block';
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            } catch (error) {
+                console.error('Docker test error:', error);
+                const resultDiv = document.getElementById('docker-test-result');
+                resultDiv.style.background = 'rgba(244, 67, 54, 0.1)';
+                resultDiv.style.borderLeft = '4px solid #F44336';
+                resultDiv.style.color = '#C62828';
+                resultDiv.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-exclamation-circle" style="font-size: 1.2rem;"></i>
+                        <div>
+                            <strong>✗ Error</strong><br>
+                            <small>${error.message}</small>
+                        </div>
+                    </div>
+                `;
+                resultDiv.style.display = 'block';
+                const btn = document.getElementById('test-docker-connection');
+                btn.innerHTML = '<i class="fas fa-plug"></i> Test Connection';
+                btn.disabled = false;
+            }
+        }
+
+        function updateDockerStatusDisplay(info) {
+            const indicator = document.getElementById('docker-status-indicator');
+            const statusText = document.getElementById('docker-status-text');
+            const details = document.getElementById('docker-info-details');
+
+            if (indicator) {
+                indicator.style.background = info.connected ? '#4CAF50' : '#F44336';
+            }
+            if (statusText) {
+                statusText.textContent = info.connected ? 'Connected' : 'Disconnected';
+                statusText.style.color = info.connected ? '#2E7D32' : '#C62828';
+            }
+            if (details && info.connected) {
+                details.style.display = 'block';
+                const el = (id) => document.getElementById(id);
+                if (el('docker-info-version')) el('docker-info-version').textContent = info.version || '-';
+                if (el('docker-info-api-version')) el('docker-info-api-version').textContent = info.apiVersion || '-';
+                if (el('docker-info-containers')) el('docker-info-containers').textContent = info.containers || '-';
+                if (el('docker-info-running')) el('docker-info-running').textContent = info.containersRunning || '-';
+                if (el('docker-info-images')) el('docker-info-images').textContent = info.images || '-';
+                if (el('docker-info-os')) el('docker-info-os').textContent = info.os || '-';
+            }
+        }
+
+        // ==========================================
+        // SYSTEM CONTROL FUNCTIONS
+        // ==========================================
+
+        let currentSystemAction = null;
+        let pendingCheckInterval = null;
+
+        // Save system control settings
+        async function saveSystemControlSettings() {
+            try {
+                const btn = document.getElementById('save-system-control-settings');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                btn.disabled = true;
+
+                const systemControlSettings = {
+                    'system-reboot-enabled': { value: String(document.getElementById('system-reboot-enabled').checked), category: 'system' },
+                    'system-shutdown-enabled': { value: String(document.getElementById('system-shutdown-enabled').checked), category: 'system' },
+                    'system-reboot-delay': { value: document.getElementById('system-reboot-delay').value, category: 'system' },
+                    'system-shutdown-delay': { value: document.getElementById('system-shutdown-delay').value, category: 'system' },
+                    'system-reboot-require-reason': { value: String(document.getElementById('system-reboot-require-reason').checked), category: 'system' },
+                    'system-shutdown-require-reason': { value: String(document.getElementById('system-shutdown-require-reason').checked), category: 'system' }
+                };
+
+                await window.Api.updateSettings(systemControlSettings, 'system');
+
+                for (const [key, data] of Object.entries(systemControlSettings)) {
+                    let value = data.value;
+                    if (value === 'true') value = true;
+                    else if (value === 'false') value = false;
+                    settings[key] = value;
+                }
+
+                btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                showNotification('System control settings saved!', 'success');
+                playSound('success');
+
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 2000);
+            } catch (error) {
+                console.error('Failed to save system control settings:', error);
+                showNotification('Failed to save settings: ' + error.message, 'error');
+                const btn = document.getElementById('save-system-control-settings');
+                btn.innerHTML = '<i class="fas fa-save"></i> Save System Control Settings';
+                btn.disabled = false;
+            }
+        }
+
+        // Load system info from API
+        async function loadSystemInfo() {
+            try {
+                const response = await window.Api.request('GET', '/system/info');
+                
+                const cpuEl = document.getElementById('cpu-usage');
+                const memEl = document.getElementById('memory-usage');
+                const diskEl = document.getElementById('disk-usage');
+                const uptimeEl = document.getElementById('uptime');
+                
+                if (cpuEl) cpuEl.textContent = response.cpuUsage !== undefined ? response.cpuUsage + '%' : 'N/A';
+                if (memEl) memEl.textContent = response.memoryUsage !== undefined ? response.memoryUsage + '%' : 'N/A';
+                if (diskEl) diskEl.textContent = response.diskUsage !== undefined ? response.diskUsage + '%' : 'N/A';
+                if (uptimeEl) uptimeEl.textContent = response.uptime || 'N/A';
+                
+                // Update detailed system info
+                const detailInfo = document.getElementById('system-detail-info');
+                if (detailInfo) {
+                    detailInfo.style.display = 'block';
+                    if (document.getElementById('sys-hostname')) document.getElementById('sys-hostname').textContent = response.hostname || '-';
+                    if (document.getElementById('sys-os')) document.getElementById('sys-os').textContent = response.platform || '-';
+                    if (document.getElementById('sys-kernel')) document.getElementById('sys-kernel').textContent = response.kernel || '-';
+                    if (document.getElementById('sys-cpu-model')) document.getElementById('sys-cpu-model').textContent = response.cpuModel || '-';
+                    if (document.getElementById('sys-docker-status')) document.getElementById('sys-docker-status').textContent =
+                        response.isDocker ? 'Running in container' : 'Not in Docker';
+                }
+                
+                // Update status badge
+                const statusBadge = document.getElementById('system-status-badge');
+                const statusText = document.getElementById('system-status-text');
+                if (statusBadge && statusText) {
+                    statusText.textContent = 'All Systems Operational';
+                    statusBadge.className = 'status status-online';
+                }
+            } catch (error) {
+                console.error('Failed to load system info:', error);
+                const statusText = document.getElementById('system-status-text');
+                if (statusText) statusText.textContent = 'Unable to fetch system info';
+            }
+        }
+
+        // Open system action confirmation modal
+        function openSystemActionModal(action) {
+            currentSystemAction = action;
+            const modal = document.getElementById('system-action-modal');
+            const title = document.getElementById('system-action-modal-title');
+            const icon = document.getElementById('system-action-icon');
+            const description = document.getElementById('system-action-description');
+            const delayInput = document.getElementById('system-action-delay');
+            
+            const isReboot = action === 'reboot';
+            
+            if (title) title.textContent = isReboot ? 'Confirm System Reboot' : 'Confirm System Shutdown';
+            if (icon) {
+                icon.className = isReboot ? 'fas fa-redo-alt' : 'fas fa-power-off';
+                icon.style.color = '#ff6b6b';
+            }
+            if (description) {
+                description.textContent = isReboot ?
+                    'Are you sure you want to reboot the system? This will restart the host machine.' :
+                    'Are you sure you want to shut down the system? This will power off the host machine.';
+            }
+            
+            // Set default delay from settings
+            if (delayInput) {
+                const delaySetting = isReboot ? settings['system-reboot-delay'] : settings['system-shutdown-delay'];
+                delayInput.value = delaySetting || 30;
+            }
+            
+            // Check if reason is required
+            const reasonInput = document.getElementById('system-action-reason');
+            if (reasonInput) {
+                const requireReason = isReboot ? settings['system-reboot-require-reason'] : settings['system-shutdown-require-reason'];
+                reasonInput.required = requireReason !== false;
+                reasonInput.placeholder = reasonInput.required ?
+                    'Reason is required for this action...' :
+                    'Optional: Provide a reason for this action...';
+            }
+            
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSystemActionModal() {
+            const modal = document.getElementById('system-action-modal');
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+            currentSystemAction = null;
+        }
+
+        // Execute system action (reboot or shutdown)
+        async function executeSystemAction() {
+            if (!currentSystemAction) return;
+            
+            const reasonInput = document.getElementById('system-action-reason');
+            const delayInput = document.getElementById('system-action-delay');
+            const confirmBtn = document.getElementById('confirm-system-action');
+            
+            const reason = reasonInput ? reasonInput.value.trim() : '';
+            const delay = delayInput ? parseInt(delayInput.value) || 30 : 30;
+            
+            // Check if reason is required
+            const isReboot = currentSystemAction === 'reboot';
+            const requireReason = isReboot ? settings['system-reboot-require-reason'] : settings['system-shutdown-require-reason'];
+            
+            if (requireReason !== false && !reason) {
+                showNotification('Please provide a reason for this action', 'error');
+                return;
+            }
+            
+            if (delay < 10 || delay > 600) {
+                showNotification('Delay must be between 10 and 600 seconds', 'error');
+                return;
+            }
+            
+            try {
+                const originalText = confirmBtn.innerHTML;
+                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scheduling...';
+                confirmBtn.disabled = true;
+                
+                const endpoint = currentSystemAction === 'reboot' ? '/system/reboot' : '/system/shutdown';
+                
+                const response = await window.Api.request('POST', endpoint, {
+                    delay: delay,
+                    reason: reason
+                });
+                
+                closeSystemActionModal();
+                showNotification(`${isReboot ? 'Reboot' : 'Shutdown'} scheduled! Action will execute in ${delay} seconds.`, 'success');
+                
+                // Start checking for pending operation
+                if (response.token) {
+                    startPendingOperationCheck(response.token, delay, reason, currentSystemAction);
+                }
+                
+                confirmBtn.innerHTML = originalText;
+                confirmBtn.disabled = false;
+                
+            } catch (error) {
+                console.error('Failed to schedule system action:', error);
+                showNotification('Failed to schedule action: ' + error.message, 'error');
+                const btn = document.getElementById('confirm-system-action');
+                btn.innerHTML = '<i class="fas fa-check"></i> Execute';
+                btn.disabled = false;
+            }
+        }
+
+        // Check for pending operations on page load
+        async function checkPendingOperation() {
+            try {
+                const response = await window.Api.request('GET', '/system/status');
+                if (response.pending) {
+                    startPendingOperationCheck(response.token, response.remainingSeconds, response.reason, response.action);
+                }
+            } catch (error) {
+                // No pending operation - that's fine
+            }
+        }
+
+        // Start pending operation countdown display
+        function startPendingOperationCheck(token, totalDelay, reason, action) {
+            const display = document.getElementById('pending-operation-display');
+            const actionType = document.getElementById('pending-action-type');
+            const countdown = document.getElementById('pending-countdown');
+            const reasonEl = document.getElementById('pending-reason');
+            const progressBar = document.getElementById('pending-progress-bar');
+            
+            if (display) display.style.display = 'block';
+            if (actionType) actionType.textContent = action === 'reboot' ? 'System Reboot' : 'System Shutdown';
+            if (reasonEl) reasonEl.textContent = reason || 'No reason provided';
+            
+            let remaining = totalDelay;
+            const total = totalDelay;
+            
+            // Clear any existing interval
+            if (pendingCheckInterval) {
+                clearInterval(pendingCheckInterval);
+            }
+            
+            pendingCheckInterval = setInterval(() => {
+                remaining--;
+                if (countdown) countdown.textContent = remaining;
+                if (progressBar) {
+                    const pct = (remaining / total) * 100;
+                    progressBar.style.width = pct + '%';
+                }
+                
+                if (remaining <= 0) {
+                    clearInterval(pendingCheckInterval);
+                    pendingCheckInterval = null;
+                    if (display) {
+                        display.innerHTML = `
+                            <div style="text-align: center; padding: 10px;">
+                                <i class="fas fa-check-circle" style="color: #4CAF50; font-size: 1.5rem;"></i>
+                                <div style="margin-top: 5px; font-weight: 600;">Action executed</div>
+                            </div>
+                        `;
+                    }
+                }
+            }, 1000);
+            
+            // Store token for cancel
+            window._pendingActionToken = token;
+        }
+
+        // Cancel pending operation
+        async function cancelPendingOperation() {
+            if (!window._pendingActionToken) {
+                showNotification('No pending operation to cancel', 'error');
+                return;
+            }
+            
+            if (!confirm('Are you sure you want to cancel the pending operation?')) return;
+            
+            try {
+                const endpoint = '/system/reboot/cancel';
+                await window.Api.request('POST', endpoint, {
+                    token: window._pendingActionToken
+                });
+                
+                if (pendingCheckInterval) {
+                    clearInterval(pendingCheckInterval);
+                    pendingCheckInterval = null;
+                }
+                
+                const display = document.getElementById('pending-operation-display');
+                if (display) display.style.display = 'none';
+                
+                window._pendingActionToken = null;
+                showNotification('Pending operation cancelled successfully', 'success');
+            } catch (error) {
+                // Try shutdown cancel endpoint if reboot cancel fails
+                try {
+                    await window.Api.request('POST', '/system/shutdown/cancel', {
+                        token: window._pendingActionToken
+                    });
+                    
+                    if (pendingCheckInterval) {
+                        clearInterval(pendingCheckInterval);
+                        pendingCheckInterval = null;
+                    }
+                    
+                    const display = document.getElementById('pending-operation-display');
+                    if (display) display.style.display = 'none';
+                    
+                    window._pendingActionToken = null;
+                    showNotification('Pending operation cancelled successfully', 'success');
+                } catch (e) {
+                    showNotification('Failed to cancel operation: ' + error.message, 'error');
+                }
+            }
+        }
 
         // ==========================================
         // SERVICE MANAGEMENT FUNCTIONALITY

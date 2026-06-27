@@ -8,6 +8,7 @@ const session = require('express-session');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
+const datalayer = require('./lib/datalayer');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -16,9 +17,24 @@ const settingsRoutes = require('./routes/settings');
 const ssoRoutes = require('./routes/sso');
 const tfaRoutes = require('./routes/2fa');
 const servicesRoutes = require('./routes/services');
+const dockerRoutes = require('./routes/docker');
+const systemRoutes = require('./routes/system');
+
+const auditRoutes = require('./routes/audit');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Validate required environment variables
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET environment variable is required for token signing.');
+  process.exit(1);
+}
+
+if (!process.env.SESSION_SECRET) {
+  console.error('FATAL: SESSION_SECRET environment variable is required for session encryption.');
+  process.exit(1);
+}
 
 // Trust proxy for Cloudflare tunnels and other reverse proxies
 app.set('trust proxy', 1);
@@ -28,11 +44,14 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https:", "http:"],
-      fontSrc: ["'self'", "https:", "http:", "data:"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https:", "http:"],
-      connectSrc: ["'self'", "https:", "http:"],
-      imgSrc: ["'self'", "data:", "https:", "http:"],
+      // 'unsafe-inline' required in styleSrc for inline style="..." attributes (~109 instances across pages)
+      // and in scriptSrc for all inline <script> blocks (page-specific JavaScript logic)
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      fontSrc: ["'self'", "data:"],
+      // Allow CDN scripts for QR code library used in 2FA setup (settings.html, onboarding.html)
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
+      connectSrc: ["'self'"],
+      imgSrc: ["'self'", "data:"],
     },
   },
   // Disable strict transport security - let reverse proxy handle HTTPS
@@ -117,11 +136,11 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Session configuration
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false, // Set to true in production with HTTPS
+    secure: process.env.SESSION_SECURE === 'true',
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
@@ -137,6 +156,9 @@ app.use('/api/settings', apiLimiter, settingsRoutes);
 app.use('/api/services', apiLimiter, servicesRoutes);
 app.use('/api/2fa', apiLimiter, tfaRoutes);
 app.use('/api/sso', ssoRoutes);
+app.use('/api/logs', apiLimiter, auditRoutes);
+app.use('/api/docker', apiLimiter, dockerRoutes);
+app.use('/api/system', apiLimiter, systemRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -156,7 +178,7 @@ app.get('/favicon.ico', (req, res) => {
 // Catch-all handler: send back index.html for client-side routing
 app.get('*', (req, res) => {
   // Only serve HTML files for known routes, otherwise serve index.html
-  const htmlRoutes = ['/login', '/dashboard', '/settings', '/logs'];
+  const htmlRoutes = ['/login', '/dashboard', '/settings', '/logs', '/docker', '/reset-password'];
   const isHtmlRoute = htmlRoutes.some(route => req.path.startsWith(route)) ||
                      req.path.endsWith('.html') ||
                      req.path === '/';
@@ -195,6 +217,8 @@ global.db = new sqlite3.Database(dbPath, (err) => {
     process.exit(1);
   }
   console.log('Connected to SQLite database.');
+  // Initialize the data layer with the database connection
+  datalayer.initialize(global.db);
 });
 
 // Create tables if they don't exist
@@ -233,7 +257,9 @@ global.db.serialize(() => {
     { name: 'username', type: 'TEXT' },  // UNIQUE constraint via index below
     { name: 'display_name', type: 'TEXT' },
     { name: 'sso_provider', type: 'TEXT' },
-    { name: 'sso_id', type: 'TEXT' }  // UNIQUE constraint via index below
+    { name: 'sso_id', type: 'TEXT' },  // UNIQUE constraint via index below
+    { name: 'reset_token', type: 'TEXT' },
+    { name: 'reset_token_expires', type: 'DATETIME' }
   ];
 
   columnsToAdd.forEach(col => {
@@ -253,6 +279,18 @@ global.db.serialize(() => {
   global.db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_sso_id ON users(sso_id);`, (err) => {
     if (err) console.warn('Note: Could not create sso_id index:', err.message);
   });
+
+  // Migrate old key name 'twofa-grace-period' -> 'two-factor-grace-period'
+  global.db.run(
+    `UPDATE settings SET key = 'two-factor-grace-period' WHERE key = 'twofa-grace-period'`,
+    (err) => {
+      if (err) {
+        console.warn('Note: Could not migrate twofa-grace-period key:', err.message);
+      } else {
+        console.log('✅ Migrated settings key: twofa-grace-period -> two-factor-grace-period');
+      }
+    }
+  );
 
   // Continue with remaining migrations
   global.db.run(`

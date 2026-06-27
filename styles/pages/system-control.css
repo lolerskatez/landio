@@ -1,0 +1,551 @@
+/* ============================================ */
+/* SYSTEM CONTROL STYLES                       */
+/* For system info, reboot/shutdown controls,   */
+/* pending operations, and confirmation modal   */
+/* ============================================ */
+
+/* ============================================ */
+/* SYSTEM INFO SIDEBAR                          */
+/* ============================================ */
+
+.system-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.info-card {
+    background: white;
+    border-radius: 12px;
+    padding: 18px 15px;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.info-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary);
+    margin: 10px 0 5px;
+    line-height: 1.2;
+}
+
+.info-label {
+    font-size: 0.8rem;
+    color: #7a7a7a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+/* System detail info section */
+#system-detail-info {
+    font-size: 0.85rem;
+    line-height: 1.8;
+    color: #666;
+}
+
+#system-detail-info strong {
+    color: var(--dark, #4a4a4a);
+    min-width: 100px;
+    display: inline-block;
+}
+
+/* System status badge */
+#system-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 25px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.status-online {
+    background: rgba(46, 213, 115, 0.15);
+    color: #2ed573;
+    border: 1px solid rgba(46, 213, 115, 0.3);
+}
+
+.status-offline {
+    background: rgba(255, 71, 87, 0.15);
+    color: #ff4757;
+    border: 1px solid rgba(255, 71, 87, 0.3);
+}
+
+/* ============================================ */
+/* PENDING OPERATION DISPLAY                    */
+/* ============================================ */
+
+#pending-operation-display {
+    margin-bottom: 15px;
+    padding: 18px;
+    background: rgba(255, 193, 7, 0.12);
+    border-radius: 12px;
+    border-left: 4px solid #ffc107;
+    animation: pendingPulse 2s ease-in-out infinite;
+}
+
+@keyframes pendingPulse {
+    0%, 100% {
+        background: rgba(255, 193, 7, 0.12);
+    }
+    50% {
+        background: rgba(255, 193, 7, 0.2);
+    }
+}
+
+#pending-operation-display .pending-icon {
+    font-size: 1.5rem;
+    color: #ffc107;
+}
+
+#pending-action-type {
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+#pending-countdown {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #e67e22;
+}
+
+#pending-reason {
+    color: #888;
+    font-style: italic;
+}
+
+/* Progress bar for pending countdown */
+#pending-progress-bar {
+    height: 4px;
+    background: #ffc107;
+    border-radius: 2px;
+    width: 100%;
+    transition: width 1s linear;
+    box-shadow: 0 0 8px rgba(255, 193, 7, 0.4);
+}
+
+/* ============================================ */
+/* SYSTEM CONTROL BUTTONS                       */
+/* ============================================ */
+
+#reboot-system-btn,
+#shutdown-system-btn {
+    padding: 14px 25px;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+#reboot-system-btn {
+    background: linear-gradient(135deg, #ffa502, #ffbe76);
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 165, 2, 0.35);
+}
+
+#reboot-system-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 165, 2, 0.45);
+}
+
+#shutdown-system-btn {
+    background: linear-gradient(135deg, #ff4757, #ff6b81);
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 71, 87, 0.35);
+}
+
+#shutdown-system-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 71, 87, 0.45);
+}
+
+#cancel-pending-operation {
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+/* ============================================ */
+/* SYSTEM ACTION CONFIRMATION MODAL             */
+/* ============================================ */
+
+#system-action-modal .modal-content {
+    max-width: 500px;
+}
+
+#system-action-modal .modal-header {
+    background: linear-gradient(135deg, #ff6b6b, #ff8a8a);
+}
+
+#system-action-icon {
+    font-size: 3rem;
+    color: #ff6b6b;
+}
+
+#system-action-reason {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    resize: vertical;
+    transition: border-color 0.3s ease;
+    min-height: 80px;
+}
+
+#system-action-reason:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(255, 107, 147, 0.1);
+}
+
+#system-action-delay {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    transition: border-color 0.3s ease;
+}
+
+#system-action-delay:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(255, 107, 147, 0.1);
+}
+
+#confirm-system-action {
+    background: linear-gradient(135deg, #ff4757, #ff6b81);
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 71, 87, 0.3);
+}
+
+#confirm-system-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 71, 87, 0.4);
+}
+
+/* ============================================ */
+/* THEME SUPPORT                                */
+/* ============================================ */
+
+/* Cyber Theme */
+body.theme-cyber .system-info {
+    gap: 12px;
+}
+
+body.theme-cyber .info-card {
+    background: rgba(28, 20, 51, 0.9) !important;
+    border: 1px solid rgba(0, 224, 255, 0.2) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.theme-cyber .info-card:hover {
+    border-color: rgba(0, 224, 255, 0.5) !important;
+    box-shadow: 0 6px 25px rgba(0, 224, 255, 0.2), 0 0 15px rgba(255, 95, 162, 0.15) !important;
+}
+
+body.theme-cyber .info-value {
+    color: #00E0FF !important;
+    text-shadow: 0 0 10px rgba(0, 224, 255, 0.3) !important;
+}
+
+body.theme-cyber .info-label {
+    color: #C9BEEA !important;
+}
+
+body.theme-cyber #system-detail-info {
+    background: rgba(28, 20, 51, 0.6) !important;
+    color: #C9BEEA !important;
+}
+
+body.theme-cyber #system-detail-info strong {
+    color: #00E0FF !important;
+}
+
+body.theme-cyber .status-online {
+    background: rgba(0, 255, 163, 0.15) !important;
+    border-color: rgba(0, 255, 163, 0.3) !important;
+    color: #00FFA3 !important;
+}
+
+body.theme-cyber .status-offline {
+    background: rgba(255, 79, 112, 0.15) !important;
+    border-color: rgba(255, 79, 112, 0.3) !important;
+    color: #FF4F70 !important;
+}
+
+body.theme-cyber #reboot-system-btn {
+    background: linear-gradient(135deg, #FFC93C, #FFA502) !important;
+    box-shadow: 0 4px 15px rgba(255, 201, 60, 0.3) !important;
+}
+
+body.theme-cyber #reboot-system-btn:hover {
+    box-shadow: 0 6px 25px rgba(255, 201, 60, 0.5) !important;
+}
+
+body.theme-cyber #shutdown-system-btn {
+    background: linear-gradient(135deg, #FF4F70, #FF6B81) !important;
+    box-shadow: 0 4px 15px rgba(255, 79, 112, 0.3) !important;
+}
+
+body.theme-cyber #shutdown-system-btn:hover {
+    box-shadow: 0 6px 25px rgba(255, 79, 112, 0.5) !important;
+}
+
+body.theme-cyber #pending-operation-display {
+    background: rgba(255, 201, 60, 0.12) !important;
+    border-left-color: #FFC93C !important;
+}
+
+body.theme-cyber #pending-action-type {
+    color: #FFC93C !important;
+}
+
+body.theme-cyber #pending-countdown {
+    color: #FFC93C !important;
+}
+
+body.theme-cyber #pending-progress-bar {
+    background: #FFC93C !important;
+    box-shadow: 0 0 10px rgba(255, 201, 60, 0.5) !important;
+}
+
+body.theme-cyber #system-action-modal .modal-header {
+    background: linear-gradient(135deg, #FF4F70, #C77DFF) !important;
+}
+
+body.theme-cyber #system-action-icon {
+    color: #FF4F70 !important;
+}
+
+body.theme-cyber #system-action-reason,
+body.theme-cyber #system-action-delay {
+    background: rgba(14, 10, 31, 0.6) !important;
+    border-color: rgba(0, 224, 255, 0.25) !important;
+    color: #FFFFFF !important;
+}
+
+body.theme-cyber #system-action-reason:focus,
+body.theme-cyber #system-action-delay:focus {
+    border-color: rgba(0, 224, 255, 0.5) !important;
+    box-shadow: 0 0 15px rgba(0, 224, 255, 0.15) !important;
+}
+
+body.theme-cyber #system-action-reason::placeholder {
+    color: rgba(201, 190, 234, 0.5) !important;
+}
+
+body.theme-cyber #confirm-system-action {
+    background: linear-gradient(135deg, rgba(255, 79, 112, 0.8), rgba(199, 125, 255, 0.8)) !important;
+    box-shadow: 0 4px 15px rgba(255, 79, 112, 0.3) !important;
+}
+
+body.theme-cyber #confirm-system-action:hover {
+    box-shadow: 0 6px 25px rgba(255, 79, 112, 0.5) !important;
+}
+
+body.theme-cyber #cancel-pending-operation {
+    background: rgba(255, 79, 112, 0.15) !important;
+    color: #FF4F70 !important;
+    border: 1px solid rgba(255, 79, 112, 0.3) !important;
+}
+
+body.theme-cyber #cancel-pending-operation:hover {
+    background: rgba(255, 79, 112, 0.25) !important;
+    box-shadow: 0 0 10px rgba(255, 79, 112, 0.3) !important;
+}
+
+/* Sunset Theme */
+body.theme-sunset .info-card {
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08) !important;
+}
+
+body.theme-sunset .info-card:hover {
+    box-shadow: 0 6px 25px rgba(255, 106, 61, 0.15) !important;
+}
+
+body.theme-sunset .info-value {
+    color: var(--primary) !important;
+}
+
+body.theme-sunset .info-label {
+    color: var(--text-secondary) !important;
+}
+
+body.theme-sunset #system-detail-info {
+    background: rgba(247, 238, 233, 0.6) !important;
+    color: var(--text-secondary) !important;
+}
+
+body.theme-sunset #system-detail-info strong {
+    color: var(--text-primary) !important;
+}
+
+body.theme-sunset .status-online {
+    background: rgba(70, 195, 113, 0.15) !important;
+    border-color: rgba(70, 195, 113, 0.3) !important;
+    color: #46C371 !important;
+}
+
+body.theme-sunset .status-offline {
+    background: rgba(228, 74, 87, 0.15) !important;
+    border-color: rgba(228, 74, 87, 0.3) !important;
+    color: #E44A57 !important;
+}
+
+body.theme-sunset #reboot-system-btn {
+    background: linear-gradient(135deg, #F7C14E, #FFA502) !important;
+}
+
+body.theme-sunset #shutdown-system-btn {
+    background: linear-gradient(135deg, #E44A57, #FF6B6B) !important;
+}
+
+body.theme-sunset #pending-operation-display {
+    background: rgba(247, 193, 78, 0.15) !important;
+}
+
+body.theme-sunset #pending-countdown {
+    color: var(--primary) !important;
+}
+
+body.theme-sunset #pending-progress-bar {
+    background: #F7C14E !important;
+}
+
+body.theme-sunset #system-action-modal .modal-header {
+    background: linear-gradient(135deg, #FF6A3D, #A14BFF) !important;
+}
+
+body.theme-sunset #confirm-system-action {
+    background: linear-gradient(135deg, #E44A57, #FF6B6B) !important;
+}
+
+/* ============================================ */
+/* DARK MODE SUPPORT                            */
+/* ============================================ */
+
+.dark-mode .info-card {
+    background: var(--card-bg, #2d2d2d) !important;
+    border: 1px solid var(--border-color, #444) !important;
+    color: var(--text-primary, #fff) !important;
+}
+
+.dark-mode .info-value {
+    color: var(--primary, #ff6b9d) !important;
+}
+
+.dark-mode .info-label {
+    color: var(--text-muted, #888) !important;
+}
+
+.dark-mode #system-detail-info {
+    background: rgba(45, 45, 45, 0.8) !important;
+    color: var(--text-secondary, #ccc) !important;
+}
+
+.dark-mode #system-detail-info strong {
+    color: var(--text-primary, #fff) !important;
+}
+
+.dark-mode #pending-operation-display {
+    background: rgba(255, 193, 7, 0.08) !important;
+}
+
+.dark-mode #system-action-reason,
+.dark-mode #system-action-delay {
+    background: var(--input-bg, #3d3d3d) !important;
+    border-color: var(--border-color, #444) !important;
+    color: var(--text-primary, #fff) !important;
+}
+
+.dark-mode #system-action-reason:focus,
+.dark-mode #system-action-delay:focus {
+    border-color: var(--primary, #ff6b9d) !important;
+    box-shadow: 0 0 0 2px rgba(255, 107, 157, 0.2) !important;
+}
+
+.dark-mode #system-action-reason::placeholder {
+    color: var(--text-muted, #888) !important;
+}
+
+/* ============================================ */
+/* RESPONSIVE                                   */
+/* ============================================ */
+
+@media (max-width: 768px) {
+    .system-info {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .info-card {
+        padding: 15px 10px;
+    }
+
+    .info-value {
+        font-size: 1.3rem;
+    }
+
+    #pending-operation-display {
+        padding: 15px;
+    }
+
+    #reboot-system-btn,
+    #shutdown-system-btn {
+        padding: 12px 20px;
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .system-info {
+        grid-template-columns: 1fr;
+    }
+
+    .info-value {
+        font-size: 1.4rem;
+    }
+}
+
+/* ============================================ */
+/* ACCESSIBILITY                                */
+/* ============================================ */
+
+.reduce-motion #pending-progress-bar {
+    transition: none;
+}
+
+.reduce-motion #pending-operation-display {
+    animation: none;
+}
+
+.reduce-motion .info-card:hover {
+    transform: none;
+}
+
+.high-contrast .info-card {
+    border: 2px solid var(--border-color, #fff) !important;
+}
+
+.high-contrast #pending-operation-display {
+    border: 2px solid #ffc107 !important;
+}
+
+.font-small .info-value { font-size: 1.2rem; }
+.font-medium .info-value { font-size: 1.5rem; }
+.font-large .info-value { font-size: 1.8rem; }
+.font-extra-large .info-value { font-size: 2rem; }

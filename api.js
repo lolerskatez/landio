@@ -256,6 +256,13 @@ class ApiClient {
             body: JSON.stringify({ scope })
         });
     }
+
+    // 2FA endpoints
+    async regenerateBackupCodes() {
+        return await this.request('/2fa/regenerate-backup-codes', {
+            method: 'POST'
+        });
+    }
 }
 
 // Create global API client instance

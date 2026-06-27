@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management | Server Dashboard</title>
+    <link rel="stylesheet" href="/assets/fontawesome/all.min.css">
+    <link rel="stylesheet" href="/styles/base.css">
+    <script src="theme.js"></script>
+    <link rel="stylesheet" href="/styles/pages/user-management.css">
+<link rel="stylesheet" href="/styles/nav.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="decoration decoration-1"></div>
+            <div class="decoration decoration-2"></div>
+            <h1><i class="fas fa-users-cog"></i> User Management</h1>
+            <p class="subtitle">Manage users, roles, and permissions</p>
+        </header>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar" id="stats-bar">
+            <div class="stat-card">
+                <i class="fas fa-users"></i>
+                <div>
+                    <div class="stat-value" id="total-users">-</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-shield-alt"></i>
+                <div>
+                    <div class="stat-value" id="total-admins">-</div>
+                    <div class="stat-label">Admins</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-user-shield"></i>
+                <div>
+                    <div class="stat-value" id="total-tfa">-</div>
+                    <div class="stat-label">2FA Enabled</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-clock"></i>
+                <div>
+                    <div class="stat-value" id="total-active-today">-</div>
+                    <div class="stat-label">Active Today</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Bar -->
+        <div class="controls-bar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" placeholder="Search users by name or email..." oninput="debounceSearch()">
+            </div>
+            <button class="btn btn-primary" onclick="openCreateModal()">
+                <i class="fas fa-plus"></i> Add User
+            </button>
+        </div>
+
+        <!-- Users Table -->
+        <div class="users-card">
+            <div class="loading-overlay" id="loading">
+                <i class="fas fa-spinner"></i>
+                <p>Loading users...</p>
+            </div>
+
+            <div class="empty-state" id="empty-state" style="display: none;">
+                <i class="fas fa-users"></i>
+                <p>No users found</p>
+            </div>
+
+            <table class="users-table" id="users-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>2FA</th>
+                        <th>SSO</th>
+                        <th>Last Login</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="users-tbody">
+                </tbody>
+            </table>
+
+            <div class="pagination" id="pagination">
+                <button class="page-btn" id="prev-page" onclick="changePage(currentPage - 1)" disabled>
+                    <i class="fas fa-chevron-left"></i> Prev
+                </button>
+                <span class="page-info" id="page-info">Page 1 of 1</span>
+                <button class="page-btn" id="next-page" onclick="changePage(currentPage + 1)" disabled>
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit User Modal -->
+    <div class="modal-overlay" id="user-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-plus" id="modal-title-icon"></i> <span id="modal-title">Add User</span></h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="message" id="modal-message"></div>
+                <input type="hidden" id="edit-user-id">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="user-name" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Display Name</label>
+                        <input type="text" id="user-display-name" placeholder="John">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="user-email" placeholder="john@example.com" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="user-username" placeholder="johndoe">
+                        <small style="color: #aaa; font-size: 0.75rem;">Auto-generated from email if left empty</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <select id="user-role">
+                            <option value="user">User</option>
+                            <option value="poweruser">Power User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" id="password-group">
+                    <label>Password</label>
+                    <input type="password" id="user-password" placeholder="Minimum 8 characters">
+                    <small style="color: #aaa; font-size: 0.75rem;">Leave empty to keep current password when editing</small>
+                </div>
+                <div class="form-group" id="password-confirm-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="user-password-confirm" placeholder="Confirm password">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" id="modal-save-btn" onclick="saveUser()">
+                    <i class="fas fa-check"></i> <span id="modal-save-text">Create User</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="delete-modal">
+        <div class="modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-exclamation-triangle" style="color: #e74c3c;"></i> Confirm Delete</h2>
+                <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="confirm-text">
+                    <div class="warning-icon"><i class="fas fa-exclamation-circle"></i></div>
+                    <p>Are you sure you want to delete <strong id="delete-user-name"></strong>?</p>
+                    <p style="font-size: 0.85rem; color: #999; margin-top: 8px;">This action cannot be undone. The user will be permanently removed from the system.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn btn-danger" id="delete-confirm-btn" onclick="confirmDelete()">
+                    <i class="fas fa-trash"></i> Delete User
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script src="auth.js"></script>
+    <script src="base.js"></script>
+    <script src="nav.js"></script>
+    <script>
+        let currentPage = 1;
+        let pageSize = 20;
+        let totalPages = 1;
+        let users = [];
+        let deleteUserId = null;
+        let searchTimeout = null;
+
+        async function loadUsers() {
+            const loading = document.getElementById('loading');
+            const table = document.getElementById('users-table');
+            const tbody = document.getElementById('users-tbody');
+            const empty = document.getElementById('empty-state');
+
+            loading.classList.add('show');
+            table.style.display = 'none';
+            empty.style.display = 'none';
+
+            try {
+                const search = document.getElementById('search-input').value.trim();
+                let url = `/api/users?page=${currentPage}&limit=${pageSize}`;
+                if (search) {
+                    url += `&search=${encodeURIComponent(search)}`;
+                }
+
+                const response = await window.Api.request('GET', url);
+                
+                if (response.users) {
+                    users = response.users;
+                    if (response.pagination) {
+                        totalPages = response.pagination.totalPages;
+                        updatePagination(response.pagination);
+                        updateStats(response.pagination.total);
+                    }
+                } else if (Array.isArray(response)) {
+                    users = response;
+                    totalPages = 1;
+                    updatePagination({ page: 1, totalPages: 1, total: users.length });
+                    updateStats(users.length);
+                } else {
+                    users = [];
+                    totalPages = 1;
+                    updatePagination({ page: 1, totalPages: 1, total: 0 });
+                    updateStats(0);
+                }
+
+                loading.classList.remove('show');
+
+                if (users.length === 0) {
+                    table.style.display = 'none';
+                    empty.style.display = 'block';
+                } else {
+                    table.style.display = '';
+                    empty.style.display = 'none';
+                    renderUsers();
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+                loading.classList.remove('show');
+                showNotification('Failed to load users: ' + error.message, 'error');
+            }
+        }
+
+        function renderUsers() {
+            const tbody = document.getElementById('users-tbody');
+            tbody.innerHTML = users.map(user => {
+                const avatar = user.avatar || user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                const lastLogin = user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never';
+                const isActive = user.is_active !== false;
+                const twoFA = user.twoFactorEnabled;
+                const ssoProvider = user.sso_provider;
+
+                return `
+                    <tr>
+                        <td data-label="User">
+                            <div class="user-info">
+                                <div class="user-avatar">${avatar}</div>
+                                <div class="user-details">
+                                    <span class="user-name">${escapeHtml(user.name || user.display_name || user.username)}</span>
+                                    <span class="user-email">${escapeHtml(user.email)}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td data-label="Role">
+                            <span class="role-badge ${user.role}">
+                                <i class="fas ${user.role === 'admin' ? 'fa-crown' : user.role === 'poweruser' ? 'fa-star' : 'fa-user'}"></i>
+                                ${capitalize(user.role)}
+                            </span>
+                        </td>
+                        <td data-label="Status">
+                            <span class="status-dot ${isActive ? 'active' : 'inactive'}"></span>
+                            <span class="status-text">${isActive ? 'Active' : 'Inactive'}</span>
+                        </td>
+                        <td data-label="2FA">
+                            <span class="tfa-badge ${twoFA ? 'enabled' : 'disabled'}">
+                                <i class="fas ${twoFA ? 'fa-shield-alt' : 'fa-shield'}"></i>
+                                ${twoFA ? 'Enabled' : 'Disabled'}
+                            </span>
+                        </td>
+                        <td data-label="SSO">
+                            ${ssoProvider ? `<span class="sso-badge"><i class="fas fa-idp"></i> ${escapeHtml(ssoProvider)}</span>` : '<span style="color: #ddd;">—</span>'}
+                        </td>
+                        <td data-label="Last Login">${lastLogin}</td>
+                        <td data-label="Actions">
+                            <div class="actions-cell">
+                                <button class="btn-icon" onclick="openEditModal(${user.id})" title="Edit user">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button class="btn-icon danger" onclick="openDeleteModal(${user.id})" title="Delete user">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updatePagination(pagination) {
+            const pageInfo = document.getElementById('page-info');
+            const prevBtn = document.getElementById('prev-page');
+            const nextBtn = document.getElementById('next-page');
+
+            currentPage = pagination.page;
+            totalPages = pagination.totalPages;
+            pageInfo.textContent = `Page ${pagination.page} of ${pagination.totalPages}`;
+            prevBtn.disabled = pagination.page <= 1;
+            nextBtn.disabled = pagination.page >= pagination.totalPages;
+        }
+
+        function updateStats(total) {
+            document.getElementById('total-users').textContent = total;
+            
+            const adminCount = users.filter(u => u.role === 'admin').length;
+            document.getElementById('total-admins').textContent = adminCount;
+            
+            const tfaCount = users.filter(u => u.twoFactorEnabled).length;
+            document.getElementById('total-tfa').textContent = tfaCount;
+
+            const today = new Date().toDateString();
+            const activeToday = users.filter(u => {
+                return u.last_activity && new Date(u.last_activity).toDateString() === today;
+            }).length;
+            document.getElementById('total-active-today').textContent = activeToday;
+        }
+
+        function changePage(page) {
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            loadUsers();
+        }
+
+        function debounceSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                currentPage = 1;
+                loadUsers();
+            }, 300);
+        }
+
+        // Modal functions
+        function openCreateModal() {
+            document.getElementById('modal-title').textContent = 'Add User';
+            document.getElementById('modal-title-icon').className = 'fas fa-user-plus';
+            document.getElementById('modal-save-text').textContent = 'Create User';
+            document.getElementById('edit-user-id').value = '';
+            document.getElementById('user-name').value = '';
+            document.getElementById('user-display-name').value = '';
+            document.getElementById('user-email').value = '';
+            document.getElementById('user-username').value = '';
+            document.getElementById('user-role').value = 'user';
+            document.getElementById('user-password').value = '';
+            document.getElementById('user-password').required = true;
+            document.getElementById('user-password').placeholder = 'Minimum 8 characters';
+            document.getElementById('password-group').style.display = '';
+            document.getElementById('password-confirm-group').style.display = '';
+            document.getElementById('modal-message').className = 'message';
+            document.getElementById('modal-message').style.display = 'none';
+            document.getElementById('user-modal').classList.add('show');
+        }
+
+        async function openEditModal(userId) {
+            document.getElementById('modal-title').textContent = 'Edit User';
+            document.getElementById('modal-title-icon').className = 'fas fa-user-edit';
+            document.getElementById('modal-save-text').textContent = 'Save Changes';
+            document.getElementById('edit-user-id').value = userId;
+            document.getElementById('user-password').required = false;
+            document.getElementById('user-password').placeholder = 'Leave empty to keep current';
+            document.getElementById('modal-message').className = 'message';
+            document.getElementById('modal-message').style.display = 'none';
+
+            try {
+                const user = users.find(u => u.id === userId);
+                if (!user) {
+                    showNotification('User not found', 'error');
+                    return;
+                }
+
+                document.getElementById('user-name').value = user.name || '';
+                document.getElementById('user-display-name').value = user.display_name || '';
+                document.getElementById('user-email').value = user.email || '';
+                document.getElementById('user-username').value = user.username || '';
+                document.getElementById('user-role').value = user.role || 'user';
+                document.getElementById('user-password').value = '';
+                document.getElementById('password-group').style.display = '';
+                document.getElementById('password-confirm-group').style.display = 'none';
+                document.getElementById('user-modal').classList.add('show');
+            } catch (error) {
+                console.error('Error opening edit modal:', error);
+                showNotification('Failed to load user details', 'error');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('user-modal').classList.remove('show');
+        }
+
+        async function saveUser() {
+            const messageEl = document.getElementById('modal-message');
+            const saveBtn = document.getElementById('modal-save-btn');
+            const editId = document.getElementById('edit-user-id').value;
+            const isEdit = !!editId;
+
+            const name = document.getElementById('user-name').value.trim();
+            const displayName = document.getElementById('user-display-name').value.trim();
+            const email = document.getElementById('user-email').value.trim();
+            const username = document.getElementById('user-username').value.trim();
+            const role = document.getElementById('user-role').value;
+            const password = document.getElementById('user-password').value;
+            const passwordConfirm = document.getElementById('user-password-confirm').value;
+
+            // Validation
+            if (!name) {
+                showModalMessage('Name is required', 'error');
+                return;
+            }
+
+            if (!email) {
+                showModalMessage('Email is required', 'error');
+                return;
+            }
+
+            if (!isEdit && !password) {
+                showModalMessage('Password is required for new users', 'error');
+                return;
+            }
+
+            if (!isEdit && password.length < 8) {
+                showModalMessage('Password must be at least 8 characters', 'error');
+                return;
+            }
+
+            if (!isEdit && password !== passwordConfirm) {
+                showModalMessage('Passwords do not match', 'error');
+                return;
+            }
+
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+            try {
+                const userData = { name, email, role };
+                if (displayName) userData.displayName = displayName;
+                if (username) userData.username = username;
+                if (password) userData.password = password;
+
+                let response;
+                if (isEdit) {
+                    response = await window.Api.updateUser(editId, userData);
+                } else {
+                    response = await window.Api.createUser(userData);
+                }
+
+                showModalMessage(isEdit ? 'User updated successfully!' : 'User created successfully!', 'success');
+                
+                setTimeout(() => {
+                    closeModal();
+                    loadUsers();
+                }, 1200);
+            } catch (error) {
+                console.error('Error saving user:', error);
+                showModalMessage(error.message || 'Failed to save user', 'error');
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = `<i class="fas fa-check"></i> ${isEdit ? 'Save Changes' : 'Create User'}`;
+            }
+        }
+
+        function showModalMessage(text, type) {
+            const el = document.getElementById('modal-message');
+            el.textContent = text;
+            el.className = `message ${type} show`;
+        }
+
+        function showNotification(text, type) {
+            const el = document.getElementById('modal-message');
+            el.textContent = text;
+            el.className = `message ${type} show`;
+            setTimeout(() => {
+                el.className = 'message';
+                el.style.display = 'none';
+            }, 3000);
+        }
+
+        // Delete functions
+        function openDeleteModal(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+            deleteUserId = userId;
+            document.getElementById('delete-user-name').textContent = `${user.name || user.username} (${user.email})`;
+            document.getElementById('delete-modal').classList.add('show');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('delete-modal').classList.remove('show');
+            deleteUserId = null;
+        }
+
+        async function confirmDelete() {
+            if (!deleteUserId) return;
+            
+            const btn = document.getElementById('delete-confirm-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+
+            try {
+                await window.Api.deleteUser(deleteUserId);
+                closeDeleteModal();
+                showNotification('User deleted successfully', 'success');
+                loadUsers();
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                showNotification('Failed to delete user: ' + error.message, 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-trash"></i> Delete User';
+            }
+        }
+
+        // Utility functions
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function capitalize(str) {
+            if (!str) return '';
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check authentication and initialize page
+            const interval = setInterval(() => {
+                if (window.Api && window.ProfileManager) {
+                    clearInterval(interval);
+                    loadUsers();
+                }
+            }, 100);
+            
+            // Timeout fallback
+            setTimeout(() => {
+                loadUsers();
+            }, 3000);
+        });
+    </script>
+</body>
+</html>

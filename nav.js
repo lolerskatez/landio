@@ -12,6 +12,7 @@ if (!window.PAGE_ACCESS) {
         'manage-services.html': ['admin', 'poweruser'],         // Manage Services
         'logs.html': ['admin'],                                 // System Logs
         'login.html': ['all'],                                  // Login (public)
+        'docker.html': ['admin', 'poweruser'],                  // Docker Management
     };
 
     // Navigation menu structure by role
@@ -33,12 +34,14 @@ if (!window.PAGE_ACCESS) {
     window.ADMIN_SUBMENU = [
         { label: 'Settings', icon: 'cog', href: 'settings.html', page: 'settings' },
         { label: 'Manage Services', icon: 'cube', href: 'manage-services.html', page: 'manage-services' },
+        { label: 'Docker', icon: 'docker', href: 'docker.html', page: 'docker' },
         { label: 'Logs', icon: 'list-alt', href: 'logs.html', page: 'logs' },
     ];
     
     // Power User submenu items
     window.POWERUSER_SUBMENU = [
         { label: 'Manage Services', icon: 'cube', href: 'manage-services.html', page: 'manage-services' },
+        { label: 'Docker', icon: 'docker', href: 'docker.html', page: 'docker' },
     ];
 }
 

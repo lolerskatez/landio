@@ -1,0 +1,1630 @@
+/* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+        }
+
+        :root {
+            --primary: #ff6b93;
+            --secondary: #a6d8ff;
+            --accent: #ffccd5;
+            --text: #5a5a5a;
+            --light-bg: #fff9fb;
+            --dark: #4a4a4a;
+            --info: #0084ff;
+            --warning: #ffa502;
+            --error: #ff4757;
+            --success: #2ed573;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ffd1dc, #c9e9ff);
+            min-height: 100vh;
+            color: var(--text);
+            padding: 20px;
+        }
+
+        .container {
+            margin: 0;
+            padding: 0 20px;
+        }
+
+        /* Header styles */
+        header {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 0px rgba(255, 182, 193, 0.3);
+        }
+
+        .subtitle {
+            color: #7a7a7a;
+            font-size: 1.2rem;
+        }
+
+        /* Main layout */
+        .logs-container {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .logs-list {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .logs-sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        /* Filter section */
+        .logs-filters h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .filter-group {
+            margin-bottom: 20px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text);
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 5px rgba(255, 107, 147, 0.2);
+        }
+
+        /* Log statistics */
+        .log-stats {
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: var(--dark);
+        }
+
+        /* Clear logs button */
+        .clear-logs-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--primary), #ff8fa3);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: bold;
+        }
+
+        .clear-logs-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 147, 0.4);
+        }
+
+        .clear-logs-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Download section */
+        .download-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .download-section label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--primary);
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, var(--secondary), #b8e0f7);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(166, 216, 255, 0.4);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Log item styles */
+        .log-item {
+            border: 1px solid #e0e0e0;
+            border-left: 4px solid var(--primary);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        /* Table row styling */
+        .logs-table tbody tr.log-item {
+            border: none;
+            border-left: none;
+            border-radius: 0;
+            padding: 0;
+            margin-bottom: 0;
+            display: table-row;
+            gap: 0;
+            background: transparent;
+        }
+
+        .log-item.info {
+            border-left-color: var(--info);
+            background: rgba(0, 132, 255, 0.02);
+        }
+
+        .log-item.warning {
+            border-left-color: var(--warning);
+            background: rgba(255, 165, 2, 0.02);
+        }
+
+        .log-item.error {
+            border-left-color: var(--error);
+            background: rgba(255, 71, 87, 0.02);
+        }
+
+        .log-item.success {
+            border-left-color: var(--success);
+            background: rgba(46, 213, 115, 0.02);
+        }
+
+        .log-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transform: translateX(4px);
+        }
+
+        .log-icon {
+            font-size: 1.2rem;
+            min-width: 25px;
+            text-align: center;
+            margin-top: 3px;
+        }
+
+        .log-item.info .log-icon {
+            color: var(--info);
+        }
+
+        .log-item.warning .log-icon {
+            color: var(--warning);
+        }
+
+        .log-item.error .log-icon {
+            color: var(--error);
+        }
+
+        .log-item.success .log-icon {
+            color: var(--success);
+        }
+
+        .log-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 5px;
+        }
+
+        .log-title {
+            font-weight: bold;
+            color: var(--dark);
+            font-size: 1rem;
+        }
+
+        .log-level {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .log-level.info {
+            background: rgba(0, 132, 255, 0.15);
+            color: var(--info);
+        }
+
+        .log-level.warning {
+            background: rgba(255, 165, 2, 0.15);
+            color: var(--warning);
+        }
+
+        .log-level.error {
+            background: rgba(255, 71, 87, 0.15);
+            color: var(--error);
+        }
+
+        .log-level.success {
+            background: rgba(46, 213, 115, 0.15);
+            color: var(--success);
+        }
+
+        .log-message {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .log-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 0.85rem;
+            color: #999;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .meta-label {
+            color: #aaa;
+        }
+
+        .meta-value {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .log-category {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            text-transform: capitalize;
+            margin-top: 5px;
+        }
+
+        .log-category-wrapper {
+            margin-top: 8px;
+        }
+
+        /* Pagination and controls */
+        .logs-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .pagination button:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .pagination button.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .logs-count {
+            color: #999;
+            font-size: 0.9rem;
+        }
+
+        /* No logs state */
+        .no-logs {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .no-logs i {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .no-logs p {
+            color: #999;
+            font-size: 1.1rem;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+
+        .log-stats h3 {
+            margin-bottom: 12px;
+            color: var(--primary);
+            font-size: 1rem;
+        }
+
+        .stat-icon {
+            color: var(--info);
+            margin-right: 5px;
+        }
+
+        .stat-icon.warning {
+            color: var(--warning);
+        }
+
+        .stat-icon.error {
+            color: var(--error);
+        }
+
+        .stat-icon.success {
+            color: var(--success);
+        }
+
+        .log-details {
+            margin-top: 8px;
+            font-size: 0.85rem;
+        }
+
+        .log-details summary {
+            cursor: pointer;
+            color: #999;
+        }
+
+        .log-details pre {
+            background: #f5f5f5;
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow-x: auto;
+            font-size: 0.8rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .logs-container {
+                grid-template-columns: 1fr;
+            }
+
+            .logs-sidebar {
+                position: static;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .log-item {
+                padding: 12px;
+            }
+
+            .log-meta {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+
+        /* Cyber Sakura Theme Styles */
+        body.theme-cyber {
+            background: linear-gradient(135deg, #0E0A1F 0%, #1A0F2E 100%);
+        }
+
+        body.theme-cyber .container {
+            background: rgba(28, 20, 51, 0.8);
+            border: none;
+            box-shadow: none;
+        }
+
+        body.theme-cyber h1,
+        body.theme-cyber h2 {
+            color: #00E0FF;
+            text-shadow: 0 0 20px rgba(0, 224, 255, 0.5);
+        }
+
+        body.theme-cyber .logs-header {
+            border-bottom: 2px solid rgba(0, 224, 255, 0.3);
+        }
+
+        body.theme-cyber .logs-header h1 {
+            color: #00E0FF;
+        }
+
+        body.theme-cyber .header-actions button {
+            background: rgba(0, 224, 255, 0.1);
+            color: #00E0FF;
+            border: 1px solid rgba(0, 224, 255, 0.3);
+        }
+
+        body.theme-cyber .header-actions button:hover {
+            background: rgba(0, 224, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 224, 255, 0.4);
+        }
+
+        body.theme-cyber .logs-sidebar {
+            background: rgba(14, 10, 31, 0.6);
+            border-right: 1px solid rgba(0, 224, 255, 0.2);
+        }
+
+        body.theme-cyber .filter-section {
+            background: rgba(28, 20, 51, 0.5);
+            border: 1px solid rgba(0, 224, 255, 0.2);
+        }
+
+        body.theme-cyber header {
+            background: rgba(28, 20, 51, 0.8);
+            border: 1px solid rgba(0, 224, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 224, 255, 0.2);
+        }
+
+        body.theme-cyber .logs-list {
+            background: rgba(28, 20, 51, 0.7);
+            border: 1px solid rgba(0, 224, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 224, 255, 0.1);
+        }
+
+        body.theme-cyber .logs-toolbar {
+            background: rgba(28, 20, 51, 0.7);
+            border: 1px solid rgba(0, 224, 255, 0.2);
+        }
+
+        body.theme-cyber .filter-section h3 {
+            color: #00E0FF;
+            border-bottom: 1px solid rgba(0, 224, 255, 0.3);
+            padding-bottom: 10px;
+        }
+
+        body.theme-cyber .filter-option label {
+            color: #C9BEEA;
+        }
+
+        body.theme-cyber .log-stats {
+            background: rgba(28, 20, 51, 0.9);
+            border: 1px solid rgba(0, 224, 255, 0.2);
+            color: #C9BEEA;
+        }
+
+        body.theme-cyber .log-stats h3 {
+            color: #FF5FA2;
+            border-bottom: 1px solid rgba(0, 224, 255, 0.3);
+            padding-bottom: 10px;
+        }
+
+        body.theme-cyber .log-stats .stat-item {
+            color: #C9BEEA;
+        }
+
+        body.theme-cyber .log-stats .stat-value {
+            color: #00E0FF;
+        }
+
+        body.theme-cyber .btn,
+        body.theme-cyber button {
+            background: rgba(0, 224, 255, 0.1);
+            color: #00E0FF;
+            border: 1px solid rgba(0, 224, 255, 0.3);
+        }
+
+        body.theme-cyber .btn:hover,
+        body.theme-cyber button:hover {
+            background: rgba(0, 224, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 224, 255, 0.3);
+        }
+
+        body.theme-cyber .btn-primary,
+        body.theme-cyber .btn-danger {
+            background: linear-gradient(135deg, rgba(255, 95, 162, 0.8), rgba(199, 125, 255, 0.8));
+            border: 1px solid rgba(255, 95, 162, 0.5);
+            color: #FFFFFF;
+        }
+
+        body.theme-cyber .btn-primary:hover,
+        body.theme-cyber .btn-danger:hover {
+            box-shadow: 0 0 20px rgba(255, 95, 162, 0.5);
+        }
+
+        body.theme-cyber .btn-secondary {
+            background: rgba(0, 224, 255, 0.1);
+            color: #00E0FF;
+            border: 1px solid rgba(0, 224, 255, 0.3);
+        }
+
+        body.theme-cyber .btn-secondary:hover {
+            background: rgba(0, 224, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 224, 255, 0.3);
+        }
+
+        body.theme-cyber input[type="checkbox"] {
+            border: 1px solid rgba(0, 224, 255, 0.5);
+        }
+
+        body.theme-cyber input[type="checkbox"]:checked {
+            background: #00E0FF;
+        }
+
+        body.theme-cyber input[type="text"],
+        body.theme-cyber input[type="date"],
+        body.theme-cyber input[type="time"],
+        body.theme-cyber select {
+            background: rgba(14, 10, 31, 0.8);
+            border: 1px solid rgba(0, 224, 255, 0.3);
+            color: #FFFFFF;
+        }
+
+        body.theme-cyber input[type="text"]:focus,
+        body.theme-cyber input[type="date"]:focus,
+        body.theme-cyber input[type="time"]:focus,
+        body.theme-cyber select:focus {
+            border-color: #00E0FF;
+            box-shadow: 0 0 10px rgba(0, 224, 255, 0.3);
+        }
+
+        body.theme-cyber .logs-content {
+            background: rgba(14, 10, 31, 0.3);
+        }
+
+        body.theme-cyber .logs-toolbar {
+            background: rgba(28, 20, 51, 0.6);
+            border-bottom: 1px solid rgba(0, 224, 255, 0.2);
+        }
+
+        body.theme-cyber .search-box input {
+            background: rgba(14, 10, 31, 0.8);
+            border: 1px solid rgba(0, 224, 255, 0.3);
+            color: #FFFFFF;
+        }
+
+        body.theme-cyber .search-box input:focus {
+            border-color: #00E0FF;
+            box-shadow: 0 0 10px rgba(0, 224, 255, 0.3);
+        }
+
+        body.theme-cyber .search-box i {
+            color: #00E0FF;
+        }
+
+        body.theme-cyber .log-item {
+            background: rgba(28, 20, 51, 0.6);
+            border: 1px solid rgba(0, 224, 255, 0.2);
+            color: #FFFFFF;
+        }
+
+        body.theme-cyber .log-item:hover {
+            background: rgba(28, 20, 51, 0.8);
+            border-color: rgba(0, 224, 255, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 224, 255, 0.2);
+        }
+
+        body.theme-cyber .log-message {
+            color: #FFFFFF;
+        }
+
+        body.theme-cyber .log-timestamp,
+        body.theme-cyber .log-source {
+            color: #C9BEEA;
+        }
+
+        body.theme-cyber .log-item.info {
+            border-left: 4px solid #00E0FF;
+        }
+
+        body.theme-cyber .log-item.warning {
+            border-left: 4px solid #FFB800;
+        }
+
+        body.theme-cyber .log-item.error {
+            border-left: 4px solid #FF5FA2;
+        }
+
+        body.theme-cyber .log-item.debug {
+            border-left: 4px solid #C9BEEA;
+        }
+
+        body.theme-cyber .log-level {
+            color: #00E0FF;
+            background: rgba(0, 224, 255, 0.1);
+            border: 1px solid rgba(0, 224, 255, 0.3);
+        }
+
+        body.theme-cyber .log-level.warning {
+            color: #FFB800;
+            background: rgba(255, 184, 0, 0.1);
+            border-color: rgba(255, 184, 0, 0.3);
+        }
+
+        body.theme-cyber .log-level.error {
+            color: #FF5FA2;
+            background: rgba(255, 95, 162, 0.1);
+            border-color: rgba(255, 95, 162, 0.3);
+        }
+
+        body.theme-cyber .log-level.debug {
+            color: #C9BEEA;
+            background: rgba(201, 190, 234, 0.1);
+            border-color: rgba(201, 190, 234, 0.3);
+        }
+
+        body.theme-cyber .log-timestamp {
+            color: #C9BEEA;
+        }
+
+        body.theme-cyber .log-source {
+            color: #00E0FF;
+        }
+
+        body.theme-cyber .log-message {
+            color: #FFFFFF;
+        }
+
+        body.theme-cyber .log-details {
+            color: #C9BEEA;
+        }
+
+        body.theme-cyber .log-details summary {
+            color: #00E0FF;
+            cursor: pointer;
+        }
+
+        body.theme-cyber .log-details pre {
+            background: rgba(14, 10, 31, 0.8);
+            color: #FFFFFF;
+            border: 1px solid rgba(0, 224, 255, 0.2);
+        }
+
+        body.theme-cyber .pagination {
+            background: rgba(28, 20, 51, 0.6);
+            border-top: 1px solid rgba(0, 224, 255, 0.2);
+        }
+
+        body.theme-cyber .pagination button {
+            background: rgba(0, 224, 255, 0.1);
+            color: #00E0FF;
+            border: 1px solid rgba(0, 224, 255, 0.3);
+        }
+
+        body.theme-cyber .pagination button:hover:not(:disabled) {
+            background: rgba(0, 224, 255, 0.2);
+            box-shadow: 0 0 10px rgba(0, 224, 255, 0.3);
+        }
+
+        body.theme-cyber .pagination button:disabled {
+            opacity: 0.3;
+            color: #666;
+        }
+
+        body.theme-cyber .pagination span {
+            color: #C9BEEA;
+        }
+
+        /* THEME 2: Sunset Gradient */
+        body.theme-sunset {
+            --primary: #FF6A3D;
+            --primary-dark: #D44A20;
+            --gradient-start: #FF6A3D;
+            --gradient-end: #A14BFF;
+            --bg-main: #FFF7F3;
+            --bg-card: #FFFFFF;
+            --bg-surface: #F7EEE9;
+            --text-primary: #2F2F2F;
+            --text-secondary: #5A5A5A;
+            --success: #46C371;
+            --warning: #F7C14E;
+            --error: #E44A57;
+            background: linear-gradient(135deg, #FF6A3D, #A14BFF);
+        }
+
+        body.theme-sunset .stats-grid,
+        body.theme-sunset .sidebar,
+        body.theme-sunset .filters,
+        body.theme-sunset .log-list,
+        body.theme-sunset .pagination {
+            background: rgba(255, 255, 255, 0.95);
+            color: #2F2F2F;
+        }
+
+        body.theme-sunset .sidebar h3,
+        body.theme-sunset .stat-label,
+        body.theme-sunset h2 {
+            color: #FF6A3D;
+        }
+
+        body.theme-sunset .stat-value {
+            color: #2F2F2F;
+        }
+
+        body.theme-sunset button:not(.nav-btn):not(.dropdown-btn),
+        body.theme-sunset .filter-button {
+            background: #FF6A3D;
+            color: white;
+            border: 1px solid #FF6A3D;
+        }
+
+        body.theme-sunset button:not(.nav-btn):not(.dropdown-btn):hover,
+        body.theme-sunset .filter-button:hover {
+            background: #D44A20;
+            box-shadow: 0 4px 12px rgba(255, 106, 61, 0.2);
+        }
+
+        /* Navigation Button Styling - Sunset Theme */
+        body.theme-sunset .nav-btn {
+            background: rgba(255, 255, 255, 0.9) !important;
+            color: #2F2F2F !important;
+            border: 1px solid rgba(255, 106, 61, 0.2) !important;
+        }
+
+        body.theme-sunset .nav-btn:hover {
+            background: rgba(255, 106, 61, 0.1) !important;
+            color: #2F2F2F !important;
+        }
+
+        body.theme-sunset .nav-btn.active {
+            background: var(--primary) !important;
+            color: #FFFFFF !important;
+        }
+
+        body.theme-sunset input,
+        body.theme-sunset select {
+            background: #F7EEE9;
+            color: #2F2F2F;
+            border: 1px solid #EDDED2;
+        }
+
+        body.theme-sunset .log-item {
+            background: rgba(255, 106, 61, 0.1);
+            border: 1px solid #EDDED2;
+            color: #2F2F2F;
+        }
+
+        body.theme-sunset .log-timestamp {
+            color: #FF6A3D;
+        }
+
+        body.theme-sunset .log-source {
+            color: #A14BFF;
+        }
+
+        body.theme-sunset .log-level-info {
+            background: rgba(70, 195, 113, 0.15);
+            color: #006600;
+        }
+
+        body.theme-sunset .log-level-warning {
+            background: rgba(247, 193, 78, 0.15);
+            color: #996633;
+        }
+
+        body.theme-sunset .log-level-error {
+            background: rgba(228, 74, 87, 0.15);
+            color: #990000;
+        }
+
+        body.theme-sunset .log-level-debug {
+            background: rgba(255, 106, 61, 0.15);
+            color: #994422;
+        }
+
+        /* Logs Table Styles */
+        .logs-table-wrapper {
+            overflow-x: auto;
+        }
+
+        .logs-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        .logs-table thead {
+            background: rgba(0, 0, 0, 0.05);
+            border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .logs-table th {
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .logs-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            vertical-align: middle;
+        }
+
+        .logs-table tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        .logs-table tbody tr:nth-child(odd) {
+            background-color: rgba(0, 0, 0, 0.01);
+        }
+
+        .logs-table tbody tr:hover {
+            background-color: rgba(0, 0, 0, 0.04);
+        }
+
+        .log-level-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-align: center;
+            min-width: 70px;
+        }
+
+        .log-level-badge.info {
+            background: rgba(0, 132, 255, 0.15);
+            color: #0084ff;
+        }
+
+        .log-level-badge.warning {
+            background: rgba(255, 165, 2, 0.15);
+            color: #ffa502;
+        }
+
+        .log-level-badge.error {
+            background: rgba(255, 71, 87, 0.15);
+            color: #ff4757;
+        }
+
+        .log-level-badge.success {
+            background: rgba(46, 213, 115, 0.15);
+            color: #2ed573;
+        }
+
+        .log-message {
+            color: var(--text);
+            word-break: break-word;
+            max-width: 400px;
+        }
+
+        .log-user {
+            color: var(--text-secondary, #7a7a7a);
+            font-size: 0.9rem;
+        }
+
+        .log-category {
+            display: inline-block;
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--text);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        body.theme-cyber .logs-table th {
+            background: rgba(255, 95, 162, 0.1);
+            color: #FFFFFF;
+            border-bottom-color: rgba(0, 224, 255, 0.2);
+        }
+
+        body.theme-cyber .logs-table td {
+            border-bottom-color: rgba(0, 224, 255, 0.1);
+        }
+
+        body.theme-cyber .logs-table tbody tr:nth-child(odd) {
+            background-color: rgba(255, 95, 162, 0.02);
+        }
+
+        body.theme-cyber .logs-table tbody tr:hover {
+            background-color: rgba(255, 95, 162, 0.08);
+        }
+
+        body.theme-sunset .logs-table th {
+            background: rgba(255, 106, 61, 0.1);
+            color: #2F2F2F;
+            border-bottom-color: rgba(255, 106, 61, 0.2);
+        }
+
+        body.theme-sunset .logs-table td {
+            border-bottom-color: rgba(255, 106, 61, 0.1);
+        }
+
+        body.theme-sunset .logs-table tbody tr:nth-child(odd) {
+            background-color: rgba(255, 106, 61, 0.02);
+        }
+
+        body.theme-sunset .logs-table tbody tr:hover {
+            background-color: rgba(255, 106, 61, 0.08);
+        }
+
+        /* ============================================ */
+        /* MISSING THEME COMPONENT OVERRIDES */
+        /* ============================================ */
+
+        /* ── Pastel Theme - Missing Component Overrides ── */
+        body.theme-pastel {
+            --primary: #ff6b93;
+            --secondary: #a6d8ff;
+            --accent: #ffccd5;
+            --text: #5a5a5a;
+            --light-bg: #fff9fb;
+            --dark: #4a4a4a;
+            --info: #0084ff;
+            --warning: #ffa502;
+            --error: #ff4757;
+            --success: #2ed573;
+            background: linear-gradient(135deg, #ffd1dc, #c9e9ff);
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        body.theme-pastel .subtitle {
+            color: #7a7a7a;
+        }
+
+        body.theme-pastel .logs-list,
+        body.theme-pastel .logs-sidebar {
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        body.theme-pastel .logs-filters h3,
+        body.theme-pastel .log-stats h3 {
+            color: var(--primary);
+        }
+
+        body.theme-pastel .filter-group label {
+            color: var(--text);
+        }
+
+        body.theme-pastel .filter-group input,
+        body.theme-pastel .filter-group select {
+            border-color: #e0e0e0;
+        }
+
+        body.theme-pastel .filter-group input:focus,
+        body.theme-pastel .filter-group select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 5px rgba(255, 107, 147, 0.2);
+        }
+
+        body.theme-pastel .log-stats {
+            background: #f9f9f9;
+        }
+
+        body.theme-pastel .clear-logs-btn {
+            background: linear-gradient(135deg, var(--primary), #ff8fa3);
+            color: white;
+        }
+
+        body.theme-pastel .clear-logs-btn:hover {
+            box-shadow: 0 5px 15px rgba(255, 107, 147, 0.4);
+        }
+
+        body.theme-pastel .download-section {
+            border-top-color: #e0e0e0;
+        }
+
+        body.theme-pastel .download-section label {
+            color: var(--primary);
+        }
+
+        body.theme-pastel .download-btn {
+            background: linear-gradient(135deg, var(--secondary), #b8e0f7);
+            color: white;
+        }
+
+        body.theme-pastel .download-btn:hover {
+            box-shadow: 0 5px 15px rgba(166, 216, 255, 0.4);
+        }
+
+        body.theme-pastel .logs-table th {
+            color: var(--text);
+        }
+
+        body.theme-pastel .log-category {
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--text);
+        }
+
+        body.theme-pastel .logs-count {
+            color: #999;
+        }
+
+        body.theme-pastel .pagination button {
+            border-color: #ddd;
+            background: white;
+        }
+
+        body.theme-pastel .pagination button:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        body.theme-pastel .pagination button:disabled {
+            opacity: 0.5;
+        }
+
+        body.theme-pastel .no-logs i {
+            color: #ddd;
+        }
+
+        body.theme-pastel .no-logs p {
+            color: #999;
+        }
+
+        body.theme-pastel .empty-state {
+            background: #f9f9f9;
+        }
+
+        body.theme-pastel .log-message {
+            color: #666;
+        }
+
+        body.theme-pastel .log-user {
+            color: #7a7a7a;
+        }
+
+        /* ── Cyber Sakura - Missing Component Overrides ── */
+        body.theme-cyber .subtitle {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+
+        body.theme-cyber .logs-sidebar {
+            background: rgba(14, 10, 31, 0.6);
+            border-right: 1px solid rgba(0, 224, 255, 0.2);
+        }
+
+        body.theme-cyber .logs-filters h3 {
+            color: #00E0FF !important;
+        }
+
+        body.theme-cyber .filter-group label {
+            color: #C9BEEA !important;
+        }
+
+        body.theme-cyber .clear-logs-btn {
+            background: linear-gradient(135deg, rgba(255, 95, 162, 0.8), rgba(199, 125, 255, 0.8)) !important;
+            border: 1px solid rgba(255, 95, 162, 0.5) !important;
+            color: #FFFFFF !important;
+        }
+
+        body.theme-cyber .clear-logs-btn:hover {
+            box-shadow: 0 5px 15px rgba(255, 95, 162, 0.4) !important;
+        }
+
+        body.theme-cyber .download-section {
+            border-top-color: rgba(0, 224, 255, 0.2) !important;
+        }
+
+        body.theme-cyber .download-section label {
+            color: #00E0FF !important;
+        }
+
+        body.theme-cyber .download-btn {
+            background: rgba(0, 224, 255, 0.1) !important;
+            color: #00E0FF !important;
+            border: 1px solid rgba(0, 224, 255, 0.3) !important;
+        }
+
+        body.theme-cyber .download-btn:hover {
+            background: rgba(0, 224, 255, 0.2) !important;
+            box-shadow: 0 5px 15px rgba(0, 224, 255, 0.3) !important;
+        }
+
+        body.theme-cyber .log-category {
+            background: rgba(0, 224, 255, 0.15) !important;
+            color: #00E0FF !important;
+        }
+
+        body.theme-cyber .logs-count {
+            color: #C9BEEA !important;
+        }
+
+        body.theme-cyber .no-logs i {
+            color: rgba(255, 255, 255, 0.2) !important;
+        }
+
+        body.theme-cyber .no-logs p {
+            color: #C9BEEA !important;
+        }
+
+        body.theme-cyber .empty-state {
+            background: rgba(28, 20, 51, 0.5) !important;
+        }
+
+        body.theme-cyber .log-message {
+            color: #FFFFFF !important;
+        }
+
+        body.theme-cyber .log-user {
+            color: #C9BEEA !important;
+        }
+
+        body.theme-cyber .log-level-badge.info {
+            background: rgba(0, 224, 255, 0.15) !important;
+            color: #00E0FF !important;
+        }
+
+        body.theme-cyber .log-level-badge.warning {
+            background: rgba(255, 184, 0, 0.15) !important;
+            color: #FFB800 !important;
+        }
+
+        body.theme-cyber .log-level-badge.error {
+            background: rgba(255, 95, 162, 0.15) !important;
+            color: #FF5FA2 !important;
+        }
+
+        body.theme-cyber .log-level-badge.success {
+            background: rgba(0, 255, 163, 0.15) !important;
+            color: #00FFA3 !important;
+        }
+
+        /* ── Sunset Theme - Missing Component Overrides ── */
+        body.theme-sunset .subtitle {
+            color: #5A5A5A !important;
+        }
+
+        body.theme-sunset header {
+            background: rgba(255, 255, 255, 0.95) !important;
+            box-shadow: 0 10px 28px rgba(255, 106, 61, 0.15) !important;
+        }
+
+        body.theme-sunset h1 {
+            color: #FF6A3D !important;
+        }
+
+        body.theme-sunset .logs-list {
+            background: rgba(255, 255, 255, 0.95) !important;
+        }
+
+        body.theme-sunset .logs-sidebar {
+            background: rgba(255, 255, 255, 0.95) !important;
+        }
+
+        body.theme-sunset .logs-filters h3 {
+            color: #FF6A3D !important;
+        }
+
+        body.theme-sunset .filter-group label {
+            color: #2F2F2F !important;
+        }
+
+        body.theme-sunset .filter-group input,
+        body.theme-sunset .filter-group select {
+            background: #F7EEE9 !important;
+            color: #2F2F2F !important;
+            border: 1px solid #EDDED2 !important;
+        }
+
+        body.theme-sunset .filter-group input:focus,
+        body.theme-sunset .filter-group select:focus {
+            border-color: #FF6A3D !important;
+            box-shadow: 0 0 5px rgba(255, 106, 61, 0.2) !important;
+        }
+
+        body.theme-sunset .log-stats {
+            background: #F7EEE9 !important;
+        }
+
+        body.theme-sunset .log-stats h3 {
+            color: #FF6A3D !important;
+        }
+
+        body.theme-sunset .log-stats .stat-item {
+            color: #2F2F2F !important;
+        }
+
+        body.theme-sunset .log-stats .stat-value {
+            color: #2F2F2F !important;
+        }
+
+        body.theme-sunset .clear-logs-btn {
+            background: #FF6A3D !important;
+            color: white !important;
+            border: 1px solid #FF6A3D !important;
+        }
+
+        body.theme-sunset .clear-logs-btn:hover {
+            background: #D44A20 !important;
+            box-shadow: 0 5px 15px rgba(255, 106, 61, 0.4) !important;
+        }
+
+        body.theme-sunset .download-section {
+            border-top-color: #EDDED2 !important;
+        }
+
+        body.theme-sunset .download-section label {
+            color: #FF6A3D !important;
+        }
+
+        body.theme-sunset .download-btn {
+            background: rgba(255, 255, 255, 0.8) !important;
+            color: #2F2F2F !important;
+            border: 1px solid rgba(255, 106, 61, 0.2) !important;
+        }
+
+        body.theme-sunset .download-btn:hover {
+            background: #FF6A3D !important;
+            color: white !important;
+        }
+
+        body.theme-sunset .log-category {
+            background: rgba(255, 106, 61, 0.1) !important;
+            color: #FF6A3D !important;
+        }
+
+        body.theme-sunset .logs-count {
+            color: #5A5A5A !important;
+        }
+
+        body.theme-sunset .log-item {
+            background: rgba(255, 106, 61, 0.02) !important;
+            border-color: #EDDED2 !important;
+        }
+
+        body.theme-sunset .log-item:hover {
+            background: rgba(255, 106, 61, 0.06) !important;
+        }
+
+        body.theme-sunset .log-message {
+            color: #2F2F2F !important;
+        }
+
+        body.theme-sunset .log-user {
+            color: #5A5A5A !important;
+        }
+
+        body.theme-sunset .no-logs i {
+            color: #EDDED2 !important;
+        }
+
+        body.theme-sunset .no-logs p {
+            color: #5A5A5A !important;
+        }
+
+        body.theme-sunset .empty-state {
+            background: rgba(247, 238, 233, 0.8) !important;
+        }
+
+        body.theme-sunset .pagination button {
+            background: rgba(255, 255, 255, 0.8) !important;
+            border-color: rgba(255, 106, 61, 0.2) !important;
+            color: #2F2F2F !important;
+        }
+
+        body.theme-sunset .pagination button:hover:not(:disabled) {
+            background: #FF6A3D !important;
+            color: white !important;
+        }
+
+        body.theme-sunset .pagination button:disabled {
+            opacity: 0.4;
+        }
+
+        body.theme-sunset .log-level-badge.info {
+            background: rgba(70, 195, 113, 0.15) !important;
+            color: #006600 !important;
+        }
+
+        body.theme-sunset .log-level-badge.warning {
+            background: rgba(247, 193, 78, 0.15) !important;
+            color: #996633 !important;
+        }
+
+        body.theme-sunset .log-level-badge.error {
+            background: rgba(228, 74, 87, 0.15) !important;
+            color: #990000 !important;
+        }
+
+        body.theme-sunset .log-level-badge.success {
+            background: rgba(70, 195, 113, 0.15) !important;
+            color: #006600 !important;
+        }
+
+        /* ── Dark Mode ── */
+        .dark-mode {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-tertiary: #3d3d3d;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --text-muted: #888888;
+            --border-color: #444444;
+            --primary: #ff6b9d;
+            --primary-hover: #ff8bb3;
+            --secondary: #4ecdc4;
+            --secondary-hover: #6fd5cc;
+            --success: #51cf66;
+            --warning: #ffd43b;
+            --error: #ff6b6b;
+            --info: #5dade2;
+            --card-bg: #2d2d2d;
+            --input-bg: #3d3d3d;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        .dark-mode body,
+        body.dark-mode {
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d) !important;
+            color: var(--text-primary) !important;
+        }
+
+        body.dark-mode header {
+            background: var(--bg-secondary) !important;
+            color: var(--text-primary) !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        body.dark-mode h1 {
+            color: var(--primary) !important;
+            text-shadow: none !important;
+        }
+
+        body.dark-mode .subtitle {
+            color: var(--text-muted) !important;
+        }
+
+        body.dark-mode .logs-list,
+        body.dark-mode .logs-sidebar {
+            background: var(--bg-secondary) !important;
+        }
+
+        body.dark-mode .logs-filters h3,
+        body.dark-mode .log-stats h3 {
+            color: var(--primary) !important;
+        }
+
+        body.dark-mode .filter-group label {
+            color: var(--text-secondary) !important;
+        }
+
+        body.dark-mode .filter-group input,
+        body.dark-mode .filter-group select {
+            background: var(--input-bg) !important;
+            border-color: var(--border-color) !important;
+            color: var(--text-primary) !important;
+        }
+
+        body.dark-mode .filter-group input:focus,
+        body.dark-mode .filter-group select:focus {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 5px rgba(255, 107, 157, 0.2) !important;
+        }
+
+        body.dark-mode .log-stats {
+            background: var(--bg-tertiary) !important;
+        }
+
+        body.dark-mode .log-stats .stat-item {
+            color: var(--text-secondary) !important;
+        }
+
+        body.dark-mode .log-stats .stat-value {
+            color: var(--text-primary) !important;
+        }
+
+        body.dark-mode .clear-logs-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover)) !important;
+            color: white !important;
+        }
+
+        body.dark-mode .clear-logs-btn:hover {
+            box-shadow: 0 5px 15px rgba(255, 107, 157, 0.4) !important;
+        }
+
+        body.dark-mode .download-section {
+            border-top-color: var(--border-color) !important;
+        }
+
+        body.dark-mode .download-section label {
+            color: var(--primary) !important;
+        }
+
+        body.dark-mode .download-btn {
+            background: var(--bg-tertiary) !important;
+            color: var(--text-primary) !important;
+            border: 1px solid var(--border-color) !important;
+        }
+
+        body.dark-mode .download-btn:hover {
+            background: var(--primary) !important;
+            color: white !important;
+            box-shadow: 0 5px 15px rgba(255, 107, 157, 0.3) !important;
+        }
+
+        body.dark-mode .logs-table thead {
+            background: var(--bg-tertiary) !important;
+            border-bottom-color: var(--border-color) !important;
+        }
+
+        body.dark-mode .logs-table th {
+            color: var(--text-muted) !important;
+        }
+
+        body.dark-mode .logs-table td {
+            border-bottom-color: var(--border-color) !important;
+            color: var(--text-primary) !important;
+        }
+
+        body.dark-mode .logs-table tbody tr:nth-child(odd) {
+            background-color: rgba(255, 255, 255, 0.02) !important;
+        }
+
+        body.dark-mode .logs-table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+        }
+
+        body.dark-mode .log-category {
+            background: rgba(255, 255, 255, 0.08) !important;
+            color: var(--text-secondary) !important;
+        }
+
+        body.dark-mode .logs-count {
+            color: var(--text-muted) !important;
+        }
+
+        body.dark-mode .log-item {
+            background: rgba(255, 255, 255, 0.02) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        body.dark-mode .log-item:hover {
+            background: rgba(255, 255, 255, 0.05) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        body.dark-mode .log-message {
+            color: var(--text-primary) !important;
+        }
+
+        body.dark-mode .log-user {
+            color: var(--text-muted) !important;
+        }
+
+        body.dark-mode .no-logs i {
+            color: var(--text-muted) !important;
+        }
+
+        body.dark-mode .no-logs p {
+            color: var(--text-muted) !important;
+        }
+
+        body.dark-mode .empty-state {
+            background: var(--bg-tertiary) !important;
+        }
+
+        body.dark-mode .pagination button {
+            background: var(--bg-tertiary) !important;
+            border-color: var(--border-color) !important;
+            color: var(--text-primary) !important;
+        }
+
+        body.dark-mode .pagination button:hover:not(:disabled) {
+            background: var(--primary) !important;
+            color: white !important;
+            border-color: var(--primary) !important;
+        }
+
+        body.dark-mode .pagination button:disabled {
+            opacity: 0.3;
+        }
+
+        body.dark-mode .log-level-badge.info {
+            background: rgba(93, 173, 226, 0.2) !important;
+            color: #5dade2 !important;
+        }
+
+        body.dark-mode .log-level-badge.warning {
+            background: rgba(255, 212, 59, 0.2) !important;
+            color: #ffd43b !important;
+        }
+
+        body.dark-mode .log-level-badge.error {
+            background: rgba(255, 107, 107, 0.2) !important;
+            color: #ff6b6b !important;
+        }
+
+        body.dark-mode .log-level-badge.success {
+            background: rgba(81, 207, 102, 0.2) !important;
+            color: #51cf66 !important;
+        }
+    

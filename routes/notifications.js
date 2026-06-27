@@ -2,6 +2,24 @@ const nodemailer = require('nodemailer');
 
 const getDb = () => global.db;
 
+// ─── SMTP Password decoding ──────────────────────────────────────────────────
+// Decodes base64-encoded passwords stored with `b64:` prefix.
+// Falls back to raw value for backward compatibility with plaintext passwords.
+
+const SMTP_PWD_PREFIX = 'b64:';
+
+function smtpPasswordDecode(stored) {
+  if (!stored) return stored;
+  if (stored.startsWith(SMTP_PWD_PREFIX)) {
+    try {
+      return Buffer.from(stored.slice(SMTP_PWD_PREFIX.length), 'base64').toString('utf8');
+    } catch {
+      return stored;
+    }
+  }
+  return stored;
+}
+
 // Helper to get a setting value
 const getSetting = async (key, userId = null) => {
   return new Promise((resolve, reject) => {
@@ -42,8 +60,11 @@ const sendSmtpNotification = async (event, eventData, adminEmails, ccEmail) => {
     const smtpServer = await getSetting('smtp-server');
     const smtpPort = await getSetting('smtp-port');
     const smtpUsername = await getSetting('smtp-username');
-    const smtpPassword = await getSetting('smtp-password');
+    const smtpPasswordRaw = await getSetting('smtp-password');
     const smtpUseTls = await getSetting('smtp-use-tls');
+
+    // Decode SMTP password (handles base64-encoded and plaintext)
+    const smtpPassword = smtpPasswordDecode(smtpPasswordRaw);
 
     if (!smtpServer || !smtpPort || !smtpUsername || !smtpPassword) {
       console.log('SMTP configuration incomplete, skipping notification');
@@ -60,8 +81,7 @@ const sendSmtpNotification = async (event, eventData, adminEmails, ccEmail) => {
         pass: smtpPassword
       },
       tls: {
-        rejectUnauthorized: false,
-        ciphers: 'SSLv3'
+        rejectUnauthorized: process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0',
       },
       requireTLS: smtpUseTls === 'true'
     });
@@ -139,8 +159,8 @@ const sendNotification = async (event, eventData = {}) => {
     const appNotificationsEnabled = await getSetting('enable-app-notifications');
     const userNotificationsEnabled = await getSetting('enable-user-notifications');
 
-    const isAppEvent = ['login', 'logout', 'app-start', 'app-stop', 'app-restart', 'errors'].includes(event);
-    const isUserEvent = ['security', 'user-activity'].includes(event);
+    const isAppEvent = ['login', 'logout', 'app-start', 'app-stop', 'app-restart', 'errors', 'system-reboot', 'system-shutdown'].includes(event);
+    const isUserEvent = ['security', 'user-activity', 'password-reset'].includes(event);
 
     console.log(`[Notification] AppNotif: ${appNotificationsEnabled}, UserNotif: ${userNotificationsEnabled}, IsApp: ${isAppEvent}, IsUser: ${isUserEvent}`);
 
@@ -195,7 +215,10 @@ const getEventTitle = (event) => {
     'app-restart': 'Application Restarted',
     'errors': 'System Error',
     'security': 'Security Alert',
-    'user-activity': 'User Activity'
+    'user-activity': 'User Activity',
+    'system-reboot': 'System Reboot',
+    'system-shutdown': 'System Shutdown',
+    'password-reset': 'Password Reset Requested'
   };
   return titles[event] || event;
 };
@@ -209,7 +232,10 @@ const getEventColor = (event) => {
     'app-restart': 16776960, // Yellow
     'errors': 16711680, // Red
     'security': 16711680, // Red
-    'user-activity': 3447003 // Blue
+    'user-activity': 3447003, // Blue
+    'system-reboot': 16776960, // Yellow
+    'system-shutdown': 16711680, // Red
+    'password-reset': 16776960 // Yellow - password change event
   };
   return colors[event] || 9807270;
 };
@@ -325,6 +351,53 @@ const buildEmailContent = (event, eventData) => {
       `;
       break;
     
+    case 'system-reboot':
+      subject = 'System Reboot Scheduled';
+      html = `
+        <h2>System Reboot Scheduled</h2>
+        <p>A system reboot has been scheduled.</p>
+        <ul>
+          <li><strong>Triggered By:</strong> ${eventData.triggeredBy || 'N/A'}</li>
+          <li><strong>Reason:</strong> ${eventData.reason || 'N/A'}</li>
+          <li><strong>Delay:</strong> ${eventData.delay || 60} seconds</li>
+          <li><strong>Scheduled At:</strong> ${eventData.scheduledAt || 'N/A'}</li>
+          <li><strong>IP Address:</strong> ${eventData.ipAddress || 'N/A'}</li>
+        </ul>
+        <p style="color: #e74c3c; font-weight: bold;">⚠️ The system will reboot once the delay expires.</p>
+      `;
+      break;
+
+    case 'system-shutdown':
+      subject = 'System Shutdown Scheduled';
+      html = `
+        <h2>System Shutdown Scheduled</h2>
+        <p>A system shutdown has been scheduled.</p>
+        <ul>
+          <li><strong>Triggered By:</strong> ${eventData.triggeredBy || 'N/A'}</li>
+          <li><strong>Reason:</strong> ${eventData.reason || 'N/A'}</li>
+          <li><strong>Delay:</strong> ${eventData.delay || 60} seconds</li>
+          <li><strong>Scheduled At:</strong> ${eventData.scheduledAt || 'N/A'}</li>
+          <li><strong>IP Address:</strong> ${eventData.ipAddress || 'N/A'}</li>
+        </ul>
+        <p style="color: #e74c3c; font-weight: bold;">⚠️ The system will shut down once the delay expires.</p>
+      `;
+      break;
+
+    case 'password-reset':
+      subject = 'Password Reset Requested';
+      html = `
+        <h2>Password Reset Requested</h2>
+        <p>A user has requested a password reset.</p>
+        <ul>
+          <li><strong>User:</strong> ${eventData.username || 'N/A'}</li>
+          <li><strong>Email:</strong> ${eventData.email || 'N/A'}</li>
+          <li><strong>IP Address:</strong> ${eventData.ipAddress || 'N/A'}</li>
+          <li><strong>Time:</strong> ${timestamp}</li>
+        </ul>
+        <p>If this was not initiated by the user, please investigate immediately.</p>
+      `;
+      break;
+
     default:
       subject = 'System Notification';
       html = `<h2>${event}</h2><p>An event has occurred.</p>`;
@@ -365,6 +438,12 @@ const buildDiscordMessage = (event, eventData, botUsername) => {
       return `**Security Alert**\n\nEvent: ${eventData.securityEvent || 'N/A'}\nIP: ${eventData.ipAddress || 'N/A'}\nSeverity: ${eventData.severity || 'Medium'}\nTime: ${timestamp}`;
     case 'user-activity':
       return `**User Activity**\n\nUser: ${eventData.username || 'N/A'}\nActivity: ${eventData.activity || 'N/A'}\nTime: ${timestamp}`;
+    case 'system-reboot':
+      return `**System Reboot Scheduled**\n\nTriggered By: ${eventData.triggeredBy || 'N/A'}\nReason: ${eventData.reason || 'N/A'}\nDelay: ${eventData.delay || 60}s\nScheduled: ${eventData.scheduledAt || 'N/A'}\nIP: ${eventData.ipAddress || 'N/A'}`;
+    case 'system-shutdown':
+      return `**System Shutdown Scheduled**\n\nTriggered By: ${eventData.triggeredBy || 'N/A'}\nReason: ${eventData.reason || 'N/A'}\nDelay: ${eventData.delay || 60}s\nScheduled: ${eventData.scheduledAt || 'N/A'}\nIP: ${eventData.ipAddress || 'N/A'}`;
+    case 'password-reset':
+      return `**Password Reset Requested**\n\nUser: ${eventData.username || 'N/A'}\nEmail: ${eventData.email || 'N/A'}\nIP: ${eventData.ipAddress || 'N/A'}\nTime: ${timestamp}`;
     default:
       return `**${event}**\n\nTime: ${timestamp}`;
   }
